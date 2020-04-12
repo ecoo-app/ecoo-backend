@@ -10,6 +10,7 @@ services:
  
 stages:
   - build
+  - test
   - publish
   - deploy
   - provision
@@ -20,7 +21,14 @@ build:
     - docker build -t $GOOGLE_TAG .
   tags:
     - docker
-  
+
+test:
+  stage: test
+  script:
+    - docker run $GOOGLE_TAG python manage.py test
+  tags:
+    - docker
+    
 publish:
   stage: publish
   image: google/cloud-sdk
