@@ -1,0 +1,54 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: __NAMESPACE_NAME__-backend
+  namespace: __NAMESPACE_NAME__
+spec:
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: __NAMESPACE_NAME__-backend
+    spec:
+      containers:
+      - command: ["/bin/bash", "-c", "python /code/manage.py migrate; python /code/manage.py collectstatic --noinput; uwsgi --ini /conf/uwsgi_app.ini"]
+        image: __TO_BE_REPLACED_BY_IMAGE_TAG__
+        imagePullPolicy: IfNotPresent
+        name: __NAMESPACE_NAME__-backend
+        envFrom:
+        - configMapRef:
+            name: __NAMESPACE_NAME__-config-map
+        - secretRef:
+            name: __NAMESPACE_NAME__-secret  
+        ports:
+          - containerPort: 8000
+        readinessProbe:
+          httpGet:
+            path: /admin/
+            port: 8000
+          initialDelaySeconds: 30
+          timeoutSeconds: 30
+        livenessProbe:
+          httpGet:
+            path: /admin/
+            port: 8000
+          initialDelaySeconds: 30
+          timeoutSeconds: 30
+        volumeMounts:
+          - mountPath: "/code/smedia"
+            name: __NAMESPACE_NAME__-pv
+            subPath: "smedia"
+          - mountPath: "/code/media"
+            name: __NAMESPACE_NAME__-pv
+            subPath: "media"
+          - mountPath: "/code/logs/"
+            name: __NAMESPACE_NAME__-pv
+            subPath: "logs"
+      restartPolicy: Always
+      volumes:
+        - name: __NAMESPACE_NAME__-pv
+          persistentVolumeClaim:
+            claimName: __NAMESPACE_NAME__-pvc
+
+status: {}
