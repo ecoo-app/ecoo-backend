@@ -19,7 +19,6 @@ MEDIA_ROOT = "/code/media/"
 STATIC_ROOT = "/code/static_root/"
 STATICFILES_DIRS = [
      '/code/static',
-     '/code/apps/assets',
 ]
 
 # I know, it shouldn't be here, will be removed later
