@@ -65,7 +65,7 @@ k8s-deploy-development:
     - gcloud container clusters get-credentials papers-cluster-development
   script:
     - find k8s -type f -name \*.yaml -exec sed -i "s|__TO_BE_REPLACED_BY_IMAGE_TAG__|"$GOOGLE_TAG"|g" {} +
-    - find k8s -type f -name \*.yaml -exec sed -i "s|__NAMESPACE__|"$NAMESPACE"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__NAMESPACE_NAME__|"$NAMESPACE"|g" {} +
     - find k8s -type f -name \*.yaml -exec sed -i "s|__DJANGO_DB_USER_DEVELOPMENT__|"$DJANGO_DB_USER_DEVELOPMENT"|g" {} +
     - find k8s -type f -name \*.yaml -exec sed -i "s|__DJANGO_DB_PASSWORD_DEVELOPMENT__|"$DJANGO_DB_PASSWORD_DEVELOPMENT"|g" {} +
     - find k8s -type f -name \*.yaml -exec sed -i "s|__DJANGO_DB_NAME_DEVELOPMENT__|"$DJANGO_DB_NAME_DEVELOPMENT"|g" {} +
@@ -121,8 +121,8 @@ provision-db-development:
     - export STOLON_PROXY=$(kubectl get pods --all-namespaces | grep stolon-proxy | awk 'NR==1{print $2}')
   script:
     - kubectl exec -n development-postgresql $STOLON_PROXY -- bash -c "export PGPASSWORD=$PG_DEV_MASTER_PASSWORD && psql --host=localhost --username=$PG_DEV_MASTER_USERNAME postgres -c \"CREATE DATABASE $DJANGO_DB_NAME_DEVELOPMENT\""  || true
-    - kubectl exec -n development-postgresql $STOLON_PROXY -- bash -c "export PGPASSWORD=$PG_DEV_MASTER_PASSWORD && psql --host=localhost --username=$PG_DEV_MASTER_USERNAME postgres -c \"CREATE USER $DJANGO_DB_USER WITH ENCRYPTED PASSWORD '$DJANGO_DB_PASSWORD_DEVELOPMENT'\"" || true
-    - kubectl exec -n development-postgresql $STOLON_PROXY -- bash -c "export PGPASSWORD=$PG_DEV_MASTER_PASSWORD && psql --host=localhost --username=$PG_DEV_MASTER_USERNAME postgres -c \"GRANT ALL PRIVILEGES ON DATABASE $DJANGO_DB_NAME to $DJANGO_DB_USER_DEVELOPMENT\""
+    - kubectl exec -n development-postgresql $STOLON_PROXY -- bash -c "export PGPASSWORD=$PG_DEV_MASTER_PASSWORD && psql --host=localhost --username=$PG_DEV_MASTER_USERNAME postgres -c \"CREATE USER $DJANGO_DB_USER_DEVELOPMENT WITH ENCRYPTED PASSWORD '$DJANGO_DB_PASSWORD_DEVELOPMENT'\"" || true
+    - kubectl exec -n development-postgresql $STOLON_PROXY -- bash -c "export PGPASSWORD=$PG_DEV_MASTER_PASSWORD && psql --host=localhost --username=$PG_DEV_MASTER_USERNAME postgres -c \"GRANT ALL PRIVILEGES ON DATABASE $DJANGO_DB_NAME_DEVELOPMENT to $DJANGO_DB_USER_DEVELOPMENT\""
   tags:
     - docker   
     
@@ -142,7 +142,7 @@ provision-db-production:
     - export STOLON_PROXY=$(kubectl get pods | grep stolon-proxy | awk 'NR==1{print $1}')
   script:
     - kubectl exec $STOLON_PROXY -- bash -c "export PGPASSWORD=$PG_PROD_MASTER_PASSWORD && psql --host=localhost --username=$PG_PROD_MASTER_USERNAME postgres -c \"CREATE DATABASE $DJANGO_DB_NAME_PRODUCTION\""  || true
-    - kubectl exec $STOLON_PROXY -- bash -c "export PGPASSWORD=$PG_PROD_MASTER_PASSWORD && psql --host=localhost --username=$PG_PROD_MASTER_USERNAME postgres -c \"CREATE USER $DJANGO_DB_USER WITH ENCRYPTED PASSWORD '$DJANGO_DB_PASSWORD_PRODUCTION'\"" || true
-    - kubectl exec $STOLON_PROXY -- bash -c "export PGPASSWORD=$PG_PROD_MASTER_PASSWORD && psql --host=localhost --username=$PG_PROD_MASTER_USERNAME postgres -c \"GRANT ALL PRIVILEGES ON DATABASE $DJANGO_DB_NAME to $DJANGO_DB_USER_PRODUCTION\""
+    - kubectl exec $STOLON_PROXY -- bash -c "export PGPASSWORD=$PG_PROD_MASTER_PASSWORD && psql --host=localhost --username=$PG_PROD_MASTER_USERNAME postgres -c \"CREATE USER $DJANGO_DB_USER_PRODUCTION WITH ENCRYPTED PASSWORD '$DJANGO_DB_PASSWORD_PRODUCTION'\"" || true
+    - kubectl exec $STOLON_PROXY -- bash -c "export PGPASSWORD=$PG_PROD_MASTER_PASSWORD && psql --host=localhost --username=$PG_PROD_MASTER_USERNAME postgres -c \"GRANT ALL PRIVILEGES ON DATABASE $DJANGO_DB_NAME_PRODUCTION to $DJANGO_DB_USER_PRODUCTION\""
   tags:
     - docker   
