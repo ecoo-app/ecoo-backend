@@ -29,7 +29,6 @@ class TransactionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TokenTransaction
-        fields = ['from_addr', 'to_addr', 'amount']
+        fields = ['from_addr', 'to_addr', 'amount', 'signature']
 
-
-# city ; model
+    # increase from wallet nonce

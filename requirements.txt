@@ -5,5 +5,9 @@ psycopg2-binary == 2.8.4
 psycopg2 ~= 2.8.4
 djangorestframework ~= 3.11.0
 djangorestframework-simplejwt ~= 4.4.0
+fcm-django ~= 0.3.4
 
 # FCM support: https://github.com/xtrinch/fcm-django
+# we have to store which wallets belong to a device!
+
+# social auth https://github.com/python-social-auth/social-app-django
