@@ -12,7 +12,7 @@ spec:
       template:
         spec:
           containers:
-            - name: ecoupon_flusher
+            - name: ecoupon-flusher
               image: _TO_BE_REPLACED_BY_IMAGE_TAG_
               imagePullPolicy: IfNotPresent
               command: ["/bin/bash", "-c", "python /code/manage.py flushexpiredtokens"]
