@@ -1,5 +1,5 @@
 from django.apps import AppConfig
 
 
-class MunicipalityConfig(AppConfig):
+class CurrencyConfig(AppConfig):
     name = 'currency'

@@ -45,9 +45,8 @@ class TransactionDetail(generics.CreateAPIView):
             raise PermissionDenied()
 
         # TODO: check signature
-        if self.request.data.get('nonce') < serializer.validated_data['from_addr'].nonce:
-            pass
-            # TODO: check nonce request.data['nonce'] => how to react if not ok
+        if self.request.data.get('nonce') <= serializer.validated_data['from_addr'].nonce:
+            raise PermissionDenied("Nonce is incorrect")
 
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
