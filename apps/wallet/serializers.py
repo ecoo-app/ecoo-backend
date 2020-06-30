@@ -4,14 +4,18 @@ from apps.wallet.models import Wallet, TokenTransaction
 
 class WalletSerializer(serializers.ModelSerializer):
     balance = serializers.SerializerMethodField('get_balance')
+    actual_nonce = serializers.SerializerMethodField('get_nonce')
 
     def get_balance(self, wallet):
         # TODO: how to get balance of account?
         return 100.4
 
+    def get_nonce(self, wallet):
+        return wallet.nonce
+
     class Meta:
         model = Wallet
-        fields = ['walletID', 'balance', 'address', 'pub_key']
+        fields = ['walletID', 'balance', 'address', 'pub_key', 'actual_nonce']
 
 
 class PublicWalletSerializer(WalletSerializer):
