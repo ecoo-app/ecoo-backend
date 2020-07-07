@@ -68,3 +68,6 @@ class UserDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
         user = self.request.user
 
         return Response(UserSerializer(user).data)
+
+
+# TODO: add user verification view

@@ -33,6 +33,10 @@ class WalletDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
         return Response(serializer.data)
 
 
+class WalletCreate(generics.CreateAPIView):
+    pass
+
+
 class WalletList(generics.ListAPIView):
     serializer_class = WalletSerializer
 
