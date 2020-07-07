@@ -69,6 +69,20 @@ k8s-deploy-development:
     - find k8s -type f -name \*.yaml -exec sed -i "s|__DJANGO_DB_USER_DEVELOPMENT__|"$DJANGO_DB_USER_DEVELOPMENT"|g" {} +
     - find k8s -type f -name \*.yaml -exec sed -i "s|__DJANGO_DB_PASSWORD_DEVELOPMENT__|"$DJANGO_DB_PASSWORD_DEVELOPMENT"|g" {} +
     - find k8s -type f -name \*.yaml -exec sed -i "s|__DJANGO_DB_NAME_DEVELOPMENT__|"$DJANGO_DB_NAME_DEVELOPMENT"|g" {} +
+    
+    # OAUTH APPLE
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__APPLE_ID_CLIENT__|"$APPLE_ID_CLIENT"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__APPLE_ID_TEAM__|"$APPLE_ID_TEAM"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__APPLE_ID_KEY__|"$APPLE_ID_KEY"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__APPLE_ID_SECRET__|"$APPLE_ID_SECRET"|g" {} +
+    
+    # OAUTH GOOGLE
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__GOOGLE_OAUTH2_KEY__|"$GOOGLE_OAUTH2_DEV_KEY"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__GOOGLE_OAUTH2_SECRET__|"$GOOGLE_OAUTH2_DEV_SECRET"|g" {} +
+    
+
+
+    
     - kubectl apply -f k8s/common/namespace.yaml
     - kubectl apply -f k8s/development/secret.yaml
     - kubectl apply -f k8s/development/ --recursive

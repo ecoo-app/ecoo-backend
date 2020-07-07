@@ -1,13 +1,15 @@
 from django.core.exceptions import PermissionDenied
+from django.db.models import Q
 from django.shortcuts import render
 from rest_framework import generics, mixins, status
+from rest_framework.exceptions import APIException, ValidationError
 from rest_framework.response import Response
 
-from apps.wallet.models import Wallet, TokenTransaction
+from apps.wallet.models import TokenTransaction, Wallet
 from apps.wallet.serializers import (PublicWalletSerializer,
                                      TransactionSerializer, WalletSerializer)
 from apps.wallet.utils import CustomCursorPagination
-from rest_framework.exceptions import APIException, ValidationError
+from pytezos import Key
 
 class WalletDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
     lookup_field = "walletID"
@@ -29,10 +31,12 @@ class WalletDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
 
         return Response(serializer.data)
 
+
 class WalletList(generics.ListAPIView):
     serializer_class = WalletSerializer
-    
 
+    def get_queryset(self):
+        return Wallet.getBelongingToUser(self.request.user)
 
 
 class TransactionDetail(generics.CreateAPIView):
@@ -44,26 +48,32 @@ class TransactionDetail(generics.CreateAPIView):
 
         if self.request.user != serializer.validated_data['from_addr'].owner:
             raise PermissionDenied()
+        
+        from_address = serializer.validated_data['from_addr'].address
 
-        # TODO: check signature
+        pk = Key.from_encoded_key(from_address)
+        # TODO: exchange TEST with the message to test for! 
+        if pk.verify(self.request.data.get('signature'), 'test') != None:
+            e = APIException()
+            e.status_code = 422
+            e.detail = 'Signature is invalid'
+            raise e
+
         if self.request.data.get('nonce') - serializer.validated_data['from_addr'].nonce != 1:
             e = APIException()
             e.status_code = 422
             e.detail = 'Nonce value is incorrect'
             raise e
-        
+
+        # try:
+
         obj = serializer.save()
         headers = self.get_success_headers(serializer.data)
 
         obj.from_addr.nonce += 1
         obj.from_addr.save()
-        
 
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
-
-    # def validate(self, data):
-    #     return data
 
 
 class TransactionList(generics.ListAPIView):
@@ -73,11 +83,6 @@ class TransactionList(generics.ListAPIView):
     pagination_class = CustomCursorPagination
 
     def get_queryset(self):
-        """
-        This view should return a list of all the purchases
-        for the currently authenticated user.
-        """
-        # TODO: adjust transactions belonging to wallets of the signed in user
-        return TokenTransaction.objects.all()
-
-# wallet list by user
+        if self.request.user.is_superuser:
+            return TokenTransaction.objects.all()
+        return TokenTransaction.getBelongingToUser(self.request.user)

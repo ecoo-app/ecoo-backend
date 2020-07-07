@@ -26,7 +26,7 @@ RUN apt-get update \
     && apt-get -y install --no-install-recommends apt-utils dialog 2>&1 \
     #
     # Verify git, process tools, lsb-release (common in install instructions for CLIs) installed
-    && apt-get -y install git openssh-client iproute2 procps lsb-release python3-dev libpq-dev gcc\
+    && apt-get -y install git openssh-client iproute2 procps lsb-release python3-dev libpq-dev gcc libsodium-dev libsecp256k1-dev libgmp-dev pkg-config libssl-dev build-essential automake pkg-config libtool libffi-dev libgmp-dev libyaml-cpp-dev libsecp256k1-dev libsodium-dev libsecp256k1-dev libgmp-dev
     #
     # Install pylint
     && pip --disable-pip-version-check --no-cache-dir install pylint \
