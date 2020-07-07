@@ -7,8 +7,8 @@ RUN apt-get -y update \
     && rm -rf /var/lib/apt/lists/*
 
 RUN apt-get update && apt-get install -y --no-install-recommends apt-utils libpq-dev
-RUN apt install libsodium-dev libsecp256k1-dev libgmp-dev pkg-config
-RUN apt-get -y install git openssh-client iproute2 procps lsb-release python3-dev libpq-dev gcc libsodium-dev libsecp256k1-dev libgmp-dev pkg-config libssl-dev build-essential automake pkg-config libtool libffi-dev libgmp-dev libyaml-cpp-dev libsecp256k1-dev libsodium-dev libsecp256k1-dev libgmp-dev
+RUN apt install -y libsodium-dev libsecp256k1-dev libgmp-dev pkg-config
+RUN apt-get install -y --no-install-recommends git openssh-client iproute2 procps lsb-release python3-dev libpq-dev gcc libsodium-dev libsecp256k1-dev libgmp-dev pkg-config libssl-dev build-essential automake pkg-config libtool libffi-dev libgmp-dev libyaml-cpp-dev libsecp256k1-dev libsodium-dev libsecp256k1-dev libgmp-dev
 
 RUN pip install --upgrade pip
 
