@@ -7,6 +7,7 @@ from apps.wallet.models import Wallet, TokenTransaction
 from apps.wallet.serializers import (PublicWalletSerializer,
                                      TransactionSerializer, WalletSerializer)
 from apps.wallet.utils import CustomCursorPagination
+from rest_framework.exceptions import APIException, ValidationError
 
 class WalletDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
     lookup_field = "walletID"
@@ -45,11 +46,19 @@ class TransactionDetail(generics.CreateAPIView):
             raise PermissionDenied()
 
         # TODO: check signature
-        if self.request.data.get('nonce') <= serializer.validated_data['from_addr'].nonce:
-            raise PermissionDenied("Nonce is incorrect")
-
-        self.perform_create(serializer)
+        if self.request.data.get('nonce') - serializer.validated_data['from_addr'].nonce != 1:
+            e = APIException()
+            e.status_code = 422
+            e.detail = 'Nonce value is incorrect'
+            raise e
+        
+        obj = serializer.save()
         headers = self.get_success_headers(serializer.data)
+
+        obj.from_addr.nonce += 1
+        obj.from_addr.save()
+        
+
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
