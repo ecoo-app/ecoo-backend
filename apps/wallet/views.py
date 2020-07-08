@@ -8,7 +8,7 @@ from rest_framework.decorators import api_view
 from rest_framework.exceptions import APIException, ValidationError
 from rest_framework.response import Response
 
-from apps.wallet.models import TokenTransaction, Wallet
+from apps.wallet.models import TokenTransaction, WALLET_STATES, Wallet
 from apps.wallet.serializers import (CreateWalletSerializer,
                                      PublicWalletSerializer,
                                      TransactionSerializer, WalletSerializer)
@@ -92,6 +92,13 @@ class TransactionCreate(generics.CreateAPIView):
         from_address = serializer.validated_data['from_addr']
         to_address = serializer.validated_data['to_addr']
 
+        if from_address.state != WALLET_STATES.VERIFIED:
+            e = APIException()
+            e.status_code = 403
+            e.detail = 'Only verified addresses can send money'
+            raise e
+
+
         key = Key.from_encoded_key(from_address.pub_key)
         data = {
             "prim": "pair",
@@ -146,6 +153,5 @@ class TransactionList(generics.ListAPIView):
         if self.request.user.is_superuser:
             return TokenTransaction.objects.all()
         return TokenTransaction.getBelongingToUser(self.request.user)
-
 
 # TODO: verify_wallet 
