@@ -4,6 +4,7 @@ from django.db.models import Q
 from django.shortcuts import render
 from pytezos import Key
 from rest_framework import generics, mixins, status
+from rest_framework.decorators import api_view
 from rest_framework.exceptions import APIException, ValidationError
 from rest_framework.response import Response
 
@@ -33,6 +34,17 @@ class WalletDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
 
         return Response(serializer.data)
 
+@api_view(['GET'])
+def get_nonce(request, walletID=None):
+
+    if walletID:
+        wallet = Wallet.objects.get(walletID=walletID)
+        return Response({"nonce":str(wallet.nonce)})
+    else:
+        e = APIException()
+        e.status_code = 422
+        e.detail = 'walletID is invalid'
+        raise e
 
 class WalletCreate(generics.CreateAPIView):
     serializer_class = CreateWalletSerializer
