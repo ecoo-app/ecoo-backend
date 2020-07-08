@@ -8,6 +8,9 @@ from project.mixins import UUIDModel
 class Currency(UUIDModel):
     name = models.CharField(max_length=32)
 
+    class Meta:
+        verbose_name_plural = 'Currencies'
+
     # TODO: additional fields?
     def __str__(self):
         return self.name
