@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from apps.wallet.models import Wallet, TokenTransaction
+
+from apps.wallet.models import TokenTransaction, Wallet
 
 
 class WalletSerializer(serializers.ModelSerializer):
@@ -16,6 +17,12 @@ class WalletSerializer(serializers.ModelSerializer):
     class Meta:
         model = Wallet
         fields = ['walletID', 'balance', 'address', 'pub_key', 'actual_nonce']
+
+
+class CreateWalletSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Wallet
+        fields = ['address', 'pub_key','company']
 
 
 class PublicWalletSerializer(WalletSerializer):

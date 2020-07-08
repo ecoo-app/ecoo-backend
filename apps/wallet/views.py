@@ -1,15 +1,17 @@
+import pytezos
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.shortcuts import render
+from pytezos import Key
 from rest_framework import generics, mixins, status
 from rest_framework.exceptions import APIException, ValidationError
 from rest_framework.response import Response
 
 from apps.wallet.models import TokenTransaction, Wallet
-from apps.wallet.serializers import (PublicWalletSerializer,
+from apps.wallet.serializers import (CreateWalletSerializer,
+                                     PublicWalletSerializer,
                                      TransactionSerializer, WalletSerializer)
 from apps.wallet.utils import CustomCursorPagination
-from pytezos import Key
 
 
 class WalletDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
@@ -34,7 +36,29 @@ class WalletDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
 
 
 class WalletCreate(generics.CreateAPIView):
-    pass
+    serializer_class = CreateWalletSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+
+        obj = serializer.save()
+        if obj.company:
+            obj.owner = request.user
+        else:
+            if obj.company.owner != request.user:
+                e = APIException()
+                e.status_code = 403
+                e.detail = "You aren't the owner of the company"
+                raise e
+        
+        # TODO: create walletID
+
+        obj.save()
+        
+        headers = self.get_success_headers(serializer.data)
+        return Response(self.get_serializer(obj).data, status=status.HTTP_201_CREATED, headers=headers)
 
 
 class WalletList(generics.ListAPIView):
@@ -44,7 +68,7 @@ class WalletList(generics.ListAPIView):
         return Wallet.getBelongingToUser(self.request.user)
 
 
-class TransactionDetail(generics.CreateAPIView):
+class TransactionCreate(generics.CreateAPIView):
     serializer_class = TransactionSerializer
 
     def create(self, request, *args, **kwargs):
@@ -78,7 +102,7 @@ class TransactionDetail(generics.CreateAPIView):
             ]
         }
 
-        forged_data = pytezso.michelson.forge.forge_micheline(data)
+        forged_data = pytezos.michelson.forge.forge_micheline(data)
 
         if key.verify(self.request.data.get('signature'), forged_data) != None:
             e = APIException()
@@ -98,7 +122,7 @@ class TransactionDetail(generics.CreateAPIView):
         obj.from_addr.nonce += 1
         obj.from_addr.save()
 
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        return Response(self.get_serializer(obj).data, status=status.HTTP_201_CREATED, headers=headers)
 
 
 class TransactionList(generics.ListAPIView):
