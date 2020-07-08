@@ -32,6 +32,7 @@ urlpatterns = [
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/wallet/', include('apps.wallet.urls')),
     path('api/auth/', include('apps.custom_auth.urls')),
+    path('api/currency/', include('apps.currency.urls')),
     path('auth/', include('rest_framework_social_oauth2.urls')),
     # path('social/', include('social_django.urls', namespace='social')),
 ]
