@@ -21,8 +21,7 @@ class VerificationInputList(generics.ListAPIView):
 
 
 @api_view(['POST'])
-def verify(request):
-    print(request.body)
+def verify(request, currency_uuid=None, company_uuid=None):
     # TODO: how to verify user for e currency with the provided input?
     # where/what to store if user/company is verified for a specific currency
     return Response({"message": "Hello, world!"})

@@ -33,7 +33,6 @@ WALLET_STATE_CHOICES = (
 
 
 class Wallet(CurrencyOwnedMixin):
-    # TODO: municipality owned?
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL, blank=True, null=True, on_delete=models.DO_NOTHING)
     company = models.ForeignKey(
@@ -89,3 +88,6 @@ class TokenTransaction(UUIDModel):
     def getBelongingToUser(user):
         belonging_wallets = Wallet.getBelongingToUser(user)
         return TokenTransaction.objects.filter(Q(from_addr__in=belonging_wallets)|Q(to_addr__in=belonging_wallets))
+
+
+# TODO: model to store verified 

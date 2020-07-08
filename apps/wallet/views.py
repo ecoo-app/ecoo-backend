@@ -27,7 +27,6 @@ class WalletDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
         wallet = self.get_object()
 
         if request.user.is_superuser == True or request.user == wallet.owner:
-            pass
             serializer = WalletSerializer(wallet)
         else:
             serializer = PublicWalletSerializer(wallet)
@@ -41,7 +40,6 @@ class WalletCreate(generics.CreateAPIView):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
 
         obj = serializer.save()
         if obj.company:
@@ -63,6 +61,7 @@ class WalletCreate(generics.CreateAPIView):
 
 class WalletList(generics.ListAPIView):
     serializer_class = WalletSerializer
+    filterset_fields = ['currency']
 
     def get_queryset(self):
         return Wallet.getBelongingToUser(self.request.user)
@@ -135,3 +134,6 @@ class TransactionList(generics.ListAPIView):
         if self.request.user.is_superuser:
             return TokenTransaction.objects.all()
         return TokenTransaction.getBelongingToUser(self.request.user)
+
+
+# TODO: verify_wallet 
