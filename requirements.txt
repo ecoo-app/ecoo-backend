@@ -6,7 +6,10 @@ psycopg2 ~= 2.8.4
 djangorestframework ~= 3.11.0
 djangorestframework-simplejwt ~= 4.4.0
 fcm-django ~= 0.3.4
-
+pytezos ~= 2.5.1
+social-auth-core ~= 3.3.3
+social-auth-app-django ~= 4.0.0
+django-rest-framework-social-oauth2 ~= 1.1.0
 # FCM support: https://github.com/xtrinch/fcm-django
 # we have to store which wallets belong to a device!
 

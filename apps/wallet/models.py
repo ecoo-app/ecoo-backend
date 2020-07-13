@@ -5,6 +5,7 @@ from django.db import models
 from apps.currency.mixins import CurrencyOwnedMixin
 from project import settings
 from project.mixins import UUIDModel
+from django.db.models import Q
 
 
 class Company(UUIDModel):
@@ -37,16 +38,23 @@ class Wallet(CurrencyOwnedMixin):
         settings.AUTH_USER_MODEL, blank=True, null=True, on_delete=models.DO_NOTHING)
     company = models.ForeignKey(
         Company, blank=True, null=True, on_delete=models.SET_NULL)
-    walletID = models.CharField(unique=True, max_length=128)
-    address = models.TextField()
-    pub_key = models.TextField()
+    walletID = models.CharField(unique=True, max_length=128) # generated in BE -> to be specified...
+    address = models.TextField() # TZ adress (maybe not needed)
+    pub_key = models.TextField() # tz public_key
     nonce = models.IntegerField(default=0)
-    is_owner_wallet = models.BooleanField(default=False)
+    is_owner_wallet = models.BooleanField(default=False) # only true if belongs to "gemeinde"
 
     state = models.IntegerField(default=0)
 
     def __str__(self):
         return self.walletID
+
+    @staticmethod
+    def getBelongingToUser(user):
+        if user.is_superuser:
+            return Wallet.objects.all()
+
+        return Wallet.objects.filter(Q(owner=user)|Q(company__owner=user))
 
 
 class TRANSACTION_STATES(Enum):
@@ -63,6 +71,7 @@ PROPOSAL_STATE_CHOICES = (
 
 
 class TokenTransaction(UUIDModel):
+    # TODO: rename fields to from_wallet etc.
     from_addr = models.ForeignKey(
         Wallet, on_delete=models.DO_NOTHING, related_name='fromtransaction')
     to_addr = models.ForeignKey(
@@ -74,3 +83,9 @@ class TokenTransaction(UUIDModel):
 
     created = models.DateTimeField(auto_now_add=True, null=True)
     submitted_to_chain_at = models.DateTimeField(blank=True, null=True)
+
+
+    @staticmethod
+    def getBelongingToUser(user):
+        belonging_wallets = Wallet.getBelongingToUser(user)
+        return TokenTransaction.objects.filter(Q(from_addr__in=belonging_wallets)|Q(to_addr__in=belonging_wallets))
