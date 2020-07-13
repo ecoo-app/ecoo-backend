@@ -7,6 +7,11 @@ from project.mixins import UUIDModel
 
 class Currency(UUIDModel):
     name = models.CharField(max_length=32)
+    token_id = models.IntegerField(null=True)
+    # TODO: Is the token_id needed in the frontend?
+
+    class Meta:
+        verbose_name_plural = 'Currencies'
 
     # TODO: additional fields?
     def __str__(self):
@@ -32,4 +37,3 @@ class VerificationInput(UUIDModel):
 
     label = models.CharField(max_length=32)
     data_type = models.IntegerField(default=0, choices=VERIFICATION_INPUT_CHOICES)
-    # -> Set to verified if ok (on post request); cannot claim until verified

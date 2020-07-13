@@ -1,5 +1,7 @@
-from apps.custom_auth.views import CreateUserView, UserDetail, exchange_token, test_view
 from django.urls import path
+
+from apps.custom_auth.views import (CreateUserView, UserDetail, exchange_token,
+                                    test_view)
 
 urlpatterns = [
     path('signup/', CreateUserView.as_view(), name='signup'),
