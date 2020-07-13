@@ -33,9 +33,9 @@ urlpatterns = [
     path('api/wallet/', include('apps.wallet.urls')),
     path('api/auth/', include('apps.custom_auth.urls')),
     path('auth/', include('rest_framework_social_oauth2.urls')),
-    path('social/', include('social_django.urls', namespace='social')),
+    # path('social/', include('social_django.urls', namespace='social')),
 ]
 
-if settings.DEBUG:  # new
+if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL,
                           document_root=settings.MEDIA_ROOT)

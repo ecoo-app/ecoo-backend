@@ -11,6 +11,7 @@ from apps.wallet.serializers import (PublicWalletSerializer,
 from apps.wallet.utils import CustomCursorPagination
 from pytezos import Key
 
+
 class WalletDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
     lookup_field = "walletID"
     queryset = Wallet.objects.all()
@@ -32,6 +33,10 @@ class WalletDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
         return Response(serializer.data)
 
 
+class WalletCreate(generics.CreateAPIView):
+    pass
+
+
 class WalletList(generics.ListAPIView):
     serializer_class = WalletSerializer
 
@@ -48,12 +53,34 @@ class TransactionDetail(generics.CreateAPIView):
 
         if self.request.user != serializer.validated_data['from_addr'].owner:
             raise PermissionDenied()
-        
-        from_address = serializer.validated_data['from_addr'].address
 
-        pk = Key.from_encoded_key(from_address)
-        # TODO: exchange TEST with the message to test for! 
-        if pk.verify(self.request.data.get('signature'), 'test') != None:
+        from_address = serializer.validated_data['from_addr']
+        to_address = serializer.validated_data['to_addr']
+
+        key = Key.from_encoded_key(from_address.pub_key)
+        data = {
+            "prim": "pair",
+            "args": [
+                {"string": from_address.address},
+                {
+                    "prim": "pair",
+                    "args": [
+                            {"string": to_address.address},
+                            {
+                                "prim": "pair",
+                                "args": [
+                                        {"nat": serializer.validated_data['amount']},
+                                        {"nat": serializer.validated_data['nonce']} # TODO: is this correct??
+                                ]
+                            }
+                    ]
+                }
+            ]
+        }
+
+        forged_data = pytezso.michelson.forge.forge_micheline(data)
+
+        if key.verify(self.request.data.get('signature'), forged_data) != None:
             e = APIException()
             e.status_code = 422
             e.detail = 'Signature is invalid'
@@ -64,8 +91,6 @@ class TransactionDetail(generics.CreateAPIView):
             e.status_code = 422
             e.detail = 'Nonce value is incorrect'
             raise e
-
-        # try:
 
         obj = serializer.save()
         headers = self.get_success_headers(serializer.data)

@@ -44,7 +44,7 @@ class Wallet(CurrencyOwnedMixin):
     nonce = models.IntegerField(default=0)
     is_owner_wallet = models.BooleanField(default=False) # only true if belongs to "gemeinde"
 
-    state = models.IntegerField(default=0)
+    state = models.IntegerField(default=0, choices=WALLET_STATE_CHOICES)
 
     def __str__(self):
         return self.walletID
@@ -63,7 +63,7 @@ class TRANSACTION_STATES(Enum):
     DONE = 3
 
 
-PROPOSAL_STATE_CHOICES = (
+TRANSACTION_STATE_CHOICES = (
     (TRANSACTION_STATES.OPEN.value, 'Open'),
     (TRANSACTION_STATES.PENDING.value, 'Pending'),
     (TRANSACTION_STATES.DONE.value, 'Done'),
@@ -78,7 +78,7 @@ class TokenTransaction(UUIDModel):
         Wallet, on_delete=models.DO_NOTHING, related_name='totransaction')
     amount = models.FloatField()
 
-    state = models.IntegerField(choices=PROPOSAL_STATE_CHOICES, default=1)
+    state = models.IntegerField(choices=TRANSACTION_STATE_CHOICES, default=1)
     signature = models.CharField(max_length=64, null=True)
 
     created = models.DateTimeField(auto_now_add=True, null=True)
