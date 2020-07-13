@@ -8,7 +8,8 @@ class WalletSerializer(serializers.ModelSerializer):
     actual_nonce = serializers.SerializerMethodField('get_nonce')
 
     def get_balance(self, wallet):
-        # TODO: how to get balance of account?
+        # TODO: get balance of account on blockchain & apply the transactions stored but not commited
+        # entry point get_balance -> move function to utils
         return 100.4
 
     def get_nonce(self, wallet):
@@ -20,9 +21,11 @@ class WalletSerializer(serializers.ModelSerializer):
 
 
 class CreateWalletSerializer(serializers.ModelSerializer):
+    verification_uuid = serializers.UUIDField(required=False)
+
     class Meta:
         model = Wallet
-        fields = ['address', 'pub_key','company']
+        fields = ['address', 'pub_key', 'company']
 
 
 class PublicWalletSerializer(WalletSerializer):

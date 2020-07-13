@@ -3,7 +3,8 @@ from django.urls import include, path
 from rest_framework import routers
 
 from apps.wallet.views import (TransactionCreate, TransactionList,
-                               WalletDetail, WalletList, WalletCreate, get_nonce)
+                               WalletCreate, WalletDetail, WalletList,
+                               get_nonce)
 
 urlpatterns = [
     path('wallet/list/', WalletList.as_view(), name='wallet_list'),

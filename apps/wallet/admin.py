@@ -4,8 +4,8 @@ from apps.wallet.models import ClaimableAmount, Company, TokenTransaction, Walle
 
 @admin.register(Wallet)
 class WalletAdmin(admin.ModelAdmin):
-    fields = ('currency', 'walletID', 'owner', 'pub_key',)
-    list_display = ('walletID', 'owner', 'pub_key')
+    fields = ('currency', 'walletID', 'owner', 'pub_key', 'state', 'address')
+    list_display = ('walletID', 'owner','address','state')
 
 
 @admin.register(TokenTransaction)
