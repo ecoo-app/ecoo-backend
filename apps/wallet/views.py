@@ -115,6 +115,12 @@ class TransactionCreate(generics.CreateAPIView):
             e.detail = 'Only verified addresses can send money'
             raise e
 
+        if from_address.currency != to_address.currency:
+            e = APIException()
+            e.status_code = 422
+            e.detail = 'Both wallets have to belong to the same currency'
+            raise e
+
         if not self.request.data.get('nonce', None) or self.request.data.get('nonce') - serializer.validated_data['from_addr'].nonce != 1:
             e = APIException()
             e.status_code = 422
@@ -123,36 +129,96 @@ class TransactionCreate(generics.CreateAPIView):
 
         key = Key.from_encoded_key(from_address.pub_key)
 
-        data = {
-            "prim": "pair",
-            "args": [
-                # {"string": str(binascii.hexlify(from_address.address.encode()))},
-                {"string": from_address.address.encode()},
+        if from_address.balance < serializer.validated_data['amount']:
+            e = APIException()
+            e.status_code = 403
+            e.detail = 'Balance is to small'
+            raise e
+
+        signature = self.request.data.get('signature')
+
+        m1 = {
+            'prim': 'Pair',
+            'args': [
                 {
-                    "prim": "pair",
-                    "args": [
-                            # {"string": (binascii.hexlify(to_address.address.encode()))},
-                            {"string": to_address.address.encode()},
-                            {
-                                "prim": "pair",
-                                "args": [
-                                        {"int": serializer.validated_data['amount']},
-                                        # TODO: is this correct??
-                                        {"nat": request.data['nonce']}
-                                        # {"int": 1}
-                                ]
-                            }
+                    'string': from_address.pub_key
+                },
+                {
+                    'prim': 'Pair',
+                    'args': [
+                        {
+                            'int': request.data['nonce']
+                        },
+                            [
+                                {
+                                    'prim': 'Pair',
+                                    'args':[
+                                        {
+                                            'string': to_address.address
+                                        },
+                                        {
+                                            'prim': 'Pair',
+                                            'args':[
+                                                {
+                                                    'int': 0 # TODO: change to correct token id
+                                                },
+                                                {
+                                                    'int': serializer.validated_data['amount']
+                                                }
+                                            ]
+                                        }
+                                        
+                                    ]
+                                }
+                            ]
+                    ]
+                }
+            ]
+
+        }
+
+        m2 = {
+            'prim': 'pair',
+            'args': [
+                {
+                    'prim': 'bytes',
+                },
+                {
+                    'prim': 'pair',
+                    'args': [
+                        {
+                            'prim': 'int',
+                        },
+                        {
+                            'prim': 'list',
+                            'args': [
+                                {
+                                    'prim': 'pair',
+                                    'args': [
+                                        {
+                                            'prim': 'address',
+                                        },
+                                        {
+                                            'prim': 'pair',
+                                            'args': [
+                                                {
+                                                    'prim': 'int',
+                                                },
+                                                {
+                                                    'prim': 'int',
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
                     ]
                 }
             ]
         }
 
-        # packed = pytezos.michelson.pack.pack(data)
-        forged_data = pytezos.michelson.forge.forge_micheline(
-            data)
-
-        res = key.verify(self.request.data.get(
-            'signature'), b'\x05' + forged_data)
+        res = key.verify(signature, pytezos.michelson.pack.pack(m1, m2).hex())
 
         if res != None:
             e = APIException()
@@ -161,14 +227,13 @@ class TransactionCreate(generics.CreateAPIView):
             raise e
 
         obj = serializer.save()
-        obj.amount = obj.amount / 100  # because the amount is in cents
+        # attention the amount is in cents
         headers = self.get_success_headers(serializer.data)
 
         obj.from_addr.nonce += 1
         obj.from_addr.save()
 
-        return Response(self.get_serializer(obj).data, status=status.HTTP_201_CREATED, headers=headers)
-        # return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
 class TransactionList(generics.ListAPIView):

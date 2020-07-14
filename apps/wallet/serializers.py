@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from apps.wallet.models import TokenTransaction, Wallet
+from apps.wallet.utils import getBalanceForWallet
 
 
 class WalletSerializer(serializers.ModelSerializer):
@@ -8,9 +9,7 @@ class WalletSerializer(serializers.ModelSerializer):
     actual_nonce = serializers.SerializerMethodField('get_nonce')
 
     def get_balance(self, wallet):
-        # TODO: get balance of account on blockchain & apply the transactions stored but not commited
-        # entry point get_balance -> move function to utils
-        return 100.4
+        return getBalanceForWallet(wallet)
 
     def get_nonce(self, wallet):
         return wallet.nonce
@@ -44,5 +43,3 @@ class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = TokenTransaction
         fields = ['from_addr', 'to_addr', 'amount', 'signature']
-
-    # increase from wallet nonce

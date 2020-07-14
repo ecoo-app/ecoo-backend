@@ -6,6 +6,7 @@ from django.db.models import Q
 from apps.currency.mixins import CurrencyOwnedMixin
 from project import settings
 from project.mixins import UUIDModel
+from apps.wallet.utils import getBalanceForWallet
 
 
 class Company(UUIDModel):
@@ -46,6 +47,10 @@ class Wallet(CurrencyOwnedMixin):
     is_owner_wallet = models.BooleanField(default=False)
 
     state = models.IntegerField(default=0, choices=WALLET_STATE_CHOICES)
+
+    @property
+    def balance(self):
+        return getBalanceForWallet(self)
 
     def __str__(self):
         return self.walletID
