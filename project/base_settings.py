@@ -50,6 +50,9 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
     'django_filters',
+
+    "fcm_django",
+
     'apps.wallet',
     'apps.devices',
     'apps.currency',
@@ -250,3 +253,15 @@ SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.social_auth.load_extra_data',
     'social_core.pipeline.user.user_details',
 )
+
+
+FCM_DJANGO_SETTINGS = {
+        "APP_VERBOSE_NAME": "FCM Django",
+        "FCM_SERVER_KEY": "[your api key]",
+         # true if you want to have only one active device per registered user at a time
+         # default: False
+        "ONE_DEVICE_PER_USER": True, # TODO: correct?
+         # devices to which notifications cannot be sent,
+         # are deleted upon receiving error response from FCM
+        "DELETE_INACTIVE_DEVICES": True,
+}
