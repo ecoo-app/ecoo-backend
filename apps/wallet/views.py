@@ -15,7 +15,7 @@ from apps.wallet.models import (WALLET_STATES, TokenTransaction,
 from apps.wallet.serializers import (CreateWalletSerializer,
                                      PublicWalletSerializer,
                                      TransactionSerializer, WalletSerializer)
-from apps.wallet.utils import CustomCursorPagination
+from apps.wallet.utils import CustomCursorPagination, createMessage
 
 
 class WalletDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
@@ -137,88 +137,10 @@ class TransactionCreate(generics.CreateAPIView):
 
         signature = self.request.data.get('signature')
 
-        m1 = {
-            'prim': 'Pair',
-            'args': [
-                {
-                    'string': from_address.pub_key
-                },
-                {
-                    'prim': 'Pair',
-                    'args': [
-                        {
-                            'int': request.data['nonce']
-                        },
-                            [
-                                {
-                                    'prim': 'Pair',
-                                    'args':[
-                                        {
-                                            'string': to_address.address
-                                        },
-                                        {
-                                            'prim': 'Pair',
-                                            'args':[
-                                                {
-                                                    'int': 0 # TODO: change to correct token id
-                                                },
-                                                {
-                                                    'int': serializer.validated_data['amount']
-                                                }
-                                            ]
-                                        }
-                                        
-                                    ]
-                                }
-                            ]
-                    ]
-                }
-            ]
-
-        }
-
-        m2 = {
-            'prim': 'pair',
-            'args': [
-                {
-                    'prim': 'bytes',
-                },
-                {
-                    'prim': 'pair',
-                    'args': [
-                        {
-                            'prim': 'int',
-                        },
-                        {
-                            'prim': 'list',
-                            'args': [
-                                {
-                                    'prim': 'pair',
-                                    'args': [
-                                        {
-                                            'prim': 'address',
-                                        },
-                                        {
-                                            'prim': 'pair',
-                                            'args': [
-                                                {
-                                                    'prim': 'int',
-                                                },
-                                                {
-                                                    'prim': 'int',
-                                                }
-                                            ]
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                }
-            ]
-        }
-
-        res = key.verify(signature, pytezos.michelson.pack.pack(m1, m2).hex())
+        token_id = 0 # TODO: implement this
+        message = createMessage(from_address, to_address, request.data['nonce'], token_id, int(serializer.validated_data['amount']) )
+        key = pytezos.Key.from_encoded_key(from_address.public_key)
+        res = key.verify(signature, message)
 
         if res != None:
             e = APIException()
@@ -228,6 +150,7 @@ class TransactionCreate(generics.CreateAPIView):
 
         obj = serializer.save()
         # attention the amount is in cents
+
         headers = self.get_success_headers(serializer.data)
 
         obj.from_addr.nonce += 1
