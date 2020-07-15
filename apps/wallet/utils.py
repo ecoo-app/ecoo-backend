@@ -18,7 +18,7 @@ MESSAGE_STRUCTURE = {
     "prim": "pair",
             "args": [
                 {
-                    "prim": "bytes"
+                    "prim": "key"
                 },
                 {
                     "prim": "pair",
@@ -32,12 +32,12 @@ MESSAGE_STRUCTURE = {
                                 {
                                     "prim": "pair",
                                     "args": [
-                                        {"prim": "bytes"},
+                                        {"prim": "address"},
                                         {
                                             "prim": "pair",
                                             "args": [
-                                                {"prim": "int"},
-                                                {"prim": "int"}
+                                                {"prim": "nat"},
+                                                {"prim": "nat"}
                                             ]
                                         }
                                     ]
