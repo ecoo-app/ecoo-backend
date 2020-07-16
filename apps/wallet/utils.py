@@ -10,7 +10,7 @@ def getBalanceForWallet(wallet):
     # TODO: get balance of account on blockchain & apply the transactions stored but not commited
     # entry point get_balance -> move function to utils
 
-    return 104.0
+    return 10400
 
 
 
