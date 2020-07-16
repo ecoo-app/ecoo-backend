@@ -48,6 +48,7 @@ class Wallet(CurrencyOwnedMixin):
     nonce = models.IntegerField(default=0)
     # only true if belongs to "gemeinde"
     is_owner_wallet = models.BooleanField(default=False)
+    is_company_wallet = models.BooleanField(default=False)
 
     state = models.IntegerField(default=0, choices=WALLET_STATE_CHOICES)
 

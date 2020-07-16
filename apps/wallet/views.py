@@ -141,7 +141,7 @@ class TransactionCreate(generics.CreateAPIView):
 
         if from_address.balance < serializer.validated_data['amount']:
             e = APIException()
-            e.status_code = 403
+            e.status_code = 422
             e.detail = 'Balance is to small'
             raise e
 
