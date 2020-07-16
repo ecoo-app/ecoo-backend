@@ -1,11 +1,14 @@
 from rest_framework import serializers
 
 from apps.wallet.models import TokenTransaction, Wallet
+from apps.currency.serializers import CurrencySerializer
+from apps.currency.models import Currency
 
 
 class WalletSerializer(serializers.ModelSerializer):
     balance = serializers.SerializerMethodField('get_balance')
     actual_nonce = serializers.SerializerMethodField('get_nonce')
+    currency = CurrencySerializer()
 
     def get_balance(self, wallet):
         # TODO: get balance of account on blockchain & apply the transactions stored but not commited
@@ -17,22 +20,25 @@ class WalletSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Wallet
-        fields = ['walletID', 'balance', 'address', 'pub_key', 'actual_nonce']
+        fields = ['walletID', 'balance', 'address',
+                  'pub_key', 'actual_nonce', 'currency']
 
 
 class CreateWalletSerializer(serializers.ModelSerializer):
     verification_uuid = serializers.UUIDField(required=False)
+    currency = serializers.PrimaryKeyRelatedField(
+        queryset=Currency.objects.all())
 
     class Meta:
         model = Wallet
-        fields = ['address', 'pub_key', 'company']
+        fields = ['address', 'pub_key', 'company', 'currency', 'verification_uuid']
 
 
 class PublicWalletSerializer(WalletSerializer):
 
     class Meta:
         model = Wallet
-        fields = ['walletID', 'address', 'pub_key']
+        fields = ['walletID', 'address', 'pub_key', 'currency']
 
 
 class TransactionSerializer(serializers.ModelSerializer):

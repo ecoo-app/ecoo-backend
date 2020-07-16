@@ -64,7 +64,7 @@ class Wallet(CurrencyOwnedMixin):
     def getWalletID():
         characters = get_random_string(2, string.ascii_uppercase)
         digits = str(random.randint(0,999999)).zfill(6)
-        return digits + characters
+        return characters + digits
 
 
 class TRANSACTION_STATES(Enum):
