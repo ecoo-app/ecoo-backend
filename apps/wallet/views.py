@@ -16,6 +16,7 @@ from apps.wallet.serializers import (CreateWalletSerializer,
                                      PublicWalletSerializer,
                                      TransactionSerializer, WalletSerializer)
 from apps.wallet.utils import CustomCursorPagination
+from django.db import IntegrityError
 
 
 class WalletDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
@@ -70,7 +71,15 @@ class WalletCreate(generics.CreateAPIView):
                 e.detail = "You aren't the owner of the company"
                 raise e
 
-        # TODO: create walletID
+        # create walletID
+        retry=True
+        while retry:
+            try:
+                retry=False
+                obj.walletID = Wallet.getWalletID()
+                obj.save()
+            except IntegrityError:
+                retry=True
 
         if validated_data['verification_uuid']:  # TODO: Test this
             verification_data = VerificationData.objects.get(
