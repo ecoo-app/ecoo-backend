@@ -2,6 +2,7 @@ import binascii
 
 import pytezos
 from django.core.exceptions import PermissionDenied
+from django.db import IntegrityError
 from django.db.models import Q
 from django.shortcuts import render
 from pytezos import Key
@@ -59,20 +60,28 @@ class WalletCreate(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
 
         validated_data = serializer.validated_data
-        obj = serializer.save()
+
+        obj = Wallet(**serializer.validated_data)
+
         if not obj.company:
             obj.owner = request.user
         else:
             if validated_data['company'].owner != request.user:
-                obj.delete()  # TODO: move this check bevore the save?
                 e = APIException()
                 e.status_code = 403
                 e.detail = "You aren't the owner of the company"
                 raise e
 
-        # TODO: create walletID
+        retry = True
+        while retry:
+            try:
+                retry = False
+                obj.walletID = Wallet.getWalletID()
+                obj.save()
+            except IntegrityError:
+                retry = True
 
-        if validated_data['verification_uuid']:  # TODO: Test this
+        if validated_data.get('verification_uuid', None):  # TODO: Test this
             verification_data = VerificationData.objects.get(
                 uuid=validated_data['verification_uuid'])
             if verification_data.has_been_used or (obj.owner and obj.owner != verification_data['owner']) or (obj.company and obj.company != verification_data['company']):
@@ -85,7 +94,8 @@ class WalletCreate(generics.CreateAPIView):
         obj.save()
 
         headers = self.get_success_headers(serializer.data)
-        return Response(self.get_serializer(obj).data, status=status.HTTP_201_CREATED, headers=headers)
+        return Response(WalletSerializer(obj).data, status=status.HTTP_201_CREATED, headers=headers)
+        # return Response(self.get_serializer(obj).data, status=status.HTTP_201_CREATED, headers=headers)
 
 
 class WalletList(generics.ListAPIView):
@@ -137,8 +147,9 @@ class TransactionCreate(generics.CreateAPIView):
 
         signature = self.request.data.get('signature')
 
-        token_id = 0 # TODO: implement this
-        message = createMessage(from_address, to_address, request.data['nonce'], token_id, int(serializer.validated_data['amount']) )
+        token_id = 0  # TODO: implement this
+        message = createMessage(from_address, to_address, request.data['nonce'], token_id, int(
+            serializer.validated_data['amount']))
         key = pytezos.Key.from_encoded_key(from_address.public_key)
         res = key.verify(signature, message)
 

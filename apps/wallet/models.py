@@ -1,12 +1,15 @@
+import random
+import string
 from enum import Enum
 
 from django.db import models
 from django.db.models import Q
+from django.utils.crypto import get_random_string
 
 from apps.currency.mixins import CurrencyOwnedMixin
+from apps.wallet.utils import getBalanceForWallet
 from project import settings
 from project.mixins import UUIDModel
-from apps.wallet.utils import getBalanceForWallet
 
 
 class Company(UUIDModel):
@@ -62,6 +65,12 @@ class Wallet(CurrencyOwnedMixin):
 
         return Wallet.objects.filter(Q(owner=user) | Q(company__owner=user))
 
+    @staticmethod
+    def getWalletID():
+        characters = get_random_string(2, string.ascii_uppercase)
+        digits = str(random.randint(0, 999999)).zfill(6)
+        return characters + digits
+
 
 class TRANSACTION_STATES(Enum):
     OPEN = 1
@@ -94,6 +103,7 @@ class TokenTransaction(UUIDModel):
     def getBelongingToUser(user):
         belonging_wallets = Wallet.getBelongingToUser(user)
         return TokenTransaction.objects.filter(Q(from_addr__in=belonging_wallets) | Q(to_addr__in=belonging_wallets))
+
 
 class VerificationData(UUIDModel):
     owner = models.ForeignKey(

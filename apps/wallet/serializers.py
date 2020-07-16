@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from apps.currency.models import Currency
+from apps.currency.serializers import CurrencySerializer
 from apps.wallet.models import TokenTransaction, Wallet
 from apps.wallet.utils import getBalanceForWallet
 
@@ -7,6 +9,7 @@ from apps.wallet.utils import getBalanceForWallet
 class WalletSerializer(serializers.ModelSerializer):
     balance = serializers.SerializerMethodField('get_balance')
     actual_nonce = serializers.SerializerMethodField('get_nonce')
+    currency = CurrencySerializer()
 
     def get_balance(self, wallet):
         return getBalanceForWallet(wallet)
@@ -16,22 +19,26 @@ class WalletSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Wallet
-        fields = ['walletID', 'balance', 'address', 'pub_key', 'actual_nonce']
+        fields = ['walletID', 'balance', 'address',
+                  'pub_key', 'actual_nonce', 'currency']
 
 
 class CreateWalletSerializer(serializers.ModelSerializer):
     verification_uuid = serializers.UUIDField(required=False)
+    currency = serializers.PrimaryKeyRelatedField(
+        queryset=Currency.objects.all())
 
     class Meta:
         model = Wallet
-        fields = ['address', 'pub_key', 'company']
+        fields = ['address', 'pub_key', 'company',
+                  'currency', 'verification_uuid']
 
 
 class PublicWalletSerializer(WalletSerializer):
 
     class Meta:
         model = Wallet
-        fields = ['walletID', 'address', 'pub_key']
+        fields = ['walletID', 'address', 'pub_key', 'currency']
 
 
 class TransactionSerializer(serializers.ModelSerializer):
