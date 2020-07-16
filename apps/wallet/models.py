@@ -6,6 +6,9 @@ from django.db.models import Q
 from apps.currency.mixins import CurrencyOwnedMixin
 from project import settings
 from project.mixins import UUIDModel
+import random
+import string
+from django.utils.crypto import get_random_string
 
 
 class Company(UUIDModel):
@@ -56,6 +59,12 @@ class Wallet(CurrencyOwnedMixin):
             return Wallet.objects.all()
 
         return Wallet.objects.filter(Q(owner=user) | Q(company__owner=user))
+    
+    @staticmethod
+    def getWalletID():
+        characters = get_random_string(2, string.ascii_uppercase)
+        digits = str(random.randint(0,999999)).zfill(6)
+        return characters + digits
 
 
 class TRANSACTION_STATES(Enum):
