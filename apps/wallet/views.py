@@ -2,6 +2,7 @@ import binascii
 
 import pytezos
 from django.core.exceptions import PermissionDenied
+from django.db import IntegrityError
 from django.db.models import Q
 from django.shortcuts import render
 from pytezos import Key
@@ -15,8 +16,7 @@ from apps.wallet.models import (WALLET_STATES, TokenTransaction,
 from apps.wallet.serializers import (CreateWalletSerializer,
                                      PublicWalletSerializer,
                                      TransactionSerializer, WalletSerializer)
-from apps.wallet.utils import CustomCursorPagination
-from django.db import IntegrityError
+from apps.wallet.utils import CustomCursorPagination, createMessage
 
 
 class WalletDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
@@ -61,8 +61,8 @@ class WalletCreate(generics.CreateAPIView):
 
         validated_data = serializer.validated_data
 
-        obj = Wallet(**serializer.validated_data)        
-        
+        obj = Wallet(**serializer.validated_data)
+
         if not obj.company:
             obj.owner = request.user
         else:
@@ -72,14 +72,14 @@ class WalletCreate(generics.CreateAPIView):
                 e.detail = "You aren't the owner of the company"
                 raise e
 
-        retry=True
+        retry = True
         while retry:
             try:
-                retry=False
+                retry = False
                 obj.walletID = Wallet.getWalletID()
                 obj.save()
             except IntegrityError:
-                retry=True
+                retry = True
 
         if validated_data.get('verification_uuid', None):  # TODO: Test this
             verification_data = VerificationData.objects.get(
@@ -90,7 +90,7 @@ class WalletCreate(generics.CreateAPIView):
                 obj.state = WALLET_STATES.VERIFIED.value
                 verification_data.has_been_used = True
                 verification_data.save()
-                
+
         obj.save()
 
         headers = self.get_success_headers(serializer.data)
@@ -125,6 +125,12 @@ class TransactionCreate(generics.CreateAPIView):
             e.detail = 'Only verified addresses can send money'
             raise e
 
+        if from_address.currency != to_address.currency:
+            e = APIException()
+            e.status_code = 422
+            e.detail = 'Both wallets have to belong to the same currency'
+            raise e
+
         if not self.request.data.get('nonce', None) or self.request.data.get('nonce') - serializer.validated_data['from_addr'].nonce != 1:
             e = APIException()
             e.status_code = 422
@@ -133,36 +139,19 @@ class TransactionCreate(generics.CreateAPIView):
 
         key = Key.from_encoded_key(from_address.pub_key)
 
-        data = {
-            "prim": "pair",
-            "args": [
-                # {"string": str(binascii.hexlify(from_address.address.encode()))},
-                {"string": from_address.address.encode()},
-                {
-                    "prim": "pair",
-                    "args": [
-                            # {"string": (binascii.hexlify(to_address.address.encode()))},
-                            {"string": to_address.address.encode()},
-                            {
-                                "prim": "pair",
-                                "args": [
-                                        {"int": serializer.validated_data['amount']},
-                                        # TODO: is this correct??
-                                        {"nat": request.data['nonce']}
-                                        # {"int": 1}
-                                ]
-                            }
-                    ]
-                }
-            ]
-        }
+        if from_address.balance < serializer.validated_data['amount']:
+            e = APIException()
+            e.status_code = 422
+            e.detail = 'Balance is to small'
+            raise e
 
-        # packed = pytezos.michelson.pack.pack(data)
-        forged_data = pytezos.michelson.forge.forge_micheline(
-            data)
+        signature = self.request.data.get('signature')
 
-        res = key.verify(self.request.data.get(
-            'signature'), b'\x05' + forged_data)
+        token_id = 0  # TODO: implement this
+        message = createMessage(from_address, to_address, request.data['nonce'], token_id, int(
+            serializer.validated_data['amount']))
+        key = pytezos.Key.from_encoded_key(from_address.public_key)
+        res = key.verify(signature, message)
 
         if res != None:
             e = APIException()
@@ -171,14 +160,14 @@ class TransactionCreate(generics.CreateAPIView):
             raise e
 
         obj = serializer.save()
-        obj.amount = obj.amount / 100  # because the amount is in cents
+        # attention the amount is in cents
+
         headers = self.get_success_headers(serializer.data)
 
         obj.from_addr.nonce += 1
         obj.from_addr.save()
 
-        return Response(self.get_serializer(obj).data, status=status.HTTP_201_CREATED, headers=headers)
-        # return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
 class TransactionList(generics.ListAPIView):

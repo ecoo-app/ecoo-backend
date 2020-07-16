@@ -1,14 +1,15 @@
+import random
+import string
 from enum import Enum
 
 from django.db import models
 from django.db.models import Q
+from django.utils.crypto import get_random_string
 
 from apps.currency.mixins import CurrencyOwnedMixin
+from apps.wallet.utils import getBalanceForWallet
 from project import settings
 from project.mixins import UUIDModel
-import random
-import string
-from django.utils.crypto import get_random_string
 
 
 class Company(UUIDModel):
@@ -47,8 +48,13 @@ class Wallet(CurrencyOwnedMixin):
     nonce = models.IntegerField(default=0)
     # only true if belongs to "gemeinde"
     is_owner_wallet = models.BooleanField(default=False)
+    is_company_wallet = models.BooleanField(default=False)
 
     state = models.IntegerField(default=0, choices=WALLET_STATE_CHOICES)
+
+    @property
+    def balance(self):
+        return getBalanceForWallet(self)
 
     def __str__(self):
         return self.walletID
@@ -59,11 +65,11 @@ class Wallet(CurrencyOwnedMixin):
             return Wallet.objects.all()
 
         return Wallet.objects.filter(Q(owner=user) | Q(company__owner=user))
-    
+
     @staticmethod
     def getWalletID():
         characters = get_random_string(2, string.ascii_uppercase)
-        digits = str(random.randint(0,999999)).zfill(6)
+        digits = str(random.randint(0, 999999)).zfill(6)
         return characters + digits
 
 
@@ -98,6 +104,7 @@ class TokenTransaction(UUIDModel):
     def getBelongingToUser(user):
         belonging_wallets = Wallet.getBelongingToUser(user)
         return TokenTransaction.objects.filter(Q(from_addr__in=belonging_wallets) | Q(to_addr__in=belonging_wallets))
+
 
 class VerificationData(UUIDModel):
     owner = models.ForeignKey(

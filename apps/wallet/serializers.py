@@ -1,8 +1,9 @@
 from rest_framework import serializers
 
-from apps.wallet.models import TokenTransaction, Wallet
-from apps.currency.serializers import CurrencySerializer
 from apps.currency.models import Currency
+from apps.currency.serializers import CurrencySerializer
+from apps.wallet.models import TokenTransaction, Wallet
+from apps.wallet.utils import getBalanceForWallet
 
 
 class WalletSerializer(serializers.ModelSerializer):
@@ -11,9 +12,7 @@ class WalletSerializer(serializers.ModelSerializer):
     currency = CurrencySerializer()
 
     def get_balance(self, wallet):
-        # TODO: get balance of account on blockchain & apply the transactions stored but not commited
-        # entry point get_balance -> move function to utils
-        return 100.4
+        return getBalanceForWallet(wallet)
 
     def get_nonce(self, wallet):
         return wallet.nonce
@@ -21,7 +20,7 @@ class WalletSerializer(serializers.ModelSerializer):
     class Meta:
         model = Wallet
         fields = ['walletID', 'balance', 'address',
-                  'pub_key', 'actual_nonce', 'currency']
+                  'pub_key', 'actual_nonce', 'currency','is_company_wallet']
 
 
 class CreateWalletSerializer(serializers.ModelSerializer):
@@ -31,14 +30,15 @@ class CreateWalletSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Wallet
-        fields = ['address', 'pub_key', 'company', 'currency', 'verification_uuid']
+        fields = ['address', 'pub_key', 'company',
+                  'currency', 'verification_uuid','is_company_wallet']
 
 
 class PublicWalletSerializer(WalletSerializer):
 
     class Meta:
         model = Wallet
-        fields = ['walletID', 'address', 'pub_key', 'currency']
+        fields = ['walletID', 'address', 'pub_key', 'currency','is_company_wallet']
 
 
 class TransactionSerializer(serializers.ModelSerializer):
@@ -50,5 +50,3 @@ class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = TokenTransaction
         fields = ['from_addr', 'to_addr', 'amount', 'signature']
-
-    # increase from wallet nonce
