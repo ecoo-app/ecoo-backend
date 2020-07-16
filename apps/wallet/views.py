@@ -179,6 +179,12 @@ class TransactionList(generics.ListAPIView):
     def get_queryset(self):
         if self.request.user.is_superuser:
             return TokenTransaction.objects.all()
+        
+        wallet_of_interest = self.request.query_params.get('walletID', None)
+        if wallet_of_interest:
+            return TokenTransaction.getBelongingToUser(self.request.user).filter(Q(from_addr__walletID=wallet_of_interest)|Q(to_addr__walletID=wallet_of_interest) )
+            pass
+
         return TokenTransaction.getBelongingToUser(self.request.user)
 
 # TODO: verify_wallet
