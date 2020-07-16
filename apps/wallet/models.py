@@ -92,7 +92,7 @@ class TokenTransaction(UUIDModel):
         Wallet, on_delete=models.DO_NOTHING, related_name='fromtransaction')
     to_addr = models.ForeignKey(
         Wallet, on_delete=models.DO_NOTHING, related_name='totransaction')
-    amount = models.FloatField()
+    amount = models.IntegerField()
 
     state = models.IntegerField(choices=TRANSACTION_STATE_CHOICES, default=1)
     signature = models.CharField(max_length=128, null=True)

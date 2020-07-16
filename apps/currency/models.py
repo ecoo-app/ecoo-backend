@@ -8,7 +8,6 @@ from project.mixins import UUIDModel
 class Currency(UUIDModel):
     name = models.CharField(max_length=32)
     token_id = models.IntegerField(null=True)
-    # TODO: Is the token_id needed in the frontend?
 
     class Meta:
         verbose_name_plural = 'Currencies'

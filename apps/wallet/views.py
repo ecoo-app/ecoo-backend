@@ -137,8 +137,6 @@ class TransactionCreate(generics.CreateAPIView):
             e.detail = 'Nonce value is incorrect'
             raise e
 
-        key = Key.from_encoded_key(from_address.pub_key)
-
         if from_address.balance < serializer.validated_data['amount']:
             e = APIException()
             e.status_code = 422
@@ -147,12 +145,11 @@ class TransactionCreate(generics.CreateAPIView):
 
         signature = self.request.data.get('signature')
 
-        token_id = 0  # TODO: implement this
-        message = createMessage(from_address, to_address, request.data['nonce'], token_id, int(
-            serializer.validated_data['amount']))
+        token_id = from_address.currency.token_id
+        message = createMessage(from_address, to_address, request.data['nonce'], token_id, serializer.validated_data['amount'])
         key = pytezos.Key.from_encoded_key(from_address.public_key)
         res = key.verify(signature, message)
-
+        
         if res != None:
             e = APIException()
             e.status_code = 422
@@ -160,7 +157,6 @@ class TransactionCreate(generics.CreateAPIView):
             raise e
 
         obj = serializer.save()
-        # attention the amount is in cents
 
         headers = self.get_success_headers(serializer.data)
 
