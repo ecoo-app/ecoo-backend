@@ -11,8 +11,7 @@ from rest_framework.decorators import api_view
 from rest_framework.exceptions import APIException, ValidationError
 from rest_framework.response import Response
 
-from apps.wallet.models import (WALLET_STATES, TokenTransaction,
-                                VerificationData, Wallet)
+from apps.wallet.models import WALLET_STATES, TokenTransaction, Wallet
 from apps.wallet.serializers import (CreateWalletSerializer,
                                      PublicWalletSerializer,
                                      TransactionSerializer, WalletSerializer)
@@ -81,15 +80,17 @@ class WalletCreate(generics.CreateAPIView):
             except IntegrityError:
                 retry = True
 
-        if validated_data.get('verification_uuid', None):  # TODO: Test this
-            verification_data = VerificationData.objects.get(
-                uuid=validated_data['verification_uuid'])
-            if verification_data.has_been_used or (obj.owner and obj.owner != verification_data['owner']) or (obj.company and obj.company != verification_data['company']):
-                pass
-            else:
-                obj.state = WALLET_STATES.VERIFIED.value
-                verification_data.has_been_used = True
-                verification_data.save()
+        if validated_data.get('verification_uuid', None):  
+            # TODO: handle verification
+            pass
+            # verification_data = VerificationData.objects.get(
+            #     uuid=validated_data['verification_uuid'])
+            # if verification_data.has_been_used or (obj.owner and obj.owner != verification_data['owner']) or (obj.company and obj.company != verification_data['company']):
+            #     pass
+            # else:
+            #     obj.state = WALLET_STATES.VERIFIED.value
+            #     verification_data.has_been_used = True
+            #     verification_data.save()
 
         obj.save()
 
@@ -146,10 +147,11 @@ class TransactionCreate(generics.CreateAPIView):
         signature = self.request.data.get('signature')
 
         token_id = from_address.currency.token_id
-        message = createMessage(from_address, to_address, request.data['nonce'], token_id, serializer.validated_data['amount'])
+        message = createMessage(
+            from_address, to_address, request.data['nonce'], token_id, serializer.validated_data['amount'])
         key = pytezos.Key.from_encoded_key(from_address.public_key)
         res = key.verify(signature, message)
-        
+
         if res != None:
             e = APIException()
             e.status_code = 422
@@ -175,12 +177,10 @@ class TransactionList(generics.ListAPIView):
     def get_queryset(self):
         if self.request.user.is_superuser:
             return TokenTransaction.objects.all()
-        
+
         wallet_of_interest = self.request.query_params.get('walletID', None)
         if wallet_of_interest:
-            return TokenTransaction.getBelongingToUser(self.request.user).filter(Q(from_addr__walletID=wallet_of_interest)|Q(to_addr__walletID=wallet_of_interest) )
+            return TokenTransaction.getBelongingToUser(self.request.user).filter(Q(from_addr__walletID=wallet_of_interest) | Q(to_addr__walletID=wallet_of_interest))
             pass
 
         return TokenTransaction.getBelongingToUser(self.request.user)
-
-# TODO: verify_wallet

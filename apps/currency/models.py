@@ -8,6 +8,8 @@ from project.mixins import UUIDModel
 class Currency(UUIDModel):
     name = models.CharField(max_length=32)
     token_id = models.IntegerField(null=True)
+    campaign_end = models.DateField(null=True)
+    claim_deadline = models.DateField(null=True)
 
     class Meta:
         verbose_name_plural = 'Currencies'
@@ -15,24 +17,3 @@ class Currency(UUIDModel):
     # TODO: additional fields?
     def __str__(self):
         return self.name
-
-
-class VERIFICATION_INPUT_STATES(Enum):
-    TEXT = 1
-    BOOLEAN = 2
-    NUMBER = 3
-    DATE = 4
-
-VERIFICATION_INPUT_CHOICES =  (
-    (VERIFICATION_INPUT_STATES.TEXT.value, 'Text'),
-    (VERIFICATION_INPUT_STATES.BOOLEAN.value, 'Boolean'),
-    (VERIFICATION_INPUT_STATES.NUMBER.value, 'Date'),
-    (VERIFICATION_INPUT_STATES.DATE.value, 'Number'),
-)
-
-class VerificationInput(UUIDModel):
-    currency = models.ForeignKey(
-        Currency, on_delete=models.SET_NULL, null=True,)
-
-    label = models.CharField(max_length=32)
-    data_type = models.IntegerField(default=0, choices=VERIFICATION_INPUT_CHOICES)

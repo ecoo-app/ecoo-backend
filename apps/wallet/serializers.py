@@ -19,8 +19,8 @@ class WalletSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Wallet
-        fields = ['walletID', 'balance', 'address',
-                  'pub_key', 'actual_nonce', 'currency','is_company_wallet']
+        fields = ['walletID', 'balance', 'pub_key',
+                  'actual_nonce', 'currency', 'is_company_wallet']
 
 
 class CreateWalletSerializer(serializers.ModelSerializer):
@@ -30,15 +30,15 @@ class CreateWalletSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Wallet
-        fields = ['address', 'pub_key', 'company',
-                  'currency', 'verification_uuid','is_company_wallet']
+        fields = ['pub_key', 'company',
+                  'currency', 'verification_uuid', 'is_company_wallet']
 
 
 class PublicWalletSerializer(WalletSerializer):
 
     class Meta:
         model = Wallet
-        fields = ['walletID', 'address', 'pub_key', 'currency','is_company_wallet']
+        fields = ['walletID', 'pub_key', 'currency', 'is_company_wallet']
 
 
 class TransactionSerializer(serializers.ModelSerializer):

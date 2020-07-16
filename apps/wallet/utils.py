@@ -1,6 +1,7 @@
 from rest_framework.pagination import CursorPagination
 import pytezos
 
+
 class CustomCursorPagination(CursorPagination):
     ordering = 'created'
 
@@ -11,7 +12,6 @@ def getBalanceForWallet(wallet):
     # entry point get_balance -> move function to utils
 
     return 10400
-
 
 
 MESSAGE_STRUCTURE = {
@@ -49,14 +49,15 @@ MESSAGE_STRUCTURE = {
             ]
 }
 
+
 def createMessage(from_address, to_address, nonce, token_id, amount):
     message_to_encode = {
-            "prim": "Pair",
-            "args": [
+        "prim": "Pair",
+        "args": [
                 {
                     "string": from_address.pub_key
                 },
-                {
+            {
                     "prim": "Pair",
                     "args": [
                         {
@@ -67,7 +68,7 @@ def createMessage(from_address, to_address, nonce, token_id, amount):
                                 "prim": "Pair",
                                 "args": [
                                     {
-                                        "string": to_address.address
+                                        "string": pytezos.Key.from_encoded_key(to_address.public_key).public_key_hash()
                                     },
                                     {
                                         "prim": "Pair",
@@ -85,6 +86,6 @@ def createMessage(from_address, to_address, nonce, token_id, amount):
                         ]
                     ]
                 }
-            ]
-        }
+        ]
+    }
     return pytezos.michelson.pack.pack(message_to_encode, MESSAGE_STRUCTURE)

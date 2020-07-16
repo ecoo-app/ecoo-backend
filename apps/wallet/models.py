@@ -41,9 +41,7 @@ class Wallet(CurrencyOwnedMixin):
         settings.AUTH_USER_MODEL, blank=True, null=True, on_delete=models.DO_NOTHING)
     company = models.ForeignKey(
         Company, blank=True, null=True, on_delete=models.SET_NULL)
-    # generated in BE -> to be specified...
     walletID = models.CharField(unique=True, max_length=128)
-    address = models.TextField()  # TZ adress (maybe not needed)
     pub_key = models.TextField()  # tz public_key
     nonce = models.IntegerField(default=0)
     # only true if belongs to "gemeinde"
@@ -104,11 +102,3 @@ class TokenTransaction(UUIDModel):
     def getBelongingToUser(user):
         belonging_wallets = Wallet.getBelongingToUser(user)
         return TokenTransaction.objects.filter(Q(from_addr__in=belonging_wallets) | Q(to_addr__in=belonging_wallets))
-
-
-class VerificationData(UUIDModel):
-    owner = models.ForeignKey(
-        settings.AUTH_USER_MODEL, blank=True, null=True, on_delete=models.DO_NOTHING)
-    company = models.ForeignKey(
-        Company, blank=True, null=True, on_delete=models.SET_NULL)
-    has_been_used = models.BooleanField(default=False)

@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'apps.wallet',
     'apps.devices',
     'apps.currency',
+    'apps.verification',
     'project'
 ]
 
