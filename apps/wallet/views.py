@@ -149,7 +149,7 @@ class TransactionCreate(generics.CreateAPIView):
         token_id = from_address.currency.token_id
         message = createMessage(
             from_address, to_address, request.data['nonce'], token_id, serializer.validated_data['amount'])
-        key = pytezos.Key.from_encoded_key(from_address.public_key)
+        key = pytezos.Key.from_encoded_key(from_address.pub_key)
         res = key.verify(signature, message)
 
         if res != None:
