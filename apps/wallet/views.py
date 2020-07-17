@@ -80,7 +80,7 @@ class WalletCreate(generics.CreateAPIView):
             except IntegrityError:
                 retry = True
 
-        if validated_data.get('verification_uuid', None):  
+        if validated_data.get('verification_uuid', None):
             # TODO: handle verification
             pass
             # verification_data = VerificationData.objects.get(
@@ -104,7 +104,7 @@ class WalletList(generics.ListAPIView):
     filterset_fields = ['currency']
 
     def get_queryset(self):
-        return Wallet.getBelongingToUser(self.request.user)
+        return self.request.user.wallets
 
 
 class TransactionCreate(generics.CreateAPIView):
