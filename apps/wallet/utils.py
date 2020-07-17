@@ -68,7 +68,7 @@ def createMessage(from_address, to_address, nonce, token_id, amount):
                                 "prim": "Pair",
                                 "args": [
                                     {
-                                        "string": pytezos.Key.from_encoded_key(to_address.public_key).public_key_hash()
+                                        "string": pytezos.Key.from_encoded_key(to_address.pub_key).public_key_hash()
                                     },
                                     {
                                         "prim": "Pair",
