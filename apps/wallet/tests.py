@@ -22,19 +22,19 @@ class WalletTestCase(TestCase):
         wallet2 = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
         ), public_key="edpku3g7CeTEvSKhxipD4Q2B6EiEP8cR323u8PFmGFgKRVRvCneEmT")
         TokenTransaction.objects.create(
-            from_addr=wallet1, to_addr=wallet2, amount=10, nonce=1)
+            from_wallet=wallet1, to_wallet=wallet2, amount=10, nonce=1)
         self.assertEqual(
             wallet1.nonce, 1)
         self.assertEqual(
             wallet2.nonce, 0)
         TokenTransaction.objects.create(
-            from_addr=wallet2, to_addr=wallet1, amount=1, nonce=2)
+            from_wallet=wallet2, to_wallet=wallet1, amount=1, nonce=2)
         self.assertEqual(
             wallet1.nonce, 1)
         self.assertEqual(
             wallet2.nonce, 1)
         TokenTransaction.objects.create(
-            from_addr=wallet1, to_addr=wallet2, amount=1, nonce=3)
+            from_wallet=wallet1, to_wallet=wallet2, amount=1, nonce=3)
         self.assertEqual(
             wallet1.nonce, 2)
         self.assertEqual(
@@ -46,19 +46,19 @@ class WalletTestCase(TestCase):
         wallet2 = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
         ), public_key="edpku3g7CeTEvSKhxipD4Q2B6EiEP8cR323u8PFmGFgKRVRvCneEmT")
         TokenTransaction.objects.create(
-            from_addr=wallet1, to_addr=wallet2, amount=10, nonce=1)
+            from_wallet=wallet1, to_wallet=wallet2, amount=10, nonce=1)
         self.assertEqual(
             wallet1.balance, -10)
         self.assertEqual(
             wallet2.balance, 10)
         TokenTransaction.objects.create(
-            from_addr=wallet2, to_addr=wallet1, amount=1, nonce=2)
+            from_wallet=wallet2, to_wallet=wallet1, amount=1, nonce=2)
         self.assertEqual(
             wallet1.balance, -9)
         self.assertEqual(
             wallet2.balance, 9)
         TokenTransaction.objects.create(
-            from_addr=wallet1, to_addr=wallet2, amount=1, nonce=3)
+            from_wallet=wallet1, to_wallet=wallet2, amount=1, nonce=3)
         self.assertEqual(
             wallet1.balance, -10)
         self.assertEqual(

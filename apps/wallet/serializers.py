@@ -42,11 +42,11 @@ class PublicWalletSerializer(WalletSerializer):
 
 
 class TransactionSerializer(serializers.ModelSerializer):
-    from_addr = serializers.SlugRelatedField(many=False, read_only=False,
+    from_wallet = serializers.SlugRelatedField(many=False, read_only=False,
                                              slug_field='wallet_id', queryset=Wallet.objects.all())
-    to_addr = serializers.SlugRelatedField(many=False, read_only=False,
+    to_wallet = serializers.SlugRelatedField(many=False, read_only=False,
                                            slug_field='wallet_id', queryset=Wallet.objects.all())
 
     class Meta:
         model = TokenTransaction
-        fields = ['from_addr', 'to_addr', 'amount', 'signature']
+        fields = ['from_wallet', 'to_wallet', 'amount', 'signature']
