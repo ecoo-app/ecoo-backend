@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from apps.currency.models import Currency
 from apps.currency.serializers import CurrencySerializer
-from apps.wallet.models import TokenTransaction, Wallet
+from apps.wallet.models import MetaTransaction, Wallet
 from apps.wallet.utils import getBalanceForWallet
 
 
@@ -43,10 +43,10 @@ class PublicWalletSerializer(WalletSerializer):
 
 class TransactionSerializer(serializers.ModelSerializer):
     from_wallet = serializers.SlugRelatedField(many=False, read_only=False,
-                                             slug_field='wallet_id', queryset=Wallet.objects.all())
+                                               slug_field='wallet_id', queryset=Wallet.objects.all())
     to_wallet = serializers.SlugRelatedField(many=False, read_only=False,
-                                           slug_field='wallet_id', queryset=Wallet.objects.all())
+                                             slug_field='wallet_id', queryset=Wallet.objects.all())
 
     class Meta:
-        model = TokenTransaction
+        model = MetaTransaction
         fields = ['from_wallet', 'to_wallet', 'amount', 'signature']
