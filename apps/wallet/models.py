@@ -7,7 +7,6 @@ from django.db.models import Q, Sum
 from django.utils.crypto import get_random_string
 
 from apps.currency.mixins import CurrencyOwnedMixin
-from apps.wallet.utils import getBalanceForWallet
 from django.conf import settings
 from project.mixins import UUIDModel
 from pytezos.crypto import Key
@@ -101,12 +100,14 @@ class TRANSACTION_STATES(Enum):
     OPEN = 1
     PENDING = 2
     DONE = 3
+    FAILED = 4
 
 
 TRANSACTION_STATE_CHOICES = (
     (TRANSACTION_STATES.OPEN.value, 'Open'),
     (TRANSACTION_STATES.PENDING.value, 'Pending'),
     (TRANSACTION_STATES.DONE.value, 'Done'),
+    (TRANSACTION_STATES.FAILED.value, 'Failed'),
 )
 
 
@@ -118,11 +119,25 @@ class TokenTransaction(UUIDModel):
         Wallet, on_delete=models.DO_NOTHING, related_name='to_transactions')
     amount = models.IntegerField()
 
+    nonce = models.IntegerField()
     state = models.IntegerField(choices=TRANSACTION_STATE_CHOICES, default=1)
     signature = models.CharField(max_length=128, null=True)
 
     created = models.DateTimeField(auto_now_add=True, null=True)
     submitted_to_chain_at = models.DateTimeField(blank=True, null=True)
+
+    operation_hash = models.CharField(max_length=128, null=True, blank=True)
+
+    def to_meta_transaction_dictionary(self):
+        return {
+            'from_public_key': self.from_addr.pub_key,
+            'signature': self.signature,
+            'nonce': self.nonce,
+            'txs': [
+                # TODO: currency should provide token_id
+                {'to_': self.to_addr.address, 'amount': self.amount, 'token_id': 0}
+            ]
+        }
 
     @staticmethod
     def getBelongingToUser(user):
