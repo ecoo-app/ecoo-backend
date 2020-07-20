@@ -233,6 +233,16 @@ class TransactionApiTest(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
+        user_3 = get_user_model().objects.create(
+            username="testuser_3", password="abcd")
+
+        self.client.force_authenticate(user=user_3)
+
+        response = self.client.get('/api/wallet/transaction/list/')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, [])
+
         self.client.force_authenticate(user=self.user)
 
         response = self.client.get('/api/wallet/transaction/list/')
@@ -240,3 +250,5 @@ class TransactionApiTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, [TransactionSerializer(
             tx1).data, TransactionSerializer(tx2).data, ])
+
+        self.client.force_authenticate(user=None)
