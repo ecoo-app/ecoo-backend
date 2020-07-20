@@ -1,7 +1,7 @@
 from rest_framework.pagination import CursorPagination
 from pytezos import pytezos, michelson
 from django.utils.timezone import now
-from apps.wallet.models import TokenTransaction, TRANSACTION_STATES
+from apps.wallet.models import MetaTransaction, TRANSACTION_STATES
 from django.conf import settings
 
 
@@ -184,11 +184,11 @@ def read_nonce_from_chain(address):
 
 
 def publish_open_meta_transactions_to_chain():
-    open_transactions = TokenTransaction.objects.filter(
+    open_transactions = MetaTransaction.objects.filter(
         state=TRANSACTION_STATES.OPEN.value)
     selected_transaction_ids = set(
         open_transactions.values_list('uuid', flat=True))
-    selected_transactions = TokenTransaction.objects.filter(
+    selected_transactions = MetaTransaction.objects.filter(
         uuid__in=selected_transaction_ids)
     pytezos_client = pytezos.using(
         key=settings.TEZOS_ADMIN_ACCOUNT_PRIVATE_KEY, shell=settings.TEZOS_NODE)

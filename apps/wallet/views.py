@@ -12,7 +12,7 @@ from rest_framework.decorators import api_view
 from rest_framework.exceptions import APIException, ValidationError
 from rest_framework.response import Response
 
-from apps.wallet.models import WALLET_STATES, TokenTransaction, Wallet
+from apps.wallet.models import WALLET_STATES, MetaTransaction, Wallet
 from apps.wallet.serializers import (CreateWalletSerializer,
                                      PublicWalletSerializer,
                                      TransactionSerializer, WalletSerializer)
@@ -181,11 +181,11 @@ class TransactionList(generics.ListAPIView):
 
     def get_queryset(self):
         if self.request.user.is_superuser:
-            return TokenTransaction.objects.all()
+            return MetaTransaction.objects.all()
 
         wallet_of_interest = self.request.query_params.get('wallet_id', None)
         if wallet_of_interest:
-            return TokenTransaction.get_belonging_to_user(self.request.user).filter(Q(from_wallet__wallet_id=wallet_of_interest) | Q(to_wallet__wallet_id=wallet_of_interest))
+            return MetaTransaction.get_belonging_to_user(self.request.user).filter(Q(from_wallet__wallet_id=wallet_of_interest) | Q(to_wallet__wallet_id=wallet_of_interest))
             pass
 
-        return TokenTransaction.get_belonging_to_user(self.request.user)
+        return MetaTransaction.get_belonging_to_user(self.request.user)

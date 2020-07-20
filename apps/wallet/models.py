@@ -3,13 +3,17 @@ import string
 from enum import Enum
 
 from django.db import models
-from django.db.models import Q, Sum
+from django.db.models import Q, Sum, Max
 from django.utils.crypto import get_random_string
 
 from apps.currency.mixins import CurrencyOwnedMixin
 from django.conf import settings
 from project.mixins import UUIDModel
 from pytezos.crypto import Key
+from django.core.exceptions import ValidationError
+from django.core.validators import MinValueValidator
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
 
 
 class Company(UUIDModel):
@@ -99,21 +103,34 @@ TRANSACTION_STATE_CHOICES = (
 )
 
 
-class TokenTransaction(UUIDModel):
+class Transaction(UUIDModel):
     from_wallet = models.ForeignKey(
-        Wallet, on_delete=models.DO_NOTHING, related_name='from_transactions')
+        Wallet, on_delete=models.DO_NOTHING, related_name='from_transactions', null=True)
     to_wallet = models.ForeignKey(
         Wallet, on_delete=models.DO_NOTHING, related_name='to_transactions')
     amount = models.IntegerField()
 
-    nonce = models.IntegerField()
     state = models.IntegerField(choices=TRANSACTION_STATE_CHOICES, default=1)
-    signature = models.CharField(max_length=128, null=True)
 
-    created = models.DateTimeField(auto_now_add=True, null=True)
-    submitted_to_chain_at = models.DateTimeField(blank=True, null=True)
+    created = models.DateTimeField(auto_now_add=True)
+    submitted_to_chain_at = models.DateTimeField(null=True, blank=True)
 
-    operation_hash = models.CharField(max_length=128, null=True, blank=True)
+    operation_hash = models.CharField(max_length=128, blank=True)
+
+    @property
+    def is_mint_transaction(self):
+        return self.from_wallet == None
+
+
+@receiver(pre_save, sender=Transaction, dispatch_uid='custom_transaction_validation')
+def custom_transaction_validation(sender, instance, **kwargs):
+    if instance.amount <= 0:
+        raise ValidationError("Amount must be > 0")
+
+
+class MetaTransaction(Transaction):
+    nonce = models.IntegerField()
+    signature = models.CharField(max_length=128)
 
     def to_meta_transaction_dictionary(self):
         return {
@@ -130,3 +147,19 @@ class TokenTransaction(UUIDModel):
     def get_belonging_to_user(user):
         belonging_wallets = user.wallets.all()
         return TokenTransaction.objects.filter(Q(from_wallet__in=belonging_wallets) | Q(to_wallet__in=belonging_wallets))
+
+
+@receiver(pre_save, sender=MetaTransaction, dispatch_uid='custom_meta_transaction_validation')
+def custom_meta_transaction_validation(sender, instance, **kwargs):
+    custom_transaction_validation(sender, instance)
+    if instance.is_mint_transaction:
+        raise ValidationError("Metatransaction always must have from")
+    if instance.nonce <= 0:
+        raise ValidationError("Nonce must be > 0")
+    if instance.from_wallet.balance < instance.amount:
+        raise ValidationError(
+            "Balance of from_wallet must be greater than amount")
+    if instance.nonce <= (MetaTransaction.objects.filter(from_wallet=instance.from_wallet).aggregate(Max('nonce'))['nonce__max'] or 0):
+        raise ValidationError(
+            "Nonce must be higher than from_wallet's last meta transaction")
+>>>>>>> apps/wallet/models.py

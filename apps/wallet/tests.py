@@ -1,10 +1,11 @@
 from django.test import TestCase
 from apps.currency.models import Currency
-from apps.wallet.models import Wallet, TokenTransaction, TRANSACTION_STATES
+from apps.wallet.models import Wallet, MetaTransaction, Transaction, TRANSACTION_STATES
 from pytezos import pytezos, michelson
 from apps.wallet.utils import publish_open_meta_transactions_to_chain, pack_meta_transaction, read_nonce_from_chain
 import time
 from django.conf import settings
+from django.core.exceptions import ValidationError
 
 
 class WalletTestCase(TestCase):
@@ -22,19 +23,20 @@ class WalletTestCase(TestCase):
         ), public_key="edpku976gpuAD2bXyx1XGraeKuCo1gUZ3LAJcHM12W1ecxZwoiu22R")
         wallet2 = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
         ), public_key="edpku3g7CeTEvSKhxipD4Q2B6EiEP8cR323u8PFmGFgKRVRvCneEmT")
-        TokenTransaction.objects.create(
+        Transaction.objects.create(to_wallet=wallet1, amount=100)
+        MetaTransaction.objects.create(
             from_wallet=wallet1, to_wallet=wallet2, amount=10, nonce=1)
         self.assertEqual(
             wallet1.nonce, 1)
         self.assertEqual(
             wallet2.nonce, 0)
-        TokenTransaction.objects.create(
+        MetaTransaction.objects.create(
             from_wallet=wallet2, to_wallet=wallet1, amount=1, nonce=2)
         self.assertEqual(
             wallet1.nonce, 1)
         self.assertEqual(
             wallet2.nonce, 1)
-        TokenTransaction.objects.create(
+        MetaTransaction.objects.create(
             from_wallet=wallet1, to_wallet=wallet2, amount=1, nonce=3)
         self.assertEqual(
             wallet1.nonce, 2)
@@ -46,24 +48,44 @@ class WalletTestCase(TestCase):
         ), public_key="edpku976gpuAD2bXyx1XGraeKuCo1gUZ3LAJcHM12W1ecxZwoiu22R")
         wallet2 = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
         ), public_key="edpku3g7CeTEvSKhxipD4Q2B6EiEP8cR323u8PFmGFgKRVRvCneEmT")
-        TokenTransaction.objects.create(
+        Transaction.objects.create(to_wallet=wallet1, amount=100)
+        MetaTransaction.objects.create(
             from_wallet=wallet1, to_wallet=wallet2, amount=10, nonce=1)
         self.assertEqual(
-            wallet1.balance, -10)
+            wallet1.balance, 90)
         self.assertEqual(
             wallet2.balance, 10)
-        TokenTransaction.objects.create(
+        MetaTransaction.objects.create(
             from_wallet=wallet2, to_wallet=wallet1, amount=1, nonce=2)
         self.assertEqual(
-            wallet1.balance, -9)
+            wallet1.balance, 91)
         self.assertEqual(
             wallet2.balance, 9)
-        TokenTransaction.objects.create(
+        MetaTransaction.objects.create(
             from_wallet=wallet1, to_wallet=wallet2, amount=1, nonce=3)
         self.assertEqual(
-            wallet1.balance, -10)
+            wallet1.balance, 90)
         self.assertEqual(
             wallet2.balance, 10)
+
+
+class MetaTransactionTestCase(TestCase):
+    def test_validation(self):
+        wallet1 = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
+        ), public_key="edpku976gpuAD2bXyx1XGraeKuCo1gUZ3LAJcHM12W1ecxZwoiu22R")
+        wallet2 = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
+        ), public_key="edpku3g7CeTEvSKhxipD4Q2B6EiEP8cR323u8PFmGFgKRVRvCneEmT")
+
+        Transaction.objects.create(to_wallet=wallet1, amount=100)
+        with self.assertRaises(ValidationError):
+            MetaTransaction.objects.create(
+                from_wallet=None, to_wallet=wallet2, amount=10, nonce=1)
+        with self.assertRaises(ValidationError):
+            MetaTransaction.objects.create(
+                from_wallet=wallet1, to_wallet=wallet2, amount=10, nonce=0)
+        with self.assertRaises(ValidationError):
+            MetaTransaction.objects.create(
+                from_wallet=wallet1, to_wallet=wallet2, amount=0, nonce=1)
 
 
 class BlockchainSyncTestCase(TestCase):
@@ -76,13 +98,15 @@ class BlockchainSyncTestCase(TestCase):
             key=settings.TEZOS_ADMIN_ACCOUNT_PRIVATE_KEY, shell=settings.TEZOS_NODE)
         last_nonce = read_nonce_from_chain(
             pytezos_client.key.public_key_hash())
+
         token_contract = pytezos_client.contract(
             settings.TEZOS_TOKEN_CONTRACT_ADDRESS)
         wallet1 = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
         ), public_key=pytezos_client.key.public_key(), currency=currency)
         wallet2 = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
         ), public_key="edpku3g7CeTEvSKhxipD4Q2B6EiEP8cR323u8PFmGFgKRVRvCneEmT", currency=currency)
-        token_transaction = TokenTransaction.objects.create(
+        Transaction.objects.create(to_wallet=wallet1, amount=100)
+        token_transaction = MetaTransaction(
             from_wallet=wallet1, to_wallet=wallet2, nonce=last_nonce+1, amount=10)
         packed_meta_transaction = pack_meta_transaction(
             token_transaction.to_meta_transaction_dictionary())
@@ -93,7 +117,7 @@ class BlockchainSyncTestCase(TestCase):
                          TRANSACTION_STATES.OPEN.value)
         publish_open_meta_transactions_to_chain()
 
-        token_transaction = TokenTransaction.objects.get(
+        token_transaction = MetaTransaction.objects.get(
             pk=token_transaction.pk)
 
         self.assertEqual(token_transaction.state,
