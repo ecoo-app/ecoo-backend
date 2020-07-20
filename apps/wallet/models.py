@@ -117,12 +117,12 @@ class TokenTransaction(UUIDModel):
 
     def to_meta_transaction_dictionary(self):
         return {
-            'from_public_key': self.from_addr.pub_key,
+            'from_public_key': self.from_wallet.public_key,
             'signature': self.signature,
             'nonce': self.nonce,
             'txs': [
-                # TODO: currency should provide token_id
-                {'to_': self.to_addr.address, 'amount': self.amount, 'token_id': 0}
+                {'to_': self.to_wallet.address, 'amount': self.amount,
+                    'token_id': self.from_wallet.currency.token_id}
             ]
         }
 

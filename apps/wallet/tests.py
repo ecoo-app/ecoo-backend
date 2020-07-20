@@ -1,4 +1,5 @@
 from django.test import TestCase
+from apps.currency.models import Currency
 from apps.wallet.models import Wallet, TokenTransaction, TRANSACTION_STATES
 from pytezos import pytezos, michelson
 from apps.wallet.utils import publish_open_meta_transactions_to_chain, pack_meta_transaction, read_nonce_from_chain
@@ -70,18 +71,19 @@ class BlockchainSyncTestCase(TestCase):
         pass
 
     def test_transfer(self):
+        currency = Currency.objects.create(token_id=0, name="TEZ")
         pytezos_client = pytezos.using(
             key=settings.TEZOS_ADMIN_ACCOUNT_PRIVATE_KEY, shell=settings.TEZOS_NODE)
         last_nonce = read_nonce_from_chain(
             pytezos_client.key.public_key_hash())
         token_contract = pytezos_client.contract(
             settings.TEZOS_TOKEN_CONTRACT_ADDRESS)
-        wallet1 = Wallet.objects.create(walletID=Wallet.getWalletID(
-        ), pub_key=pytezos_client.key.public_key())
-        wallet2 = Wallet.objects.create(walletID=Wallet.getWalletID(
-        ), pub_key="edpku3g7CeTEvSKhxipD4Q2B6EiEP8cR323u8PFmGFgKRVRvCneEmT")
+        wallet1 = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
+        ), public_key=pytezos_client.key.public_key(), currency=currency)
+        wallet2 = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
+        ), public_key="edpku3g7CeTEvSKhxipD4Q2B6EiEP8cR323u8PFmGFgKRVRvCneEmT", currency=currency)
         token_transaction = TokenTransaction.objects.create(
-            from_addr=wallet1, to_addr=wallet2, nonce=last_nonce+1, amount=10)
+            from_wallet=wallet1, to_wallet=wallet2, nonce=last_nonce+1, amount=10)
         packed_meta_transaction = pack_meta_transaction(
             token_transaction.to_meta_transaction_dictionary())
         signature = pytezos_client.key.sign(packed_meta_transaction)
