@@ -55,7 +55,7 @@ def createMessage(from_address, to_address, nonce, token_id, amount):
         "prim": "Pair",
         "args": [
                 {
-                    "string": from_address.pub_key
+                    "string": from_address.public_key
                 },
             {
                     "prim": "Pair",

@@ -19,7 +19,7 @@ from apps.wallet.utils import CustomCursorPagination, createMessage
 
 
 class WalletDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
-    lookup_field = "walletID"
+    lookup_field = "wallet_id"
     queryset = Wallet.objects.all()
     serializer_class = WalletSerializer
     public_serializer = PublicWalletSerializer
@@ -39,15 +39,15 @@ class WalletDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
 
 
 @api_view(['GET'])
-def get_nonce(request, walletID=None):
+def get_nonce(request, wallet_id=None):
 
-    if walletID:
-        wallet = Wallet.objects.get(walletID=walletID)
+    if wallet_id:
+        wallet = Wallet.objects.get(wallet_id=wallet_id)
         return Response({"nonce": str(wallet.nonce)})
     else:
         e = APIException()
         e.status_code = 422
-        e.detail = 'walletID is invalid'
+        e.detail = 'wallet_id is invalid'
         raise e
 
 
@@ -75,7 +75,7 @@ class WalletCreate(generics.CreateAPIView):
         while retry:
             try:
                 retry = False
-                obj.walletID = Wallet.getWalletID()
+                obj.wallet_id = Wallet.get_wallet_id()
                 obj.save()
             except IntegrityError:
                 retry = True
@@ -171,16 +171,16 @@ class TransactionCreate(generics.CreateAPIView):
 class TransactionList(generics.ListAPIView):
     # TODO: different serializer??
     serializer_class = TransactionSerializer
-    filterset_fields = ['from_addr__walletID', 'to_addr__walletID', 'amount']
+    filterset_fields = ['from_addr__wallet_id', 'to_addr__wallet_id', 'amount']
     pagination_class = CustomCursorPagination
 
     def get_queryset(self):
         if self.request.user.is_superuser:
             return TokenTransaction.objects.all()
 
-        wallet_of_interest = self.request.query_params.get('walletID', None)
+        wallet_of_interest = self.request.query_params.get('wallet_id', None)
         if wallet_of_interest:
-            return TokenTransaction.getBelongingToUser(self.request.user).filter(Q(from_addr__walletID=wallet_of_interest) | Q(to_addr__walletID=wallet_of_interest))
+            return TokenTransaction.get_belonging_to_user(self.request.user).filter(Q(from_addr__wallet_id=wallet_of_interest) | Q(to_addr__wallet_id=wallet_of_interest))
             pass
 
-        return TokenTransaction.getBelongingToUser(self.request.user)
+        return TokenTransaction.get_belonging_to_user(self.request.user)

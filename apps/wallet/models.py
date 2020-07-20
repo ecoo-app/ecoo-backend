@@ -55,11 +55,8 @@ class Wallet(CurrencyOwnedMixin):
     company = models.ForeignKey(
         Company, blank=True, null=True, on_delete=models.SET_NULL, related_name='wallets')
 
-    # TODO:  no camelcase in properties, use _ to separate -> wallet_id (or directly id)
-    walletID = models.CharField(unique=True, max_length=128)
-
-    # TODO:  never abbreviate in code "pub_key" -> "public_key"
-    pub_key = models.CharField(
+    wallet_id = models.CharField(unique=True, max_length=128)
+    public_key = models.CharField(
         unique=True, max_length=60)  # encoded public_key
 
     category = models.IntegerField(
@@ -68,7 +65,7 @@ class Wallet(CurrencyOwnedMixin):
 
     @property
     def address(self):
-        return Key.from_encoded_key(self.pub_key).public_key_hash()
+        return Key.from_encoded_key(self.public_key).public_key_hash()
 
     @property
     def balance(self):
@@ -79,11 +76,11 @@ class Wallet(CurrencyOwnedMixin):
         return self.from_transactions.count()
 
     def __str__(self):
-        return self.walletID
+        return self.wallet_id
 
     # TODO:  no camelcase in properties, use _ to separate -> wallet_id (or directly id)
     @staticmethod
-    def getBelongingToUser(user):
+    def get_belonging_to_user(user):
         if user.is_superuser:
             return Wallet.objects.all()
 
@@ -91,7 +88,7 @@ class Wallet(CurrencyOwnedMixin):
 
     # TODO:  no camelcase in properties, use _, also shouldn't this be generate_wallet_id?
     @staticmethod
-    def getWalletID():
+    def get_wallet_id():
         characters = get_random_string(2, string.ascii_uppercase)
         digits = str(random.randint(0, 999999)).zfill(6)
         return characters + digits
@@ -125,6 +122,6 @@ class TokenTransaction(UUIDModel):
     submitted_to_chain_at = models.DateTimeField(blank=True, null=True)
 
     @staticmethod
-    def getBelongingToUser(user):
+    def get_belonging_to_user(user):
         belonging_wallets = user.wallets
         return TokenTransaction.objects.filter(Q(from_addr__in=belonging_wallets) | Q(to_addr__in=belonging_wallets))
