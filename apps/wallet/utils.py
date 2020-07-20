@@ -134,6 +134,7 @@ def pack_meta_transaction(meta_transaction):
             ]
         })
 
+    # TODO: refactor    
     message_structure = {
         "prim": "pair",
         "args": [
