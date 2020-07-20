@@ -50,12 +50,12 @@ MESSAGE_STRUCTURE = {
 }
 
 
-def createMessage(from_address, to_address, nonce, token_id, amount):
+def createMessage(from_wallet, to_wallet, nonce, token_id, amount):
     message_to_encode = {
         "prim": "Pair",
         "args": [
                 {
-                    "string": from_address.public_key
+                    "string": from_wallet.public_key
                 },
             {
                     "prim": "Pair",
@@ -68,7 +68,7 @@ def createMessage(from_address, to_address, nonce, token_id, amount):
                                 "prim": "Pair",
                                 "args": [
                                     {
-                                        "string": pytezos.Key.from_encoded_key(to_address.public_key).public_key_hash()
+                                        "string": pytezos.Key.from_encoded_key(to_wallet.public_key).public_key_hash()
                                     },
                                     {
                                         "prim": "Pair",

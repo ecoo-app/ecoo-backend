@@ -10,7 +10,7 @@ class WalletAdmin(admin.ModelAdmin):
 
 @admin.register(TokenTransaction)
 class TokenTransactionAdmin(admin.ModelAdmin):
-    list_display = ['from_addr', 'to_addr', 'amount', 'state']
+    list_display = ['from_wallet', 'to_wallet', 'amount', 'state']
 
 
 # TODO: add proper admin sites

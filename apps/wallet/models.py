@@ -99,10 +99,9 @@ TRANSACTION_STATE_CHOICES = (
 
 
 class TokenTransaction(UUIDModel):
-    # TODO: rename fields to from_wallet etc.
-    from_addr = models.ForeignKey(
+    from_wallet = models.ForeignKey(
         Wallet, on_delete=models.DO_NOTHING, related_name='from_transactions')
-    to_addr = models.ForeignKey(
+    to_wallet = models.ForeignKey(
         Wallet, on_delete=models.DO_NOTHING, related_name='to_transactions')
     amount = models.IntegerField()
 
@@ -115,4 +114,4 @@ class TokenTransaction(UUIDModel):
     @staticmethod
     def get_belonging_to_user(user):
         belonging_wallets = user.wallets
-        return TokenTransaction.objects.filter(Q(from_addr__in=belonging_wallets) | Q(to_addr__in=belonging_wallets))
+        return TokenTransaction.objects.filter(Q(from_wallet__in=belonging_wallets) | Q(to_wallet__in=belonging_wallets))
