@@ -128,5 +128,5 @@ class TokenTransaction(UUIDModel):
 
     @staticmethod
     def get_belonging_to_user(user):
-        belonging_wallets = user.wallets
+        belonging_wallets = user.wallets.all()
         return TokenTransaction.objects.filter(Q(from_wallet__in=belonging_wallets) | Q(to_wallet__in=belonging_wallets))
