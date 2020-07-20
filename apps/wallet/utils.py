@@ -71,7 +71,7 @@ def createMessage(from_wallet, to_wallet, nonce, token_id, amount):
                                 "prim": "Pair",
                                 "args": [
                                     {
-                                        "string": pytezos.Key.from_encoded_key(to_wallet.public_key).public_key_hash()
+                                        "string": to_wallet.address
                                     },
                                     {
                                         "prim": "Pair",
@@ -169,7 +169,7 @@ def pack_meta_transaction(meta_transaction):
             }
         ]
     }
-    return michelson.pack.pack(message_to_encode, message_structure)
+    return michelson.pack.pack(message_to_encode, MESSAGE_STRUCTURE)
 
 
 def read_nonce_from_chain(address):
