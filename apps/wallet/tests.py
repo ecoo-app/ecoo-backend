@@ -7,15 +7,15 @@ class WalletTestCase(TestCase):
         pass
 
     def test_address_calculation(self):
-        wallet = Wallet.objects.create(wallet_id=Wallet.get_wallet_id(
+        wallet = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
         ), public_key="edpku976gpuAD2bXyx1XGraeKuCo1gUZ3LAJcHM12W1ecxZwoiu22R")
         self.assertEqual(
             wallet.nonce, 0)
 
     def test_nonce_calculation(self):
-        wallet1 = Wallet.objects.create(wallet_id=Wallet.get_wallet_id(
+        wallet1 = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
         ), public_key="edpku976gpuAD2bXyx1XGraeKuCo1gUZ3LAJcHM12W1ecxZwoiu22R")
-        wallet2 = Wallet.objects.create(wallet_id=Wallet.get_wallet_id(
+        wallet2 = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
         ), public_key="edpku3g7CeTEvSKhxipD4Q2B6EiEP8cR323u8PFmGFgKRVRvCneEmT")
         TokenTransaction.objects.create(
             from_addr=wallet1, to_addr=wallet2, amount=10)
@@ -37,9 +37,9 @@ class WalletTestCase(TestCase):
             wallet2.nonce, 1)
 
     def test_balance_calculation(self):
-        wallet1 = Wallet.objects.create(wallet_id=Wallet.get_wallet_id(
+        wallet1 = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
         ), public_key="edpku976gpuAD2bXyx1XGraeKuCo1gUZ3LAJcHM12W1ecxZwoiu22R")
-        wallet2 = Wallet.objects.create(wallet_id=Wallet.get_wallet_id(
+        wallet2 = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
         ), public_key="edpku3g7CeTEvSKhxipD4Q2B6EiEP8cR323u8PFmGFgKRVRvCneEmT")
         TokenTransaction.objects.create(
             from_addr=wallet1, to_addr=wallet2, amount=10)

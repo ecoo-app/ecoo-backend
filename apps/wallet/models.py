@@ -78,7 +78,6 @@ class Wallet(CurrencyOwnedMixin):
     def __str__(self):
         return self.wallet_id
 
-    # TODO:  no camelcase in properties, use _ to separate -> wallet_id (or directly id)
     @staticmethod
     def get_belonging_to_user(user):
         if user.is_superuser:
@@ -88,7 +87,7 @@ class Wallet(CurrencyOwnedMixin):
 
     # TODO:  no camelcase in properties, use _, also shouldn't this be generate_wallet_id?
     @staticmethod
-    def get_wallet_id():
+    def generate_wallet_id():
         characters = get_random_string(2, string.ascii_uppercase)
         digits = str(random.randint(0, 999999)).zfill(6)
         return characters + digits

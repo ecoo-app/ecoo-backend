@@ -75,7 +75,7 @@ class WalletCreate(generics.CreateAPIView):
         while retry:
             try:
                 retry = False
-                obj.wallet_id = Wallet.get_wallet_id()
+                obj.wallet_id = Wallet.generate_wallet_id()
                 obj.save()
             except IntegrityError:
                 retry = True
