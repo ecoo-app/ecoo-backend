@@ -113,7 +113,12 @@ class TransactionCreate(generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+
+        try:
+            serializer.is_valid(raise_exception=True)
+        except ValidationError as e:
+            print(e)
+            pass
 
         if request.user != serializer.validated_data['from_wallet'].owner:
             raise PermissionDenied()
@@ -163,7 +168,7 @@ class TransactionCreate(generics.CreateAPIView):
         key_2 = Key.from_encoded_key(settings.TEZOS_ADMIN_ACCOUNT_PRIVATE_KEY)
         last_nonce = read_nonce_from_chain(
             key_2.public_key_hash())
-        obj = TokenTransaction(**serializer.validated_data)
+        obj = MetaTransaction(**serializer.validated_data)
         obj.nonce = last_nonce
         obj.save()
 

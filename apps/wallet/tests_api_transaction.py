@@ -7,7 +7,7 @@ from rest_framework.test import APIClient, APIRequestFactory, APITestCase
 from apps.wallet.utils import publish_open_meta_transactions_to_chain, pack_meta_transaction, read_nonce_from_chain
 
 from apps.currency.models import Currency
-from apps.wallet.models import Wallet, TokenTransaction, WALLET_STATES
+from apps.wallet.models import Wallet, MetaTransaction, Transaction, WALLET_STATES
 from apps.wallet.serializers import PublicWalletSerializer, WalletSerializer, TransactionSerializer
 
 
@@ -43,8 +43,9 @@ class TransactionApiTest(APITestCase):
         ), public_key=self.key.public_key(), currency=self.currency, owner=self.user)
 
     def test_transaction_create_unauthorized(self):
+        Transaction.objects.create(to_wallet=self.wallet_pk, amount=20)
 
-        token_transaction = TokenTransaction.objects.create(
+        token_transaction = MetaTransaction.objects.create(
             from_wallet=self.wallet_pk, to_wallet=self.wallet_2, nonce=1, amount=10)
         packed_meta_transaction = pack_meta_transaction(
             token_transaction.to_meta_transaction_dictionary())
@@ -62,8 +63,11 @@ class TransactionApiTest(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    def test_transaction_create_errors(self):
-        token_transaction = TokenTransaction.objects.create(
+    def test_transaction_create_not_verified(self):
+        tx1_1 = Transaction.objects.create(
+            to_wallet=self.wallet_pk, amount=150)
+
+        token_transaction = MetaTransaction.objects.create(
             from_wallet=self.wallet_pk, to_wallet=self.wallet_2, nonce=1, amount=10)
         packed_meta_transaction = pack_meta_transaction(
             token_transaction.to_meta_transaction_dictionary())
@@ -72,7 +76,7 @@ class TransactionApiTest(APITestCase):
 
         self.client.force_authenticate(user=self.user)
 
-        tx_count = TokenTransaction.objects.all().count()
+        tx_count = MetaTransaction.objects.all().count()
 
         response = self.client.post('/api/wallet/transaction/create/', {
             'from_wallet': self.wallet_pk.wallet_id,
@@ -85,11 +89,16 @@ class TransactionApiTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(
             response.data, {'detail': 'Only verified addresses can send money'})
-        self.assertEqual(tx_count, TokenTransaction.objects.all().count())
+        self.assertEqual(tx_count, MetaTransaction.objects.all().count())
+
+    def test_transaction_create_different_currency(self):
+        tx1_1 = Transaction.objects.create(
+            to_wallet=self.wallet_pk, amount=150)
+
         self.wallet_pk.state = WALLET_STATES.VERIFIED.value
         self.wallet_pk.save()
 
-        token_transaction = TokenTransaction.objects.create(
+        token_transaction = MetaTransaction.objects.create(
             from_wallet=self.wallet_pk, to_wallet=self.wallet_2_2, nonce=self.wallet_pk.nonce+1, amount=10)
         packed_meta_transaction = pack_meta_transaction(
             token_transaction.to_meta_transaction_dictionary())
@@ -98,7 +107,7 @@ class TransactionApiTest(APITestCase):
 
         self.client.force_authenticate(user=self.user)
 
-        tx_count = TokenTransaction.objects.all().count()
+        tx_count = MetaTransaction.objects.all().count()
 
         response = self.client.post('/api/wallet/transaction/create/', {
             'from_wallet': self.wallet_pk.wallet_id,
@@ -112,18 +121,24 @@ class TransactionApiTest(APITestCase):
                          status.HTTP_422_UNPROCESSABLE_ENTITY)
         self.assertEqual(
             response.data, {'detail': 'Both wallets have to belong to the same currency'})
-        self.assertEqual(tx_count, TokenTransaction.objects.all().count())
+        self.assertEqual(tx_count, MetaTransaction.objects.all().count())
 
-        token_transaction = TokenTransaction.objects.create(
+    def test_transaction_create_nonce_issue(self):
+        self.client.force_authenticate(user=self.user)
+        tx1_1 = Transaction.objects.create(
+            to_wallet=self.wallet_pk, amount=150)
+        token_transaction = MetaTransaction.objects.create(
             from_wallet=self.wallet_pk, to_wallet=self.wallet_2, nonce=self.wallet_pk.nonce+1, amount=10)
         packed_meta_transaction = pack_meta_transaction(
             token_transaction.to_meta_transaction_dictionary())
         signature = self.key.sign(packed_meta_transaction)
         token_transaction.delete()
+        self.wallet_pk.state = WALLET_STATES.VERIFIED.value
+        self.wallet_pk.save()
 
         self.client.force_authenticate(user=self.user)
 
-        tx_count = TokenTransaction.objects.all().count()
+        tx_count = MetaTransaction.objects.all().count()
 
         response = self.client.post('/api/wallet/transaction/create/', {
             'from_wallet': self.wallet_pk.wallet_id,
@@ -136,10 +151,18 @@ class TransactionApiTest(APITestCase):
         self.assertEqual(response.status_code,
                          status.HTTP_422_UNPROCESSABLE_ENTITY)
         self.assertEqual(response.data, {'detail': 'Nonce value is incorrect'})
-        self.assertEqual(tx_count, TokenTransaction.objects.all().count())
+        self.assertEqual(tx_count, MetaTransaction.objects.all().count())
 
-        token_transaction = TokenTransaction.objects.create(
-            from_wallet=self.wallet_pk, to_wallet=self.wallet_2, nonce=self.wallet_pk.nonce+1, amount=10)
+
+    def test_transaction_create_balance_too_small(self):
+        self.wallet_pk.state = WALLET_STATES.VERIFIED.value
+        self.wallet_pk.save()
+        self.client.force_authenticate(user=self.user)
+        tx1_1 = Transaction.objects.create(
+            to_wallet=self.wallet_pk, amount=150)        
+        token_transaction = MetaTransaction.objects.create(
+            from_wallet=self.wallet_pk, to_wallet=self.wallet_2, nonce=self.wallet_pk.nonce+1, amount=20)
+        tx1_1.delete()
         packed_meta_transaction = pack_meta_transaction(
             token_transaction.to_meta_transaction_dictionary())
         signature = self.key.sign(packed_meta_transaction)
@@ -147,12 +170,12 @@ class TransactionApiTest(APITestCase):
 
         self.client.force_authenticate(user=self.user)
 
-        tx_count = TokenTransaction.objects.all().count()
+        tx_count = MetaTransaction.objects.all().count()
 
         response = self.client.post('/api/wallet/transaction/create/', {
             'from_wallet': self.wallet_pk.wallet_id,
             'to_wallet': self.wallet_2.wallet_id,
-            'amount': 10,
+            'amount': 200,
             'signature': signature,
             'nonce': self.wallet_pk.nonce+1
         })
@@ -160,9 +183,17 @@ class TransactionApiTest(APITestCase):
         self.assertEqual(response.status_code,
                          status.HTTP_422_UNPROCESSABLE_ENTITY)
         self.assertEqual(response.data, {'detail': 'Balance is too small'})
-        self.assertEqual(tx_count, TokenTransaction.objects.all().count())
+        self.assertEqual(tx_count, MetaTransaction.objects.all().count())
 
-        token_transaction = TokenTransaction.objects.create(
+
+    def test_transaction_create_signature_invalid(self):
+        self.wallet_pk.state = WALLET_STATES.VERIFIED.value
+        self.wallet_pk.save()
+        self.client.force_authenticate(user=self.user)
+        tx1_1 = Transaction.objects.create(
+            to_wallet=self.wallet_pk, amount=150)
+
+        token_transaction = MetaTransaction.objects.create(
             from_wallet=self.wallet_pk, to_wallet=self.wallet_2, nonce=self.wallet_pk.nonce+1, amount=20)
         packed_meta_transaction = pack_meta_transaction(
             token_transaction.to_meta_transaction_dictionary())
@@ -171,9 +202,9 @@ class TransactionApiTest(APITestCase):
 
         self.client.force_authenticate(user=self.user)
 
-        tx1 = TokenTransaction.objects.create(
-            from_wallet=self.wallet_2_2, to_wallet=self.wallet_pk, nonce=1, amount=100)
-        tx_count = TokenTransaction.objects.all().count()
+        # tx1 = MetaTransaction.objects.create(
+            # from_wallet=self.wallet_pk, to_wallet=self.wallet_2, nonce=1, amount=11)
+        tx_count = MetaTransaction.objects.all().count()
 
         response = self.client.post('/api/wallet/transaction/create/', {
             'from_wallet': self.wallet_pk.wallet_id,
@@ -186,17 +217,16 @@ class TransactionApiTest(APITestCase):
         self.assertEqual(response.status_code,
                          status.HTTP_422_UNPROCESSABLE_ENTITY)
         self.assertEqual(response.data, {'detail': 'Signature is invalid'})
-        self.assertEqual(tx_count, TokenTransaction.objects.all().count())
+        self.assertEqual(tx_count, MetaTransaction.objects.all().count())
 
     def test_transaction_create_correct(self):
         self.client.force_authenticate(user=self.user)
+        tx1_1 = Transaction.objects.create(
+            to_wallet=self.wallet_pk, amount=150)
 
-        tx1 = TokenTransaction.objects.create(
-            from_wallet=self.wallet_2_2, to_wallet=self.wallet_pk, nonce=1, amount=100)
+        tx_count = MetaTransaction.objects.all().count()
 
-        tx_count = TokenTransaction.objects.all().count()
-
-        token_transaction = TokenTransaction.objects.create(
+        token_transaction = MetaTransaction.objects.create(
             from_wallet=self.wallet_pk, to_wallet=self.wallet_2, nonce=self.wallet_pk.nonce+1, amount=10)
 
         self.wallet_pk.state = WALLET_STATES.VERIFIED.value
@@ -216,18 +246,25 @@ class TransactionApiTest(APITestCase):
         })
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(tx_count+1, TokenTransaction.objects.all().count())
+        self.assertEqual(tx_count+1, MetaTransaction.objects.all().count())
 
         self.client.force_authenticate(user=None)
 
     def test_transaction_list(self):
-        tx1 = TokenTransaction.objects.create(
-            from_wallet=self.wallet_pk, to_wallet=self.wallet_2_2, nonce=1, amount=10)
-        tx2 = TokenTransaction.objects.create(
-            from_wallet=self.wallet_pk, to_wallet=self.wallet_2_2, nonce=2, amount=10)
+        tx1_1 = Transaction.objects.create(
+            to_wallet=self.wallet_pk, amount=20)
+        tx2_1 = Transaction.objects.create(
+            to_wallet=self.wallet_2_2, amount=20)
+        tx3_1 = Transaction.objects.create(
+            to_wallet=self.wallet_2, amount=20)
 
-        tx3 = TokenTransaction.objects.create(
-            from_wallet=self.wallet_2, to_wallet=self.wallet_2_2, nonce=2, amount=10)
+        tx1 = MetaTransaction.objects.create(
+            from_wallet=self.wallet_pk, to_wallet=self.wallet_2_2, amount=4, nonce=1)
+        tx2 = MetaTransaction.objects.create(
+            from_wallet=self.wallet_pk, to_wallet=self.wallet_2_2, amount=4, nonce=2)
+
+        tx3 = MetaTransaction.objects.create(
+            from_wallet=self.wallet_2, to_wallet=self.wallet_2_2, amount=10, nonce=3)
 
         response = self.client.get('/api/wallet/transaction/list/')
 

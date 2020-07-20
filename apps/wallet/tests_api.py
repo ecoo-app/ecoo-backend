@@ -7,7 +7,7 @@ from rest_framework.test import APIClient, APIRequestFactory, APITestCase
 from apps.wallet.utils import publish_open_meta_transactions_to_chain, pack_meta_transaction, read_nonce_from_chain
 
 from apps.currency.models import Currency
-from apps.wallet.models import Wallet, TokenTransaction, WALLET_STATES
+from apps.wallet.models import Wallet, MetaTransaction, WALLET_STATES
 from apps.wallet.serializers import PublicWalletSerializer, WalletSerializer
 
 
