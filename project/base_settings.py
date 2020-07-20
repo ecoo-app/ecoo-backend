@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'apps.custom_auth',
-    
+
     'oauth2_provider',
     'social_django',
     'rest_framework_social_oauth2',
@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'apps.wallet',
     'apps.devices',
     'apps.currency',
+    'apps.verification',
     'project'
 ]
 
@@ -214,12 +215,13 @@ AUTHENTICATION_BACKENDS = (
 SITE_ID = 1
 
 # https://python-social-auth.readthedocs.io/en/latest/backends/apple.html
-SOCIAL_AUTH_APPLE_ID_CLIENT = '__APPLE_ID_CLIENT__' # Your client_id com.application.your, aka "Service ID"
-SOCIAL_AUTH_APPLE_ID_TEAM = '__APPLE_ID_TEAM__' # Your Team ID, ie K2232113
-SOCIAL_AUTH_APPLE_ID_KEY = '__APPLE_ID_KEY__' # Your Key ID, ie Y2P99J3N81K
+# Your client_id com.application.your, aka "Service ID"
+SOCIAL_AUTH_APPLE_ID_CLIENT = '__APPLE_ID_CLIENT__'
+SOCIAL_AUTH_APPLE_ID_TEAM = '__APPLE_ID_TEAM__'  # Your Team ID, ie K2232113
+SOCIAL_AUTH_APPLE_ID_KEY = '__APPLE_ID_KEY__'  # Your Key ID, ie Y2P99J3N81K
 SOCIAL_AUTH_APPLE_ID_SECRET = '__APPLE_ID_SECRET__'
 SOCIAL_AUTH_APPLE_ID_SCOPE = ['email', 'name']
-SOCIAL_AUTH_APPLE_ID_EMAIL_AS_USERNAME = True 
+SOCIAL_AUTH_APPLE_ID_EMAIL_AS_USERNAME = True
 
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '__GOOGLE_OAUTH2_KEY__'
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = '__GOOGLE_OAUTH2_SECRET__'
@@ -250,3 +252,9 @@ SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.social_auth.load_extra_data',
     'social_core.pipeline.user.user_details',
 )
+
+TEZOS_ADMIN_ACCOUNT_PRIVATE_KEY = "edsk4MiGLMTj3qkYBiSXBeMghxz6iXzLppusAUVJZNjtVmMVqmkiFN"
+TEZOS_TOKEN_CONTRACT_ADDRESS = "KT1P4cKoPtLERkWcibpGgAi1uifRyi9N8hSi"
+TEZOS_CALLBACK_CONTRACT_ADDRESS = "KT1FM1yaa8sfADNojRBGnt9QGXssCicVbeTY"
+TEZOS_BLOCK_WAIT_TIME = 5
+TEZOS_NODE = "https://rpc.tzkt.io/carthagenet/"

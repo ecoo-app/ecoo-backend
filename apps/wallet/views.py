@@ -11,8 +11,7 @@ from rest_framework.decorators import api_view
 from rest_framework.exceptions import APIException, ValidationError
 from rest_framework.response import Response
 
-from apps.wallet.models import (WALLET_STATES, TokenTransaction,
-                                VerificationData, Wallet)
+from apps.wallet.models import WALLET_STATES, TokenTransaction, Wallet
 from apps.wallet.serializers import (CreateWalletSerializer,
                                      PublicWalletSerializer,
                                      TransactionSerializer, WalletSerializer)
@@ -20,7 +19,7 @@ from apps.wallet.utils import CustomCursorPagination, createMessage
 
 
 class WalletDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
-    lookup_field = "walletID"
+    lookup_field = "wallet_id"
     queryset = Wallet.objects.all()
     serializer_class = WalletSerializer
     public_serializer = PublicWalletSerializer
@@ -40,15 +39,15 @@ class WalletDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
 
 
 @api_view(['GET'])
-def get_nonce(request, walletID=None):
+def get_nonce(request, wallet_id=None):
 
-    if walletID:
-        wallet = Wallet.objects.get(walletID=walletID)
+    if wallet_id:
+        wallet = Wallet.objects.get(wallet_id=wallet_id)
         return Response({"nonce": str(wallet.nonce)})
     else:
         e = APIException()
         e.status_code = 422
-        e.detail = 'walletID is invalid'
+        e.detail = 'wallet_id is invalid'
         raise e
 
 
@@ -76,20 +75,22 @@ class WalletCreate(generics.CreateAPIView):
         while retry:
             try:
                 retry = False
-                obj.walletID = Wallet.getWalletID()
+                obj.wallet_id = Wallet.generate_wallet_id()
                 obj.save()
             except IntegrityError:
                 retry = True
 
-        if validated_data.get('verification_uuid', None):  # TODO: Test this
-            verification_data = VerificationData.objects.get(
-                uuid=validated_data['verification_uuid'])
-            if verification_data.has_been_used or (obj.owner and obj.owner != verification_data['owner']) or (obj.company and obj.company != verification_data['company']):
-                pass
-            else:
-                obj.state = WALLET_STATES.VERIFIED.value
-                verification_data.has_been_used = True
-                verification_data.save()
+        if validated_data.get('verification_uuid', None):
+            # TODO: handle verification
+            pass
+            # verification_data = VerificationData.objects.get(
+            #     uuid=validated_data['verification_uuid'])
+            # if verification_data.has_been_used or (obj.owner and obj.owner != verification_data['owner']) or (obj.company and obj.company != verification_data['company']):
+            #     pass
+            # else:
+            #     obj.state = WALLET_STATES.VERIFIED.value
+            #     verification_data.has_been_used = True
+            #     verification_data.save()
 
         obj.save()
 
@@ -103,7 +104,7 @@ class WalletList(generics.ListAPIView):
     filterset_fields = ['currency']
 
     def get_queryset(self):
-        return Wallet.getBelongingToUser(self.request.user)
+        return self.request.user.wallets
 
 
 class TransactionCreate(generics.CreateAPIView):
@@ -113,31 +114,31 @@ class TransactionCreate(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        if request.user != serializer.validated_data['from_addr'].owner:
+        if request.user != serializer.validated_data['from_wallet'].owner:
             raise PermissionDenied()
 
-        from_address = serializer.validated_data['from_addr']
-        to_address = serializer.validated_data['to_addr']
+        from_wallet = serializer.validated_data['from_wallet']
+        to_wallet = serializer.validated_data['to_wallet']
 
-        if from_address.state != WALLET_STATES.VERIFIED.value:
+        if from_wallet.state != WALLET_STATES.VERIFIED.value:
             e = APIException()
             e.status_code = 403
             e.detail = 'Only verified addresses can send money'
             raise e
 
-        if from_address.currency != to_address.currency:
+        if from_wallet.currency != to_wallet.currency:
             e = APIException()
             e.status_code = 422
             e.detail = 'Both wallets have to belong to the same currency'
             raise e
 
-        if not self.request.data.get('nonce', None) or self.request.data.get('nonce') - serializer.validated_data['from_addr'].nonce != 1:
+        if not self.request.data.get('nonce', None) or self.request.data.get('nonce') - serializer.validated_data['from_wallet'].nonce != 1:
             e = APIException()
             e.status_code = 422
             e.detail = 'Nonce value is incorrect'
             raise e
 
-        if from_address.balance < serializer.validated_data['amount']:
+        if from_wallet.balance < serializer.validated_data['amount']:
             e = APIException()
             e.status_code = 422
             e.detail = 'Balance is to small'
@@ -145,11 +146,12 @@ class TransactionCreate(generics.CreateAPIView):
 
         signature = self.request.data.get('signature')
 
-        token_id = from_address.currency.token_id
-        message = createMessage(from_address, to_address, request.data['nonce'], token_id, serializer.validated_data['amount'])
-        key = pytezos.Key.from_encoded_key(from_address.public_key)
+        token_id = from_wallet.currency.token_id
+        message = createMessage(
+            from_wallet, to_wallet, request.data['nonce'], token_id, serializer.validated_data['amount'])
+        key = pytezos.Key.from_encoded_key(from_wallet.public_key)
         res = key.verify(signature, message)
-        
+
         if res != None:
             e = APIException()
             e.status_code = 422
@@ -160,8 +162,8 @@ class TransactionCreate(generics.CreateAPIView):
 
         headers = self.get_success_headers(serializer.data)
 
-        obj.from_addr.nonce += 1
-        obj.from_addr.save()
+        obj.from_wallet.nonce += 1
+        obj.from_wallet.save()
 
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
@@ -169,18 +171,16 @@ class TransactionCreate(generics.CreateAPIView):
 class TransactionList(generics.ListAPIView):
     # TODO: different serializer??
     serializer_class = TransactionSerializer
-    filterset_fields = ['from_addr__walletID', 'to_addr__walletID', 'amount']
+    filterset_fields = ['from_wallet__wallet_id', 'to_wallet__wallet_id', 'amount']
     pagination_class = CustomCursorPagination
 
     def get_queryset(self):
         if self.request.user.is_superuser:
             return TokenTransaction.objects.all()
-        
-        wallet_of_interest = self.request.query_params.get('walletID', None)
+
+        wallet_of_interest = self.request.query_params.get('wallet_id', None)
         if wallet_of_interest:
-            return TokenTransaction.getBelongingToUser(self.request.user).filter(Q(from_addr__walletID=wallet_of_interest)|Q(to_addr__walletID=wallet_of_interest) )
+            return TokenTransaction.get_belonging_to_user(self.request.user).filter(Q(from_wallet__wallet_id=wallet_of_interest) | Q(to_wallet__wallet_id=wallet_of_interest))
             pass
 
-        return TokenTransaction.getBelongingToUser(self.request.user)
-
-# TODO: verify_wallet
+        return TokenTransaction.get_belonging_to_user(self.request.user)

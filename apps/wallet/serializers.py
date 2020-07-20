@@ -19,8 +19,8 @@ class WalletSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Wallet
-        fields = ['walletID', 'balance', 'address',
-                  'pub_key', 'actual_nonce', 'currency','is_company_wallet']
+        fields = ['wallet_id', 'balance', 'public_key',
+                  'actual_nonce', 'currency', 'category']
 
 
 class CreateWalletSerializer(serializers.ModelSerializer):
@@ -30,23 +30,23 @@ class CreateWalletSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Wallet
-        fields = ['address', 'pub_key', 'company',
-                  'currency', 'verification_uuid','is_company_wallet']
+        fields = ['public_key', 'company',
+                  'currency', 'verification_uuid', 'category']
 
 
 class PublicWalletSerializer(WalletSerializer):
 
     class Meta:
         model = Wallet
-        fields = ['walletID', 'address', 'pub_key', 'currency','is_company_wallet']
+        fields = ['wallet_id', 'public_key', 'currency', 'category']
 
 
 class TransactionSerializer(serializers.ModelSerializer):
-    from_addr = serializers.SlugRelatedField(many=False, read_only=False,
-                                             slug_field='walletID', queryset=Wallet.objects.all())
-    to_addr = serializers.SlugRelatedField(many=False, read_only=False,
-                                           slug_field='walletID', queryset=Wallet.objects.all())
+    from_wallet = serializers.SlugRelatedField(many=False, read_only=False,
+                                             slug_field='wallet_id', queryset=Wallet.objects.all())
+    to_wallet = serializers.SlugRelatedField(many=False, read_only=False,
+                                           slug_field='wallet_id', queryset=Wallet.objects.all())
 
     class Meta:
         model = TokenTransaction
-        fields = ['from_addr', 'to_addr', 'amount', 'signature']
+        fields = ['from_wallet', 'to_wallet', 'amount', 'signature']

@@ -4,13 +4,13 @@ from apps.wallet.models import ClaimableAmount, Company, TokenTransaction, Walle
 
 @admin.register(Wallet)
 class WalletAdmin(admin.ModelAdmin):
-    fields = ('currency', 'walletID', 'owner', 'pub_key', 'state', 'address')
-    list_display = ('walletID', 'owner','address','state')
+    fields = ('currency', 'wallet_id', 'owner', 'public_key', 'state')
+    list_display = ('wallet_id', 'owner', 'state')
 
 
 @admin.register(TokenTransaction)
 class TokenTransactionAdmin(admin.ModelAdmin):
-    list_display = ['from_addr', 'to_addr', 'amount', 'state']
+    list_display = ['from_wallet', 'to_wallet', 'amount', 'state']
 
 
 # TODO: add proper admin sites
