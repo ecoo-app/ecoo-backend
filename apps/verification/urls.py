@@ -6,5 +6,5 @@ from apps.verification.views import VerificationInputList, verify_wallet
 urlpatterns = [
     path('verificationinput/list/', VerificationInputList.as_view(),
          name='verificationinputs'),
-    path('verify/<slug:walletID>', verify_wallet, name='verify_wallet')
+    path('verify/<slug:wallet_id>', verify_wallet, name='verify_wallet')
 ]

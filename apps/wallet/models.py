@@ -3,13 +3,13 @@ import string
 from enum import Enum
 
 from django.db import models
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.utils.crypto import get_random_string
 
 from apps.currency.mixins import CurrencyOwnedMixin
-from apps.wallet.utils import getBalanceForWallet
-from project import settings
+from django.conf import settings
 from project.mixins import UUIDModel
+from pytezos.crypto import Key
 
 
 class Company(UUIDModel):
@@ -29,43 +29,56 @@ class WALLET_STATES(Enum):
     VERIFIED = 2
 
 
+class WALLET_CATEGORIES(Enum):
+    CONSUMER = 0
+    COMPANY = 1
+    OWNER = 2
+
+
 WALLET_STATE_CHOICES = (
     (WALLET_STATES.UNVERIFIED.value, 'Unverified'),
     (WALLET_STATES.PENDING.value, 'Pending'),
     (WALLET_STATES.VERIFIED.value, 'Verified'),
 )
 
+WALLET_CATEGORY_CHOICES = (
+    (WALLET_CATEGORIES.CONSUMER.value, 'Consumer'),
+    (WALLET_CATEGORIES.COMPANY.value, 'Company'),
+    (WALLET_CATEGORIES.OWNER.value, 'Owner'),
+)
+
 
 class Wallet(CurrencyOwnedMixin):
     owner = models.ForeignKey(
-        settings.AUTH_USER_MODEL, blank=True, null=True, on_delete=models.DO_NOTHING)
+        settings.AUTH_USER_MODEL, blank=True, null=True, on_delete=models.DO_NOTHING, related_name='wallets')
     company = models.ForeignKey(
-        Company, blank=True, null=True, on_delete=models.SET_NULL)
-    walletID = models.CharField(unique=True, max_length=128)
-    pub_key = models.TextField()  # tz public_key
-    nonce = models.IntegerField(default=0)
-    # only true if belongs to "gemeinde"
-    is_owner_wallet = models.BooleanField(default=False)
-    is_company_wallet = models.BooleanField(default=False)
+        Company, blank=True, null=True, on_delete=models.SET_NULL, related_name='wallets')
 
+    wallet_id = models.CharField(unique=True, max_length=128)
+    public_key = models.CharField(
+        unique=True, max_length=60)  # encoded public_key
+
+    category = models.IntegerField(
+        default=0, choices=WALLET_CATEGORY_CHOICES)
     state = models.IntegerField(default=0, choices=WALLET_STATE_CHOICES)
 
     @property
+    def address(self):
+        return Key.from_encoded_key(self.public_key).public_key_hash()
+
+    @property
     def balance(self):
-        return getBalanceForWallet(self)
+        return (self.to_transactions.aggregate(Sum('amount')).get('amount__sum') or 0) - (self.from_transactions.aggregate(Sum('amount')).get('amount__sum') or 0)
+
+    @property
+    def nonce(self):
+        return self.from_transactions.count()
 
     def __str__(self):
-        return self.walletID
+        return self.wallet_id
 
     @staticmethod
-    def getBelongingToUser(user):
-        if user.is_superuser:
-            return Wallet.objects.all()
-
-        return Wallet.objects.filter(Q(owner=user) | Q(company__owner=user))
-
-    @staticmethod
-    def getWalletID():
+    def generate_wallet_id():
         characters = get_random_string(2, string.ascii_uppercase)
         digits = str(random.randint(0, 999999)).zfill(6)
         return characters + digits
@@ -75,30 +88,45 @@ class TRANSACTION_STATES(Enum):
     OPEN = 1
     PENDING = 2
     DONE = 3
+    FAILED = 4
 
 
 TRANSACTION_STATE_CHOICES = (
     (TRANSACTION_STATES.OPEN.value, 'Open'),
     (TRANSACTION_STATES.PENDING.value, 'Pending'),
     (TRANSACTION_STATES.DONE.value, 'Done'),
+    (TRANSACTION_STATES.FAILED.value, 'Failed'),
 )
 
 
 class TokenTransaction(UUIDModel):
-    # TODO: rename fields to from_wallet etc.
-    from_addr = models.ForeignKey(
-        Wallet, on_delete=models.DO_NOTHING, related_name='fromtransaction')
-    to_addr = models.ForeignKey(
-        Wallet, on_delete=models.DO_NOTHING, related_name='totransaction')
+    from_wallet = models.ForeignKey(
+        Wallet, on_delete=models.DO_NOTHING, related_name='from_transactions')
+    to_wallet = models.ForeignKey(
+        Wallet, on_delete=models.DO_NOTHING, related_name='to_transactions')
     amount = models.IntegerField()
 
+    nonce = models.IntegerField()
     state = models.IntegerField(choices=TRANSACTION_STATE_CHOICES, default=1)
     signature = models.CharField(max_length=128, null=True)
 
     created = models.DateTimeField(auto_now_add=True, null=True)
     submitted_to_chain_at = models.DateTimeField(blank=True, null=True)
 
+    operation_hash = models.CharField(max_length=128, null=True, blank=True)
+
+    def to_meta_transaction_dictionary(self):
+        return {
+            'from_public_key': self.from_wallet.public_key,
+            'signature': self.signature,
+            'nonce': self.nonce,
+            'txs': [
+                {'to_': self.to_wallet.address, 'amount': self.amount,
+                    'token_id': self.from_wallet.currency.token_id}
+            ]
+        }
+
     @staticmethod
-    def getBelongingToUser(user):
-        belonging_wallets = Wallet.getBelongingToUser(user)
-        return TokenTransaction.objects.filter(Q(from_addr__in=belonging_wallets) | Q(to_addr__in=belonging_wallets))
+    def get_belonging_to_user(user):
+        belonging_wallets = user.wallets
+        return TokenTransaction.objects.filter(Q(from_wallet__in=belonging_wallets) | Q(to_wallet__in=belonging_wallets))

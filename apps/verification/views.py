@@ -18,8 +18,8 @@ class VerificationInputList(generics.ListAPIView):
 
 
 @api_view(['POST'])
-def verify_wallet(request, walletID=None):
-    wallet = Wallet.objects.get(walletID=walletID)
+def verify_wallet(request, wallet_id=None):
+    wallet = Wallet.objects.get(wallet_id=wallet_id)
     # TODO: how to verify user for e currency with the provided input?
     print('request.data')
     print(request.data)
@@ -34,4 +34,4 @@ def verify_wallet(request, walletID=None):
         # TODO: what error / exception should be raised if validaiton failed?
         pass
 
-    return Response({"walletID": walletID, "verification_ok": verification_ok})
+    return Response({"wallet_id": wallet_id, "verification_ok": verification_ok})
