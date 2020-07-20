@@ -162,4 +162,3 @@ def custom_meta_transaction_validation(sender, instance, **kwargs):
     if instance.nonce <= (MetaTransaction.objects.filter(from_wallet=instance.from_wallet).aggregate(Max('nonce'))['nonce__max'] or 0):
         raise ValidationError(
             "Nonce must be higher than from_wallet's last meta transaction")
->>>>>>> apps/wallet/models.py
