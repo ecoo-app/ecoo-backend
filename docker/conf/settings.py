@@ -15,6 +15,12 @@ DATABASES = {
     }
 }
 
+if 'test' in sys.argv:
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': 'mydatabase'
+    }
+
 MEDIA_ROOT = "/code/media/"
 STATIC_ROOT = "/code/static_root/"
 STATICFILES_DIRS = [
