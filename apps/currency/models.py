@@ -7,7 +7,11 @@ from project.mixins import UUIDModel
 
 class Currency(UUIDModel):
     name = models.CharField(max_length=32)
-    token_id = models.IntegerField(null=True)
+    symbol = models.CharField(max_length=5, default="")
+    token_id = models.IntegerField()
+    decimals = models.IntegerField(default=0)
+
+    allow_minting = models.BooleanField(default=True)
     campaign_end = models.DateField(null=True)
     claim_deadline = models.DateField(null=True)
 
