@@ -4,11 +4,15 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient, APIRequestFactory, APITestCase
-from apps.wallet.utils import publish_open_meta_transactions_to_chain, pack_meta_transaction, read_nonce_from_chain
 
 from apps.currency.models import Currency
-from apps.wallet.models import Wallet, MetaTransaction, Transaction, WALLET_STATES
-from apps.wallet.serializers import PublicWalletSerializer, WalletSerializer, TransactionSerializer
+from apps.wallet.models import (WALLET_STATES, MetaTransaction, Transaction,
+                                Wallet)
+from apps.wallet.serializers import (PublicWalletSerializer,
+                                     TransactionSerializer, WalletSerializer)
+from apps.wallet.utils import (pack_meta_transaction,
+                               publish_open_meta_transactions_to_chain,
+                               read_nonce_from_chain)
 
 
 class TransactionApiTest(APITestCase):

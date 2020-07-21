@@ -3,7 +3,6 @@ from rest_framework import serializers
 from apps.currency.models import Currency
 from apps.currency.serializers import CurrencySerializer
 from apps.wallet.models import MetaTransaction, Wallet
-from apps.wallet.utils import getBalanceForWallet
 
 
 class WalletSerializer(serializers.ModelSerializer):
