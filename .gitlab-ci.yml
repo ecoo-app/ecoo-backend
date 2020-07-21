@@ -1,7 +1,7 @@
 variables:
     GIT_SUBMODULE_STRATEGY: recursive
-    GOOGLE_TAG: eu.gcr.io/papers-kubernetes/tezos/$NAMESPACE:$CI_COMMIT_SHA
-    GOOGLE_TAG_LATEST: eu.gcr.io/papers-kubernetes/tezos/$NAMESPACE:latest
+    GOOGLE_TAG: eu.gcr.io/papers-kubernetes/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_COMMIT_SHA
+    GOOGLE_TAG_LATEST: eu.gcr.io/papers-kubernetes/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:latest
   
 image: tmaier/docker-compose:latest
   

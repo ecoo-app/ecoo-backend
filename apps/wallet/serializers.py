@@ -3,16 +3,11 @@ from rest_framework import serializers
 from apps.currency.models import Currency
 from apps.currency.serializers import CurrencySerializer
 from apps.wallet.models import MetaTransaction, Wallet
-from apps.wallet.utils import getBalanceForWallet
 
 
 class WalletSerializer(serializers.ModelSerializer):
-    balance = serializers.SerializerMethodField('get_balance')
     actual_nonce = serializers.SerializerMethodField('get_nonce')
     currency = CurrencySerializer()
-
-    def get_balance(self, wallet):
-        return getBalanceForWallet(wallet)
 
     def get_nonce(self, wallet):
         return wallet.nonce

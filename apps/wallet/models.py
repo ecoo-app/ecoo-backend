@@ -148,7 +148,7 @@ class MetaTransaction(Transaction):
 
     @staticmethod
     def get_belonging_to_user(user):
-        belonging_wallets = user.wallets
+        belonging_wallets = user.wallets.all()
         return MetaTransaction.objects.filter(Q(from_wallet__in=belonging_wallets) | Q(to_wallet__in=belonging_wallets))
 
 
@@ -157,7 +157,7 @@ def custom_meta_transaction_validation(sender, instance, **kwargs):
     custom_transaction_validation(sender, instance)
     if instance.is_mint_transaction:
         raise ValidationError("Metatransaction always must have from")
-    if instance.nonce <= 0:
+    if not instance.nonce or instance.nonce <= 0:
         raise ValidationError("Nonce must be > 0")
     if instance.from_wallet.balance < instance.amount:
         raise ValidationError(

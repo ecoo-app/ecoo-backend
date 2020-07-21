@@ -1,6 +1,7 @@
 import binascii
 
 import pytezos
+from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError
 from django.db.models import Q
@@ -15,7 +16,7 @@ from apps.wallet.models import WALLET_STATES, MetaTransaction, Wallet
 from apps.wallet.serializers import (CreateWalletSerializer,
                                      PublicWalletSerializer,
                                      TransactionSerializer, WalletSerializer)
-from apps.wallet.utils import CustomCursorPagination, createMessage
+from apps.wallet.utils import CustomCursorPagination, create_message, read_nonce_from_chain
 
 
 class WalletDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
@@ -132,7 +133,7 @@ class TransactionCreate(generics.CreateAPIView):
             e.detail = 'Both wallets have to belong to the same currency'
             raise e
 
-        if not self.request.data.get('nonce', None) or self.request.data.get('nonce') - serializer.validated_data['from_wallet'].nonce != 1:
+        if not self.request.data.get('nonce', None) or int(self.request.data.get('nonce')) - serializer.validated_data['from_wallet'].nonce != 1:
             e = APIException()
             e.status_code = 422
             e.detail = 'Nonce value is incorrect'
@@ -141,29 +142,32 @@ class TransactionCreate(generics.CreateAPIView):
         if from_wallet.balance < serializer.validated_data['amount']:
             e = APIException()
             e.status_code = 422
-            e.detail = 'Balance is to small'
+            e.detail = 'Balance is too small'
             raise e
 
         signature = self.request.data.get('signature')
 
         token_id = from_wallet.currency.token_id
-        message = createMessage(
+        message = create_message(
             from_wallet, to_wallet, request.data['nonce'], token_id, serializer.validated_data['amount'])
         key = pytezos.Key.from_encoded_key(from_wallet.public_key)
-        res = key.verify(signature, message)
 
-        if res != None:
+        try:
+            res = key.verify(signature, message)
+        except ValueError:
             e = APIException()
             e.status_code = 422
             e.detail = 'Signature is invalid'
             raise e
 
-        obj = serializer.save()
+        key_2 = Key.from_encoded_key(settings.TEZOS_ADMIN_ACCOUNT_PRIVATE_KEY)
+        last_nonce = read_nonce_from_chain(
+            key_2.public_key_hash())
+        obj = MetaTransaction(**serializer.validated_data)
+        obj.nonce = last_nonce
+        obj.save()
 
         headers = self.get_success_headers(serializer.data)
-
-        obj.from_wallet.nonce += 1
-        obj.from_wallet.save()
 
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
