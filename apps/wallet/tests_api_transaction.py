@@ -29,10 +29,10 @@ class TransactionApiTest(APITestCase):
         self.currency_2 = Currency.objects.create(token_id=1, name="TEZ2")
 
         self.wallet_1 = Wallet.objects.create(owner=self.user, wallet_id=Wallet.generate_wallet_id(
-        ), public_key="edpku976gpuAD2bXyx1XGraeKuCo1gUZ3LAJcHM12W1ecxZwoiu22R")
+        ), public_key="edpku976gpuAD2bXyx1XGraeKuCo1gUZ3LAJcHM12W1ecxZwoiu22R", currency=self.currency)
 
         self.wallet_1_2 = Wallet.objects.create(owner=self.user, wallet_id=Wallet.generate_wallet_id(
-        ), public_key="edpku976gpuAD2bXyx1XGraeKuCo1gUZ3LAJcHM12W1ecxZwoiu22f")
+        ), public_key="edpku976gpuAD2bXyx1XGraeKuCo1gUZ3LAJcHM12W1ecxZwoiu22f", currency=self.currency)
 
         self.wallet_2 = Wallet.objects.create(owner=self.user_2, wallet_id=Wallet.generate_wallet_id(
         ), public_key=self.pubkey_2, currency=self.currency)
@@ -108,13 +108,11 @@ class TransactionApiTest(APITestCase):
             to_wallet=self.wallet_pk, amount=150)
 
         # create signature
-        token_transaction = MetaTransaction.objects.create(
+        token_transaction = MetaTransaction(
             from_wallet=self.wallet_pk, to_wallet=self.wallet_2_2, nonce=self.wallet_pk.nonce+1, amount=10)
         packed_meta_transaction = pack_meta_transaction(
             token_transaction.to_meta_transaction_dictionary())
         signature = self.key.sign(packed_meta_transaction)
-
-        token_transaction.delete()
 
         tx_count = MetaTransaction.objects.all().count()
 
@@ -262,19 +260,19 @@ class TransactionApiTest(APITestCase):
 
     def test_transaction_list(self):
         tx1_1 = Transaction.objects.create(
-            to_wallet=self.wallet_pk, amount=20)
+            to_wallet=self.wallet_1, amount=20)
         tx2_1 = Transaction.objects.create(
             to_wallet=self.wallet_2_2, amount=20)
         tx3_1 = Transaction.objects.create(
             to_wallet=self.wallet_2, amount=20)
 
         tx1 = MetaTransaction.objects.create(
-            from_wallet=self.wallet_pk, to_wallet=self.wallet_2_2, amount=4, nonce=1)
+            from_wallet=self.wallet_1, to_wallet=self.wallet_2, amount=4, nonce=1)
         tx2 = MetaTransaction.objects.create(
-            from_wallet=self.wallet_pk, to_wallet=self.wallet_2_2, amount=4, nonce=2)
+            from_wallet=self.wallet_1, to_wallet=self.wallet_2, amount=4, nonce=2)
 
-        tx3 = MetaTransaction.objects.create(
-            from_wallet=self.wallet_2, to_wallet=self.wallet_2_2, amount=10, nonce=3)
+        # tx3 = MetaTransaction.objects.create(
+        #     from_wallet=self.wallet_2, to_wallet=self.wallet_2_2, amount=10, nonce=3)
 
         response = self.client.get('/api/wallet/transaction/list/')
 

@@ -126,6 +126,9 @@ class Transaction(UUIDModel):
 def custom_transaction_validation(sender, instance, **kwargs):
     if instance.amount <= 0:
         raise ValidationError("Amount must be > 0")
+    if instance.is_mint_transaction and not instance.to_wallet.currency.allow_minting:
+        raise ValidationError(
+            "Currency must allow minting if you want to mint")
 
 
 class MetaTransaction(Transaction):
@@ -162,3 +165,6 @@ def custom_meta_transaction_validation(sender, instance, **kwargs):
     if instance.nonce <= (MetaTransaction.objects.filter(from_wallet=instance.from_wallet).aggregate(Max('nonce'))['nonce__max'] or 0):
         raise ValidationError(
             "Nonce must be higher than from_wallet's last meta transaction")
+    if instance.from_wallet.currency != instance.to_wallet.currency:
+        raise ValidationError(
+            "'From wallet' and 'to wallet' need to use same currency")

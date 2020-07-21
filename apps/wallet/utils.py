@@ -80,7 +80,7 @@ def create_message(from_wallet, to_wallet, nonce, token_id, amount):
                             }
                         ]
                     ]
-                    }
+            }
         ]
     }
     return michelson.pack.pack(message_to_encode, MESSAGE_STRUCTURE)
@@ -166,5 +166,34 @@ def publish_open_meta_transactions_to_chain():
                 state=TRANSACTION_STATES.FAILED.value, submitted_to_chain_at=now())
     except Exception as error:
         print(error)
+        selected_transactions.update(
+            state=TRANSACTION_STATES.FAILED.value, submitted_to_chain_at=now())
+
+
+def publish_open_mint_transactions_to_chain():
+    open_transactions = Transaction.objects.filter(
+        state=TRANSACTION_STATES.OPEN.value, from_wallet=None)
+    selected_transaction_ids = set(
+        open_transactions.values_list('uuid', flat=True))
+    selected_transactions = Transaction.objects.filter(
+        uuid__in=selected_transaction_ids)
+    pytezos_client = pytezos.using(
+        key=settings.TEZOS_ADMIN_ACCOUNT_PRIVATE_KEY, shell=settings.TEZOS_NODE)
+    token_contract = pytezos_client.contract(
+        settings.TEZOS_TOKEN_CONTRACT_ADDRESS)
+
+    selected_transactions.update(state=TRANSACTION_STATES.PENDING.value)
+    try:
+        for transaction in selected_transactions:
+            operation_result = token_contract.mint(address=transaction.to_wallet.address, decimals=transaction.to_wallet.currency.decimals, name=transaction.to_wallet.currency.name, token_id=transaction.to_wallet.currency.token_id, symbol=transaction.to_wallet.currency.symbol, amount=transaction.amount).operation_group.sign().inject(
+                _async=False, preapply=True, check_result=True, num_blocks_wait=settings.TEZOS_BLOCK_WAIT_TIME)
+
+            if operation_result['contents'][0]['metadata']['operation_result']['status'] == 'applied':
+                selected_transactions.update(
+                    state=TRANSACTION_STATES.DONE.value, submitted_to_chain_at=now(), operation_hash=operation_result['hash'])
+            else:
+                selected_transactions.update(
+                    state=TRANSACTION_STATES.FAILED.value, submitted_to_chain_at=now())
+    except Exception as error:
         selected_transactions.update(
             state=TRANSACTION_STATES.FAILED.value, submitted_to_chain_at=now())
