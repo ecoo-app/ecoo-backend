@@ -53,7 +53,7 @@ MESSAGE_STRUCTURE = {
 }
 
 
-def createMessage(from_wallet, to_wallet, nonce, token_id, amount):
+def create_message(from_wallet, to_wallet, nonce, token_id, amount):
     message_to_encode = {
         "prim": "Pair",
         "args": [

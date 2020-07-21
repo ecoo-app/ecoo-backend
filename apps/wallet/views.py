@@ -16,7 +16,7 @@ from apps.wallet.models import WALLET_STATES, MetaTransaction, Wallet
 from apps.wallet.serializers import (CreateWalletSerializer,
                                      PublicWalletSerializer,
                                      TransactionSerializer, WalletSerializer)
-from apps.wallet.utils import CustomCursorPagination, createMessage, read_nonce_from_chain
+from apps.wallet.utils import CustomCursorPagination, create_message, read_nonce_from_chain
 
 
 class WalletDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
@@ -113,13 +113,7 @@ class TransactionCreate(generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-
-        try:
-            serializer.is_valid(raise_exception=True)
-        except ValidationError as e:
-            print('error')
-            print(e)
-            pass
+        serializer.is_valid(raise_exception=True)
 
         if request.user != serializer.validated_data['from_wallet'].owner:
             raise PermissionDenied()
@@ -154,7 +148,7 @@ class TransactionCreate(generics.CreateAPIView):
         signature = self.request.data.get('signature')
 
         token_id = from_wallet.currency.token_id
-        message = createMessage(
+        message = create_message(
             from_wallet, to_wallet, request.data['nonce'], token_id, serializer.validated_data['amount'])
         key = pytezos.Key.from_encoded_key(from_wallet.public_key)
 
