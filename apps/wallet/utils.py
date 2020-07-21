@@ -134,41 +134,6 @@ def pack_meta_transaction(meta_transaction):
             ]
         })
 
-    # TODO: refactor    
-    message_structure = {
-        "prim": "pair",
-        "args": [
-            {
-                "prim": "key"
-            },
-            {
-                "prim": "pair",
-                "args": [
-                    {
-                        "prim": "nat"
-                    },
-                    {
-                        "prim": "list",
-                        "args": [
-                            {
-                                "prim": "pair",
-                                "args": [
-                                    {"prim": "address"},
-                                    {
-                                        "prim": "pair",
-                                        "args": [
-                                            {"prim": "nat"},
-                                            {"prim": "nat"}
-                                        ]
-                                    }
-                                ]
-                            }
-                        ]
-                    }
-                ]
-            }
-        ]
-    }
     return michelson.pack.pack(message_to_encode, MESSAGE_STRUCTURE)
 
 
