@@ -43,14 +43,15 @@ class TransactionApiTest(APITestCase):
         ), public_key=self.key.public_key(), currency=self.currency, owner=self.user)
 
     def test_transaction_create_unauthorized(self):
+        # add money to wallet
         Transaction.objects.create(to_wallet=self.wallet_pk, amount=20)
 
+        # create signature
         token_transaction = MetaTransaction.objects.create(
             from_wallet=self.wallet_pk, to_wallet=self.wallet_2, nonce=1, amount=10)
         packed_meta_transaction = pack_meta_transaction(
             token_transaction.to_meta_transaction_dictionary())
         signature = self.key.sign(packed_meta_transaction)
-
         token_transaction.delete()
 
         response = self.client.post('/api/wallet/transaction/create/', {
@@ -64,17 +65,19 @@ class TransactionApiTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_transaction_create_not_verified(self):
+        self.client.force_authenticate(user=self.user)
+
+        # add money to wallet
         tx1_1 = Transaction.objects.create(
             to_wallet=self.wallet_pk, amount=150)
 
+        # create signature
         token_transaction = MetaTransaction.objects.create(
             from_wallet=self.wallet_pk, to_wallet=self.wallet_2, nonce=1, amount=10)
         packed_meta_transaction = pack_meta_transaction(
             token_transaction.to_meta_transaction_dictionary())
         signature = self.key.sign(packed_meta_transaction)
         token_transaction.delete()
-
-        self.client.force_authenticate(user=self.user)
 
         tx_count = MetaTransaction.objects.all().count()
 
@@ -92,20 +95,22 @@ class TransactionApiTest(APITestCase):
         self.assertEqual(tx_count, MetaTransaction.objects.all().count())
 
     def test_transaction_create_different_currency(self):
-        tx1_1 = Transaction.objects.create(
-            to_wallet=self.wallet_pk, amount=150)
-
+        self.client.force_authenticate(user=self.user)
         self.wallet_pk.state = WALLET_STATES.VERIFIED.value
         self.wallet_pk.save()
 
+        # add money to wallet
+        tx1_1 = Transaction.objects.create(
+            to_wallet=self.wallet_pk, amount=150)
+
+        # create signature
         token_transaction = MetaTransaction.objects.create(
             from_wallet=self.wallet_pk, to_wallet=self.wallet_2_2, nonce=self.wallet_pk.nonce+1, amount=10)
         packed_meta_transaction = pack_meta_transaction(
             token_transaction.to_meta_transaction_dictionary())
         signature = self.key.sign(packed_meta_transaction)
-        token_transaction.delete()
 
-        self.client.force_authenticate(user=self.user)
+        token_transaction.delete()
 
         tx_count = MetaTransaction.objects.all().count()
 
@@ -125,18 +130,20 @@ class TransactionApiTest(APITestCase):
 
     def test_transaction_create_nonce_issue(self):
         self.client.force_authenticate(user=self.user)
+        self.wallet_pk.state = WALLET_STATES.VERIFIED.value
+        self.wallet_pk.save()
+
+        # add money to wallet
         tx1_1 = Transaction.objects.create(
             to_wallet=self.wallet_pk, amount=150)
+
+        # create signature
         token_transaction = MetaTransaction.objects.create(
             from_wallet=self.wallet_pk, to_wallet=self.wallet_2, nonce=self.wallet_pk.nonce+1, amount=10)
         packed_meta_transaction = pack_meta_transaction(
             token_transaction.to_meta_transaction_dictionary())
         signature = self.key.sign(packed_meta_transaction)
         token_transaction.delete()
-        self.wallet_pk.state = WALLET_STATES.VERIFIED.value
-        self.wallet_pk.save()
-
-        self.client.force_authenticate(user=self.user)
 
         tx_count = MetaTransaction.objects.all().count()
 
@@ -153,22 +160,23 @@ class TransactionApiTest(APITestCase):
         self.assertEqual(response.data, {'detail': 'Nonce value is incorrect'})
         self.assertEqual(tx_count, MetaTransaction.objects.all().count())
 
-
     def test_transaction_create_balance_too_small(self):
         self.wallet_pk.state = WALLET_STATES.VERIFIED.value
         self.wallet_pk.save()
         self.client.force_authenticate(user=self.user)
+
+        # add money to wallet
         tx1_1 = Transaction.objects.create(
-            to_wallet=self.wallet_pk, amount=150)        
+            to_wallet=self.wallet_pk, amount=150)
+
+        # create signature
         token_transaction = MetaTransaction.objects.create(
             from_wallet=self.wallet_pk, to_wallet=self.wallet_2, nonce=self.wallet_pk.nonce+1, amount=20)
-        tx1_1.delete()
         packed_meta_transaction = pack_meta_transaction(
             token_transaction.to_meta_transaction_dictionary())
         signature = self.key.sign(packed_meta_transaction)
         token_transaction.delete()
-
-        self.client.force_authenticate(user=self.user)
+        tx1_1.delete()
 
         tx_count = MetaTransaction.objects.all().count()
 
@@ -185,14 +193,16 @@ class TransactionApiTest(APITestCase):
         self.assertEqual(response.data, {'detail': 'Balance is too small'})
         self.assertEqual(tx_count, MetaTransaction.objects.all().count())
 
-
     def test_transaction_create_signature_invalid(self):
         self.wallet_pk.state = WALLET_STATES.VERIFIED.value
         self.wallet_pk.save()
         self.client.force_authenticate(user=self.user)
+
+        # add money to wallet
         tx1_1 = Transaction.objects.create(
             to_wallet=self.wallet_pk, amount=150)
 
+        # create signature
         token_transaction = MetaTransaction.objects.create(
             from_wallet=self.wallet_pk, to_wallet=self.wallet_2, nonce=self.wallet_pk.nonce+1, amount=20)
         packed_meta_transaction = pack_meta_transaction(
@@ -200,10 +210,6 @@ class TransactionApiTest(APITestCase):
         signature = self.key.sign(packed_meta_transaction)
         token_transaction.delete()
 
-        self.client.force_authenticate(user=self.user)
-
-        # tx1 = MetaTransaction.objects.create(
-            # from_wallet=self.wallet_pk, to_wallet=self.wallet_2, nonce=1, amount=11)
         tx_count = MetaTransaction.objects.all().count()
 
         response = self.client.post('/api/wallet/transaction/create/', {
@@ -221,20 +227,20 @@ class TransactionApiTest(APITestCase):
 
     def test_transaction_create_correct(self):
         self.client.force_authenticate(user=self.user)
+        self.wallet_pk.state = WALLET_STATES.VERIFIED.value
+        self.wallet_pk.save()
+
+        # add money to wallet
         tx1_1 = Transaction.objects.create(
             to_wallet=self.wallet_pk, amount=150)
 
         tx_count = MetaTransaction.objects.all().count()
 
+        # create signature
         token_transaction = MetaTransaction.objects.create(
             from_wallet=self.wallet_pk, to_wallet=self.wallet_2, nonce=self.wallet_pk.nonce+1, amount=10)
-
-        self.wallet_pk.state = WALLET_STATES.VERIFIED.value
-        self.wallet_pk.save()
-
         signature = self.key.sign(pack_meta_transaction(
             token_transaction.to_meta_transaction_dictionary()))
-
         token_transaction.delete()
 
         response = self.client.post('/api/wallet/transaction/create/', {

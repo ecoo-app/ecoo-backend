@@ -117,6 +117,7 @@ class TransactionCreate(generics.CreateAPIView):
         try:
             serializer.is_valid(raise_exception=True)
         except ValidationError as e:
+            print('error')
             print(e)
             pass
 
