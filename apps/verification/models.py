@@ -3,6 +3,7 @@ from enum import Enum
 from django.db import models
 
 from apps.currency.mixins import CurrencyOwnedMixin
+from apps.wallet.models import Wallet
 from project.mixins import UUIDModel
 
 
@@ -10,12 +11,16 @@ class VERIFICATION_STATES(Enum):
     OPEN = 1
     CLAIMED = 2
     REQUESTED = 3
+    CLAIM_LIMIT_REACHED = 4
+    DOUBLE_CLAIM = 5
 
 
 VERIFICATION_STATES_CHOICES = (
     (VERIFICATION_STATES.OPEN.value, 'Open'),
     (VERIFICATION_STATES.CLAIMED.value, 'Claimed'),
     (VERIFICATION_STATES.REQUESTED.value, 'Requested'),
+    (VERIFICATION_STATES.CLAIM_LIMIT_REACHED.value, 'Claim limit reached'),
+    (VERIFICATION_STATES.DOUBLE_CLAIM.value, 'Tried to claim again'),
 )
 
 
@@ -52,3 +57,39 @@ class VerificationInputData(UUIDModel):
     verification_input = models.ForeignKey(
         VerificationInput, on_delete=models.CASCADE)
     data = models.CharField(max_length=128)
+
+
+class AbstractVerificationEntry(CurrencyOwnedMixin):
+    state = models.IntegerField(
+        choices=VERIFICATION_STATES_CHOICES, default=VERIFICATION_STATES.OPEN.value)
+
+    class Meta:
+        abstract = True
+
+
+class CompanyVerification(AbstractVerificationEntry):
+    name = models.CharField(max_length=128)
+    uid = models.CharField(max_length=15, blank=True, null=True)
+    owner_name = models.CharField(max_length=128, blank=True, null=True)
+    owner_address = models.CharField(max_length=128, blank=True, null=True)
+    owner_telephone_number = models.CharField(
+        max_length=128, blank=True, null=True)
+    receiving_wallet = models.ForeignKey(
+        Wallet, blank=True, null=True, on_delete=models.SET_NULL, related_name='company_claims')
+
+    @staticmethod
+    def to_verification_input_dict():
+        return {'name': 'Text', 'owner_name': 'text', 'owner_address': 'text', 'owner_telephone_number': 'Text', 'uid': 'Text'}
+
+
+class UserVerification(AbstractVerificationEntry):
+    name = models.CharField(max_length=128)
+    address = models.CharField(max_length=128)
+    telephone_number = models.CharField(max_length=10)
+    date_of_birth = models.DateField()
+    receiving_wallet = models.ForeignKey(
+        Wallet, blank=True, null=True, on_delete=models.SET_NULL, related_name='user_claims')
+
+    @staticmethod
+    def to_verification_input_dict():
+        return {'name': 'Text', 'address': 'text', 'telephone_number': 'Text', 'date_of_birth': 'Date'}
