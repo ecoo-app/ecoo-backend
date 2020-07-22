@@ -1,0 +1,23 @@
+from rest_framework import serializers
+
+from apps.currency.models import Currency
+
+class CurrencyWalletSerializer(serializers.ModelSerializer):
+    actual_nonce = serializers.SerializerMethodField('get_nonce')
+    state = serializers.CharField(source='get_state_display')
+
+    def get_nonce(self, wallet):
+        return wallet.nonce
+
+    class Meta:
+        from apps.wallet.models import Wallet
+        model = Wallet
+        fields = ['wallet_id', 'balance', 'public_key',
+                  'actual_nonce', 'category', 'state']
+
+class CurrencySerializer(serializers.ModelSerializer):
+    owner_wallet = CurrencyWalletSerializer()
+
+    class Meta:
+        model = Currency
+        fields = ['uuid', 'name', 'token_id','campaign_end', 'claim_deadline', 'allow_minting', 'owner_wallet', 'starting_capital']
