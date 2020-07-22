@@ -1,8 +1,9 @@
-from rest_framework.pagination import CursorPagination
-from pytezos import pytezos, michelson
-from django.utils.timezone import now
-from apps.wallet.models import MetaTransaction, TRANSACTION_STATES
 from django.conf import settings
+from django.utils.timezone import now
+from pytezos import michelson, pytezos
+from rest_framework.pagination import CursorPagination
+
+from apps.wallet.models import TRANSACTION_STATES, MetaTransaction, Transaction
 
 
 class CustomCursorPagination(CursorPagination):
@@ -80,7 +81,7 @@ def create_message(from_wallet, to_wallet, nonce, token_id, amount):
                             }
                         ]
                     ]
-            }
+                }
         ]
     }
     return michelson.pack.pack(message_to_encode, MESSAGE_STRUCTURE)
@@ -197,3 +198,8 @@ def publish_open_mint_transactions_to_chain():
     except Exception as error:
         selected_transactions.update(
             state=TRANSACTION_STATES.FAILED.value, submitted_to_chain_at=now())
+
+
+def create_claim_transaction(wallet):
+    Transaction.objects.create(from_wallet=wallet.currency.owner_wallet,
+                     to_wallet=wallet, amount=wallet.currency.starting_capital)

@@ -1,7 +1,6 @@
 import pytezos
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient, APIRequestFactory, APITestCase
 
@@ -33,6 +32,8 @@ class WalletApiTest(APITestCase):
         ), public_key="edpku976gpuAD2bXyx1XGraeKuCo1gUZ3LAJcHM12W1ecxZwoiu22r", currency=self.currency)
 
         self.currency = Currency.objects.create(token_id=0, name="TEZ")
+
+    # TODO: create test to check the wallet category 
 
     def test_create_wallet_unauthorized(self):
         wallet_count = Wallet.objects.all().count()

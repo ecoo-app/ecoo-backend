@@ -14,6 +14,13 @@ class Currency(UUIDModel):
     allow_minting = models.BooleanField(default=True)
     campaign_end = models.DateField(null=True)
     claim_deadline = models.DateField(null=True)
+    starting_capital = models.IntegerField(default=10, blank=False, null=False)
+    max_claims = models.IntegerField(default=5)
+
+    @property
+    def owner_wallet(self):
+        from apps.wallet.models import Wallet, WALLET_CATEGORIES
+        return Wallet.objects.filter(currency=self, category=WALLET_CATEGORIES.OWNER.value).first()
 
     class Meta:
         verbose_name_plural = 'Currencies'
