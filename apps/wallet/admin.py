@@ -5,7 +5,8 @@ from apps.wallet.models import Company, Transaction, MetaTransaction, Wallet
 @admin.register(Wallet)
 class WalletAdmin(admin.ModelAdmin):
     fields = ['currency', 'wallet_id', 'category', 'owner', 'public_key', 'state']
-    list_display = ['wallet_id', 'owner', 'state']
+    list_display = ['wallet_id', 'owner', 'state','category','currency']
+    list_filter = ['currency','category', 'state']
 
 
 @admin.register(Transaction)
