@@ -2,29 +2,23 @@ import random
 import string
 from enum import Enum
 
-from django.db import models
-from django.db.models import Q, Sum, Max
-from django.utils.crypto import get_random_string
-
-from apps.currency.mixins import CurrencyOwnedMixin
 from django.conf import settings
-from project.mixins import UUIDModel
-from pytezos.crypto import Key
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
+from django.db import models
+from django.db.models import Max, Q, Sum
 from django.db.models.signals import pre_save
-from django.dispatch import receiver
+from django.utils.crypto import get_random_string
+from pytezos.crypto import Key
+
+from apps.currency.mixins import CurrencyOwnedMixin
+from project.mixins import UUIDModel
 
 
 class Company(UUIDModel):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL,
                               on_delete=models.DO_NOTHING)
     name = models.CharField(max_length=32)
-
-
-class ClaimableAmount(CurrencyOwnedMixin):
-    identifier = models.TextField(blank=True, null=True)
-    amount = models.IntegerField(blank=True, null=True)
 
 
 class WALLET_STATES(Enum):
@@ -78,6 +72,11 @@ class Wallet(CurrencyOwnedMixin):
     def nonce(self):
         return self.from_transactions.count()
 
+    @property
+    def claim_count(self):
+        from apps.verification.models import VERIFICATION_STATES
+        return self.company_claims.filter(state=VERIFICATION_STATES.CLAIMED.value).count() + self.user_claims.filter(state=VERIFICATION_STATES.CLAIMED.value).count()
+
     def __str__(self):
         return self.wallet_id
 
@@ -121,24 +120,20 @@ class Transaction(UUIDModel):
     def is_mint_transaction(self):
         return self.from_wallet == None
 
-    class Meta:
-        ordering = ['created']
+    @property
+    def tag(self):
+        if self.from_wallet and self.from_wallet == self.from_wallet.currency.owner_wallet:
+            return 'from_owner'
 
+        if self.to_wallet == self.to_wallet.currency.owner_wallet:
+            return 'to_owner'
 
-@receiver(pre_save, sender=Transaction, dispatch_uid='custom_transaction_validation')
-def custom_transaction_validation(sender, instance, **kwargs):
-    if instance.amount <= 0:
-        raise ValidationError("Amount must be > 0")
-    if instance.is_mint_transaction and not instance.to_wallet.currency.allow_minting:
-        raise ValidationError(
-            "Currency must allow minting if you want to mint")
-    if not instance.is_mint_transaction:
-        if instance.from_wallet.balance < instance.amount:
-            raise ValidationError(
-                "Balance of from_wallet must be greater than amount")
-        if instance.from_wallet.currency != instance.to_wallet.currency:
-            raise ValidationError(
-                "'From wallet' and 'to wallet' need to use same currency")
+        return ''
+
+    @staticmethod
+    def get_belonging_to_user(user):
+        belonging_wallets = user.wallets.all()
+        return Transaction.objects.filter(Q(from_wallet__in=belonging_wallets) | Q(to_wallet__in=belonging_wallets))
 
 
 class MetaTransaction(Transaction):
@@ -156,22 +151,5 @@ class MetaTransaction(Transaction):
             ]
         }
 
-    @staticmethod
-    def get_belonging_to_user(user):
-        belonging_wallets = user.wallets.all()
-        return MetaTransaction.objects.filter(Q(from_wallet__in=belonging_wallets) | Q(to_wallet__in=belonging_wallets))
-
     class Meta:
         ordering = ['created']
-
-
-@receiver(pre_save, sender=MetaTransaction, dispatch_uid='custom_meta_transaction_validation')
-def custom_meta_transaction_validation(sender, instance, **kwargs):
-    custom_transaction_validation(sender, instance)
-    if instance.is_mint_transaction:
-        raise ValidationError("Metatransaction always must have from")
-    if not instance.nonce or instance.nonce <= 0:
-        raise ValidationError("Nonce must be > 0")
-    if instance.nonce <= (MetaTransaction.objects.filter(from_wallet=instance.from_wallet).aggregate(Max('nonce'))['nonce__max'] or 0):
-        raise ValidationError(
-            "Nonce must be higher than from_wallet's last meta transaction")

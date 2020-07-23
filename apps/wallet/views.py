@@ -9,14 +9,17 @@ from django.shortcuts import render
 from pytezos import Key
 from rest_framework import generics, mixins, status
 from rest_framework.decorators import api_view
-from rest_framework.exceptions import APIException, ValidationError
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
-from apps.wallet.models import WALLET_STATES, MetaTransaction, Wallet
+from apps.wallet.models import (WALLET_CATEGORIES, WALLET_STATES,
+                                Transaction, MetaTransaction, Wallet)
 from apps.wallet.serializers import (CreateWalletSerializer,
                                      PublicWalletSerializer,
                                      TransactionSerializer, WalletSerializer)
-from apps.wallet.utils import CustomCursorPagination, create_message, read_nonce_from_chain
+from apps.wallet.utils import (CustomCursorPagination, create_message,
+                               read_nonce_from_chain)
+from project.utils import raise_api_exception
 
 
 class WalletDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
@@ -46,10 +49,7 @@ def get_nonce(request, wallet_id=None):
         wallet = Wallet.objects.get(wallet_id=wallet_id)
         return Response({"nonce": str(wallet.nonce)})
     else:
-        e = APIException()
-        e.status_code = 422
-        e.detail = 'wallet_id is invalid'
-        raise e
+        raise_api_exception(422, 'wallet_id is invalid')
 
 
 class WalletCreate(generics.CreateAPIView):
@@ -67,10 +67,7 @@ class WalletCreate(generics.CreateAPIView):
             obj.owner = request.user
         else:
             if validated_data['company'].owner != request.user:
-                e = APIException()
-                e.status_code = 403
-                e.detail = "You aren't the owner of the company"
-                raise e
+                raise_api_exception(403, "You aren't the owner of the company")
 
         retry = True
         while retry:
@@ -92,6 +89,9 @@ class WalletCreate(generics.CreateAPIView):
             #     obj.state = WALLET_STATES.VERIFIED.value
             #     verification_data.has_been_used = True
             #     verification_data.save()
+
+        if request.data.get('is_company_wallet', False):
+            obj.category = WALLET_CATEGORIES.COMPANY.value
 
         obj.save()
 
@@ -122,28 +122,17 @@ class TransactionCreate(generics.CreateAPIView):
         to_wallet = serializer.validated_data['to_wallet']
 
         if from_wallet.state != WALLET_STATES.VERIFIED.value:
-            e = APIException()
-            e.status_code = 403
-            e.detail = 'Only verified addresses can send money'
-            raise e
+            raise_api_exception(403, 'Only verified addresses can send money')
 
         if from_wallet.currency != to_wallet.currency:
-            e = APIException()
-            e.status_code = 422
-            e.detail = 'Both wallets have to belong to the same currency'
-            raise e
+            raise_api_exception(
+                422, 'Both wallets have to belong to the same currency')
 
         if not self.request.data.get('nonce', None) or int(self.request.data.get('nonce')) - serializer.validated_data['from_wallet'].nonce != 1:
-            e = APIException()
-            e.status_code = 422
-            e.detail = 'Nonce value is incorrect'
-            raise e
+            raise_api_exception(422, 'Nonce value is incorrect')
 
         if from_wallet.balance < serializer.validated_data['amount']:
-            e = APIException()
-            e.status_code = 422
-            e.detail = 'Balance is too small'
-            raise e
+            raise_api_exception(422, 'Balance is too small')
 
         signature = self.request.data.get('signature')
 
@@ -155,10 +144,7 @@ class TransactionCreate(generics.CreateAPIView):
         try:
             res = key.verify(signature, message)
         except ValueError:
-            e = APIException()
-            e.status_code = 422
-            e.detail = 'Signature is invalid'
-            raise e
+            raise_api_exception(422, 'Signature is invalid')
 
         key_2 = Key.from_encoded_key(settings.TEZOS_ADMIN_ACCOUNT_PRIVATE_KEY)
         last_nonce = read_nonce_from_chain(
@@ -181,11 +167,18 @@ class TransactionList(generics.ListAPIView):
 
     def get_queryset(self):
         if self.request.user.is_superuser:
-            return MetaTransaction.objects.all()
+            return Transaction.objects.all()
 
         wallet_of_interest = self.request.query_params.get('wallet_id', None)
         if wallet_of_interest:
-            return MetaTransaction.get_belonging_to_user(self.request.user).filter(Q(from_wallet__wallet_id=wallet_of_interest) | Q(to_wallet__wallet_id=wallet_of_interest))
-            pass
+            return Transaction.get_belonging_to_user(self.request.user).filter(Q(from_wallet__wallet_id=wallet_of_interest) | Q(to_wallet__wallet_id=wallet_of_interest))
 
-        return MetaTransaction.get_belonging_to_user(self.request.user)
+        return Transaction.get_belonging_to_user(self.request.user)
+
+
+@api_view(['POST'])
+def migrate_wallet(request):
+    # TODO: implement
+
+    return JsonResponse({'foo': 'bar'})
+    # return Response({'msg':'ok'}, status=status.HTTP_201_CREATED)

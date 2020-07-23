@@ -3,6 +3,9 @@ from pytezos import pytezos, michelson
 from django.utils.timezone import now
 from apps.wallet.models import MetaTransaction, Transaction, TRANSACTION_STATES
 from django.conf import settings
+from django.utils.timezone import now
+from pytezos import michelson, pytezos
+from rest_framework.pagination import CursorPagination
 
 
 class CustomCursorPagination(CursorPagination):
@@ -80,7 +83,7 @@ def create_message(from_wallet, to_wallet, nonce, token_id, amount):
                             }
                         ]
                     ]
-            }
+                }
         ]
     }
     return michelson.pack.pack(message_to_encode, MESSAGE_STRUCTURE)
@@ -254,3 +257,8 @@ def wallet_recovery_transfer_balance(source_wallet, destination_public_key):
         return int(token_contract.nonce_of(callback='{}%receive_nonce'.format(settings.TEZOS_CALLBACK_CONTRACT_ADDRESS), requests=[address]).operation_group.sign().preapply()['contents'][0]['metadata']['internal_operation_results'][0]['parameters']['value'][0]['args'][0]['int'])
     except:
         return 0
+
+
+def create_claim_transaction(wallet):
+    Transaction.objects.create(from_wallet=wallet.currency.owner_wallet,
+                               to_wallet=wallet, amount=wallet.currency.starting_capital)

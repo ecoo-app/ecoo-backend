@@ -16,3 +16,7 @@ class VerificationInputDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = VerificationInputData
         fields = ['verification_input__uuid', 'data']
+
+
+class VerificationSerializer(serializers.BaseSerializer):
+    verfication_input = VerificationInputDataSerializer(many=True)

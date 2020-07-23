@@ -271,9 +271,6 @@ class TransactionApiTest(APITestCase):
         tx2 = MetaTransaction.objects.create(
             from_wallet=self.wallet_1, to_wallet=self.wallet_2, amount=4, nonce=2)
 
-        # tx3 = MetaTransaction.objects.create(
-        #     from_wallet=self.wallet_2, to_wallet=self.wallet_2_2, amount=10, nonce=3)
-
         response = self.client.get('/api/wallet/transaction/list/')
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
@@ -294,6 +291,6 @@ class TransactionApiTest(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, [TransactionSerializer(
-            tx1).data, TransactionSerializer(tx2).data, ])
+            tx1).data, TransactionSerializer(tx2).data, TransactionSerializer(tx1_1).data])
 
         self.client.force_authenticate(user=None)
