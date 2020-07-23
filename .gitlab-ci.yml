@@ -104,7 +104,7 @@ k8s-deploy-production:
     - gcloud container clusters get-credentials papers-cluster-production
   script:
     - find k8s -type f -name \*.yaml -exec sed -i "s|__TO_BE_REPLACED_BY_IMAGE_TAG__|"$GOOGLE_TAG"|g" {} +
-    - find k8s -type f -name \*.yaml -exec sed -i "s|__NAMESPACE__|"$NAMESPACE"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__NAMESPACE_NAME__|"$NAMESPACE"|g" {} +
     - find k8s -type f -name \*.yaml -exec sed -i "s|__DJANGO_DB_USER_PRODUCTION__|"$DJANGO_DB_USER_PRODUCTION"|g" {} +
     - find k8s -type f -name \*.yaml -exec sed -i "s|__DJANGO_DB_PASSWORD_PRODUCTION__|"$DJANGO_DB_PASSWORD_PRODUCTION"|g" {} +
     - find k8s -type f -name \*.yaml -exec sed -i "s|__DJANGO_DB_NAME_PRODUCTION__|"$DJANGO_DB_NAME_PRODUCTION"|g" {} +

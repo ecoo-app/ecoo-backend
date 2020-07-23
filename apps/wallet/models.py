@@ -120,6 +120,21 @@ class Transaction(UUIDModel):
     def is_mint_transaction(self):
         return self.from_wallet == None
 
+    @property
+    def tag(self):
+        if self.from_wallet and self.from_wallet == self.from_wallet.currency.owner_wallet:
+            return 'from_owner'
+        
+        if self.to_wallet == self.to_wallet.currency.owner_wallet:
+            return 'to_owner'
+        
+        return ''
+    
+    @staticmethod
+    def get_belonging_to_user(user):
+        belonging_wallets = user.wallets.all()
+        return Transaction.objects.filter(Q(from_wallet__in=belonging_wallets) | Q(to_wallet__in=belonging_wallets))
+
 
 class MetaTransaction(Transaction):
     nonce = models.IntegerField()
@@ -135,8 +150,3 @@ class MetaTransaction(Transaction):
                     'token_id': self.from_wallet.currency.token_id}
             ]
         }
-
-    @staticmethod
-    def get_belonging_to_user(user):
-        belonging_wallets = user.wallets.all()
-        return MetaTransaction.objects.filter(Q(from_wallet__in=belonging_wallets) | Q(to_wallet__in=belonging_wallets))
