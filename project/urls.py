@@ -42,7 +42,7 @@ urlpatterns = [
     path('api/verification/', include('apps.verification.urls')),
     path('api/oauth/', include('rest_framework_social_oauth2.urls')),
     # path('social/', include('social_django.urls', namespace='social')),
-    path('', include(router.urls)),
+    path('api/devices', include(router.urls)),
 ]
 
 if settings.DEBUG:

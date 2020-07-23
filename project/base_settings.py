@@ -267,7 +267,7 @@ FCM_DJANGO_SETTINGS = {
         "FCM_SERVER_KEY": "[your api key]",
          # true if you want to have only one active device per registered user at a time
          # default: False
-        "ONE_DEVICE_PER_USER": True, # TODO: correct?
+        "ONE_DEVICE_PER_USER": False,
          # devices to which notifications cannot be sent,
          # are deleted upon receiving error response from FCM
         "DELETE_INACTIVE_DEVICES": True,

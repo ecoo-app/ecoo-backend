@@ -1,0 +1,24 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: ecoupon-flush-tokens
+  namespace: __NAMESPACE_NAME__
+spec:
+  schedule: "0 5 * * *"
+  concurrencyPolicy: Replace
+  jobTemplate:
+    spec:
+      parallelism: 1
+      template:
+        spec:
+          containers:
+            - name: ecoupon-flusher
+              image: _TO_BE_REPLACED_BY_IMAGE_TAG_
+              imagePullPolicy: IfNotPresent
+              command: ["/bin/bash", "-c", "python /code/manage.py notify_verification --days 5"]
+              envFrom:
+                - configMapRef:
+                    name:  __NAMESPACE_NAME__-config-map
+                - secretRef:
+                    name:  __NAMESPACE_NAME__-secret
+          restartPolicy: Never

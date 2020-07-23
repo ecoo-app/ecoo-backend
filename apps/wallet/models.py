@@ -86,6 +86,22 @@ class Wallet(CurrencyOwnedMixin):
         digits = str(random.randint(0, 999999)).zfill(6)
         return characters + digits
 
+    def notify_owner_receiving_money(self, from_wallet_id, amount):
+        # TODO: multi language support?
+        self.__notify_owner_devices(
+            f'You have received {amount/pow(10,self.currency.decimals)} CHF from {from_wallet_id}')
+
+    def notify_transfer_successful(self,to_wallet_id, amount):
+        self.__notify_owner_devices(
+            f'You have send {amount/pow(10,self.currency.decimals)} CHF to {to_wallet_id}')
+
+    def notify_owner_verified(self):
+        self.__notify_owner_devices(f'Wallet {self.wallet_id} is now verified')
+
+    def __notify_owner_devices(self, message):
+        devices = FCMDevice.objects.filter(user=self.owner)
+        devices.send_message(title="eCoupon", body=message)
+
 
 class TRANSACTION_STATES(Enum):
     OPEN = 1
