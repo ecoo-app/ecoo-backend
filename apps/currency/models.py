@@ -7,8 +7,20 @@ from project.mixins import UUIDModel
 
 class Currency(UUIDModel):
     name = models.CharField(max_length=32)
-    token_id = models.IntegerField(null=True)
-    # TODO: Is the token_id needed in the frontend?
+    symbol = models.CharField(max_length=5, default="")
+    token_id = models.IntegerField()
+    decimals = models.IntegerField(default=0)
+
+    allow_minting = models.BooleanField(default=True)
+    campaign_end = models.DateField(null=True)
+    claim_deadline = models.DateField(null=True)
+    starting_capital = models.IntegerField(default=10, blank=False, null=False)
+    max_claims = models.IntegerField(default=5)
+
+    @property
+    def owner_wallet(self):
+        from apps.wallet.models import Wallet, WALLET_CATEGORIES
+        return Wallet.objects.filter(currency=self, category=WALLET_CATEGORIES.OWNER.value).first()
 
     class Meta:
         verbose_name_plural = 'Currencies'
@@ -16,24 +28,3 @@ class Currency(UUIDModel):
     # TODO: additional fields?
     def __str__(self):
         return self.name
-
-
-class VERIFICATION_INPUT_STATES(Enum):
-    TEXT = 1
-    BOOLEAN = 2
-    NUMBER = 3
-    DATE = 4
-
-VERIFICATION_INPUT_CHOICES =  (
-    (VERIFICATION_INPUT_STATES.TEXT.value, 'Text'),
-    (VERIFICATION_INPUT_STATES.BOOLEAN.value, 'Boolean'),
-    (VERIFICATION_INPUT_STATES.NUMBER.value, 'Date'),
-    (VERIFICATION_INPUT_STATES.DATE.value, 'Number'),
-)
-
-class VerificationInput(UUIDModel):
-    currency = models.ForeignKey(
-        Currency, on_delete=models.SET_NULL, null=True,)
-
-    label = models.CharField(max_length=32)
-    data_type = models.IntegerField(default=0, choices=VERIFICATION_INPUT_CHOICES)
