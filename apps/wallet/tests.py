@@ -1,8 +1,8 @@
 from django.test import TestCase
 from apps.currency.models import Currency
-from apps.wallet.models import Wallet, MetaTransaction, Transaction, TRANSACTION_STATES
+from apps.wallet.models import Wallet, MetaTransaction, Transaction, WalletPublicKeyTransferRequest, TRANSACTION_STATES
 from pytezos import pytezos, michelson
-from apps.wallet.utils import publish_open_meta_transactions_to_chain, publish_open_transfer_transactions_to_chain, pack_meta_transaction, read_nonce_from_chain
+from apps.wallet.utils import publish_open_mint_transactions_to_chain, publish_open_meta_transactions_to_chain, publish_open_transfer_transactions_to_chain, pack_meta_transaction, publish_wallet_recovery_transfer_balance, read_nonce_from_chain
 import time
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -133,19 +133,41 @@ class BlockchainSyncTestCase(TestCase):
         ), public_key=self.pytezos_client.key.public_key(), currency=self.currency)
         self.wallet2 = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
         ), public_key="edpku3g7CeTEvSKhxipD4Q2B6EiEP8cR323u8PFmGFgKRVRvCneEmT", currency=self.currency)
-        Transaction.objects.create(to_wallet=self.wallet1, amount=10000)
+        Transaction.objects.create(to_wallet=self.wallet1, amount=1000)
 
     def test_wallet_recover_transfer(self):
-        for i in range(320):
+
+        Transaction.objects.create(
+            from_wallet=self.wallet1, to_wallet=self.wallet2, amount=10)
+
+        Transaction.objects.create(
+            from_wallet=self.wallet2, to_wallet=self.wallet1, amount=1)
+        WalletPublicKeyTransferRequest.objects.create(
+            wallet=self.wallet1, old_public_key=self.wallet1.public_key, new_public_key="edpkvThfdv8Efh1MuqSTUk5EnUFCTjqN6kXDCNXpQ8udN3cKRhNDr2")
+
+        with self.assertRaises(ValidationError):
             Transaction.objects.create(
-                from_wallet=self.wallet1, to_wallet=self.wallet2, amount=1)
+                from_wallet=self.wallet1, to_wallet=self.wallet2, amount=10)
+        with self.assertRaises(ValidationError):
+            Transaction.objects.create(
+                from_wallet=self.wallet2, to_wallet=self.wallet1, amount=1)
+        with self.assertRaises(ValidationError):
+            Transaction.objects.create(
+                from_wallet=None, to_wallet=self.wallet1, amount=10)
+        with self.assertRaises(ValidationError):
+            MetaTransaction.objects.create(
+                from_wallet=self.wallet1, to_wallet=self.wallet2, amount=10, nonce=10)
+        with self.assertRaises(ValidationError):
+            MetaTransaction.objects.create(
+                from_wallet=self.wallet2, to_wallet=self.wallet1, amount=1, nonce=10)
 
+        publish_open_mint_transactions_to_chain()
         publish_open_transfer_transactions_to_chain()
+        publish_open_meta_transactions_to_chain()
+        publish_wallet_recovery_transfer_balance()
 
-        operation_hash = Transaction.objects.filter(
-            to_wallet=self.wallet2).last().operation_hash
-        for transaction in Transaction.objects.filter(to_wallet=self.wallet2):
-            self.assertEquals(transaction.operation_hash, operation_hash)
+        self.assertEquals(
+            WalletPublicKeyTransferRequest.objects.first().state, 3)
 
     def test_transfer(self):
         for i in range(320):

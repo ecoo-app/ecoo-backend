@@ -3,11 +3,14 @@ from django.db.models import Max
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 
-from apps.wallet.models import MetaTransaction, Transaction
+from apps.wallet.models import MetaTransaction, Transaction, WalletPublicKeyTransferRequest, TRANSACTION_STATES
 
 
 @receiver(pre_save, sender=Transaction, dispatch_uid='custom_transaction_validation')
 def custom_transaction_validation(sender, instance, **kwargs):
+    if instance.to_wallet.transfer_requests.exclude(state=TRANSACTION_STATES.DONE.value).exists():
+        raise ValidationError(
+            "Wallet transfer ongoing for destination wallet, cannot send funds to this wallet at the moment.")
     if instance.amount <= 0:
         raise ValidationError("Amount must be > 0")
     if instance.is_mint_transaction and not instance.to_wallet.currency.allow_minting:
@@ -20,6 +23,9 @@ def custom_transaction_validation(sender, instance, **kwargs):
         if instance.from_wallet.currency != instance.to_wallet.currency:
             raise ValidationError(
                 "'From wallet' and 'to wallet' need to use same currency")
+        if instance.from_wallet.transfer_requests.exclude(state=TRANSACTION_STATES.DONE.value).exists():
+            raise ValidationError(
+                "Wallet transfer ongoing for source wallet, cannot send funds from this wallet at the moment.")
 
 
 @receiver(pre_save, sender=MetaTransaction, dispatch_uid='custom_meta_transaction_validation')

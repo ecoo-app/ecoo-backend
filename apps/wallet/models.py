@@ -20,6 +20,9 @@ class Company(UUIDModel):
                               on_delete=models.DO_NOTHING)
     name = models.CharField(max_length=32)
 
+    class Meta:
+        ordering = ['created_at']
+
 
 class WALLET_STATES(Enum):
     UNVERIFIED = 0
@@ -73,6 +76,10 @@ class Wallet(CurrencyOwnedMixin):
         return self.from_transactions.count()
 
     @property
+    def is_in_public_key_transfer(self):
+        return self.transfer_requests.filter(state=2).exists()
+
+    @property
     def claim_count(self):
         from apps.verification.models import VERIFICATION_STATES
         return self.company_claims.filter(state=VERIFICATION_STATES.CLAIMED.value).count() + self.user_claims.filter(state=VERIFICATION_STATES.CLAIMED.value).count()
@@ -85,6 +92,9 @@ class Wallet(CurrencyOwnedMixin):
         characters = get_random_string(2, string.ascii_uppercase)
         digits = str(random.randint(0, 999999)).zfill(6)
         return characters + digits
+
+    class Meta:
+        ordering = ['created_at']
 
 
 class TRANSACTION_STATES(Enum):
@@ -100,6 +110,20 @@ TRANSACTION_STATE_CHOICES = (
     (TRANSACTION_STATES.DONE.value, 'Done'),
     (TRANSACTION_STATES.FAILED.value, 'Failed'),
 )
+
+
+class WalletPublicKeyTransferRequest(UUIDModel):
+    wallet = models.ForeignKey(
+        Wallet, on_delete=models.DO_NOTHING, related_name='transfer_requests')
+    old_public_key = models.CharField(max_length=60)
+    new_public_key = models.CharField(max_length=60)
+    state = models.IntegerField(choices=TRANSACTION_STATE_CHOICES, default=1)
+
+    submitted_to_chain_at = models.DateTimeField(null=True, blank=True)
+    operation_hash = models.CharField(max_length=128, blank=True)
+
+    class Meta:
+        ordering = ['created_at']
 
 
 class Transaction(UUIDModel):
@@ -135,6 +159,9 @@ class Transaction(UUIDModel):
         belonging_wallets = user.wallets.all()
         return Transaction.objects.filter(Q(from_wallet__in=belonging_wallets) | Q(to_wallet__in=belonging_wallets))
 
+    class Meta:
+        ordering = ['created_at']
+
 
 class MetaTransaction(Transaction):
     nonce = models.IntegerField()
@@ -152,4 +179,4 @@ class MetaTransaction(Transaction):
         }
 
     class Meta:
-        ordering = ['created']
+        ordering = ['created_at']
