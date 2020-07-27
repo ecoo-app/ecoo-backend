@@ -210,7 +210,7 @@ class VerificationApiTest(APITestCase):
         data['state'] = VERIFICATION_STATES.CLAIMED.value
         self.assertEqual(UserVerification.objects.filter(**data).count(), 1)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response_2.status_code, status.HTTP_406_NOT_ACCEPTABLE)
         data['state'] = VERIFICATION_STATES.DOUBLE_CLAIM.value
         self.assertEqual(UserVerification.objects.filter(**data).count(), 1)
 
