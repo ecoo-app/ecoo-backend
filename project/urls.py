@@ -29,7 +29,7 @@ import apps.wallet.urls as wallet_url
 
 router = DefaultRouter()
 
-router.register(r'devices', FCMDeviceAuthorizedViewSet)
+router.register('', FCMDeviceAuthorizedViewSet)
 
 urlpatterns = [
     path('jet/', include('jet.urls', 'jet')),  # Django JET URLS
@@ -42,7 +42,7 @@ urlpatterns = [
     path('api/verification/', include('apps.verification.urls')),
     path('api/oauth/', include('rest_framework_social_oauth2.urls')),
     # path('social/', include('social_django.urls', namespace='social')),
-    path('api/devices', include(router.urls)),
+    path('api/devices/', include(router.urls)),
 ]
 
 if settings.DEBUG:
