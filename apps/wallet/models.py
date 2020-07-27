@@ -9,6 +9,7 @@ from django.db import models
 from django.db.models import Max, Q, Sum
 from django.db.models.signals import pre_save
 from django.utils.crypto import get_random_string
+from fcm_django.models import FCMDevice
 from pytezos.crypto import Key
 
 from apps.currency.mixins import CurrencyOwnedMixin
@@ -91,7 +92,7 @@ class Wallet(CurrencyOwnedMixin):
         self.__notify_owner_devices(
             f'You have received {amount/pow(10,self.currency.decimals)} CHF from {from_wallet_id}')
 
-    def notify_transfer_successful(self,to_wallet_id, amount):
+    def notify_transfer_successful(self, to_wallet_id, amount):
         self.__notify_owner_devices(
             f'You have send {amount/pow(10,self.currency.decimals)} CHF to {to_wallet_id}')
 
