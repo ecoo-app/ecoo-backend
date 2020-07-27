@@ -43,7 +43,10 @@ def custom_meta_transaction_validation(sender, instance, **kwargs):
 @receiver(pre_save, sender=Wallet, dispatch_uid='pre_save_signal_wallet')
 def pre_save_signal_wallet(sender, instance, **kwargs):
     if instance.uuid is not None:
-        previous = Wallet.objects.get(uuid=instance.uuid)
+        try:
+            previous = Wallet.objects.get(uuid=instance.uuid)
 
-        if instance.state != previous.state and instance.state == WALLET_STATES.VERIFIED:
-            instance.notify_owner_verified()
+            if instance.state != previous.state and instance.state == WALLET_STATES.VERIFIED:
+                instance.notify_owner_verified()
+        except Wallet.DoesNotExist:
+            pass
