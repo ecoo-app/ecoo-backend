@@ -4,7 +4,6 @@ from apps.currency.models import Currency
 
 class CurrencyWalletSerializer(serializers.ModelSerializer):
     actual_nonce = serializers.SerializerMethodField('get_nonce')
-    state = serializers.CharField(source='get_state_display')
 
     def get_nonce(self, wallet):
         return wallet.nonce
