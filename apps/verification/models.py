@@ -79,7 +79,13 @@ class CompanyVerification(AbstractVerificationEntry):
 
     @staticmethod
     def to_verification_input_dict():
-        return {'name': 'Text', 'owner_name': 'text', 'owner_address': 'text', 'owner_telephone_number': 'Text', 'uid': 'Text'}
+        return [
+            {'label':'name', 'type': 'Text'},
+            {'label':'owner_name', 'type': 'text'},
+            {'label':'owner_address', 'type': 'text'},
+            {'label':'owner_telephone_number', 'type': 'Text'},
+            {'label':'uid', 'type': 'Text'}
+            ]
 
 
 class UserVerification(AbstractVerificationEntry):
@@ -92,4 +98,9 @@ class UserVerification(AbstractVerificationEntry):
 
     @staticmethod
     def to_verification_input_dict():
-        return {'name': 'Text', 'address': 'text', 'telephone_number': 'Text', 'date_of_birth': 'Date'}
+        return [
+            {'label':'name', 'type': 'Text'},
+            {'label':'address', 'type': 'text'},
+            {'label':'telephone_number', 'type': 'text'},
+            {'label':'date_of_birth', 'type': 'Text'},
+            ]
