@@ -87,8 +87,7 @@ def verify_wallet(request, wallet_id=None):
 
 @api_view(['GET'])
 def get_verification_input(request, currency_uuid=None):
-    for_company = request.query_params.get('used_for_companies', False)
-
+    for_company = request.query_params.get('used_for_companies', 'false').lower() == 'true'
     if for_company:
         return Response(CompanyVerification.to_verification_input_dict())
     else:

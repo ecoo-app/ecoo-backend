@@ -288,3 +288,25 @@ class VerificationApiTest(APITestCase):
 
         data['state'] = VERIFICATION_STATES.CLAIM_LIMIT_REACHED.value
         self.assertEqual(UserVerification.objects.filter(**data).count(), 1)
+
+
+    def test_get_verification_input(self):
+        self.client.force_authenticate(user=self.user)
+
+        response = self.client.get(
+            '/api/verification/verificationinput/list/')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data,UserVerification.to_verification_input_dict() )
+
+        response = self.client.get(
+            '/api/verification/verificationinput/list/?used_for_companies=False')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data,UserVerification.to_verification_input_dict() )
+        
+        response = self.client.get(
+            '/api/verification/verificationinput/list/?used_for_companies=true')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data,CompanyVerification.to_verification_input_dict() )
