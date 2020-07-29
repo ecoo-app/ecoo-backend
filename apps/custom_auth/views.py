@@ -70,7 +70,7 @@ class UserDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
 
         return Response(UserSerializer(user).data)
 
-
+@permission_classes([AllowAny])
 class ApplicationsView(generics.ListAPIView):
     serializer_class = ApplicationSerializer
     queryset = Application.objects.all()
