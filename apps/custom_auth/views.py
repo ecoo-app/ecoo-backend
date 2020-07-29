@@ -7,9 +7,10 @@ from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
+from oauth2_provider.models import Application
 from social_django.utils import psa
 
-from apps.custom_auth.serializers import SocialSerializer, UserSerializer
+from apps.custom_auth.serializers import SocialSerializer, UserSerializer, ApplicationSerializer
 
 
 class CreateUserView(CreateAPIView):
@@ -68,3 +69,8 @@ class UserDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
         user = self.request.user
 
         return Response(UserSerializer(user).data)
+
+
+class ApplicationsView(generics.ListAPIView):
+    serializer_class = ApplicationSerializer
+    queryset = Application.objects.all()
