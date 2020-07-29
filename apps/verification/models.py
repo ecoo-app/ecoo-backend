@@ -102,5 +102,5 @@ class UserVerification(AbstractVerificationEntry):
             {'label':'name', 'type': 'text'},
             {'label':'address', 'type': 'text'},
             {'label':'telephone_number', 'type': 'text'},
-            {'label':'date_of_birth', 'type': 'text'},
+            {'label':'date_of_birth', 'type': 'date'},
             ]
