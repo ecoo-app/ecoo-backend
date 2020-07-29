@@ -80,11 +80,11 @@ class CompanyVerification(AbstractVerificationEntry):
     @staticmethod
     def to_verification_input_dict():
         return [
-            {'label':'name', 'type': 'Text'},
+            {'label':'name', 'type': 'text'},
             {'label':'owner_name', 'type': 'text'},
             {'label':'owner_address', 'type': 'text'},
-            {'label':'owner_telephone_number', 'type': 'Text'},
-            {'label':'uid', 'type': 'Text'}
+            {'label':'owner_telephone_number', 'type': 'text'},
+            {'label':'uid', 'type': 'text'}
             ]
 
 
@@ -99,8 +99,8 @@ class UserVerification(AbstractVerificationEntry):
     @staticmethod
     def to_verification_input_dict():
         return [
-            {'label':'name', 'type': 'Text'},
+            {'label':'name', 'type': 'text'},
             {'label':'address', 'type': 'text'},
             {'label':'telephone_number', 'type': 'text'},
-            {'label':'date_of_birth', 'type': 'Text'},
+            {'label':'date_of_birth', 'type': 'text'},
             ]
