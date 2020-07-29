@@ -54,7 +54,6 @@ INSTALLED_APPS = [
     "fcm_django",
 
     'apps.wallet',
-    'apps.devices',
     'apps.currency',
     'apps.verification',
     'project'
