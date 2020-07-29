@@ -8,8 +8,6 @@ from apps.wallet.models import MetaTransaction, Transaction, Wallet
 class WalletSerializer(serializers.ModelSerializer):
     actual_nonce = serializers.SerializerMethodField('get_nonce')
     currency = CurrencySerializer()
-    state = serializers.CharField(source='get_state_display')
-    category = serializers.CharField(source='get_category_display')
 
     def get_nonce(self, wallet):
         return wallet.nonce
@@ -43,7 +41,6 @@ class TransactionSerializer(serializers.ModelSerializer):
                                                slug_field='wallet_id', queryset=Wallet.objects.all())
     to_wallet = serializers.SlugRelatedField(many=False, read_only=False,
                                              slug_field='wallet_id', queryset=Wallet.objects.all())
-    state = serializers.CharField(source='get_state_display', read_only=True)
     signature = serializers.SerializerMethodField()
 
     def get_signature(self, obj):
@@ -54,4 +51,4 @@ class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Transaction
         fields = ['from_wallet', 'to_wallet',
-                  'signature', 'amount', 'state', 'tag']
+                  'signature', 'amount', 'state', 'tag', 'created_at']

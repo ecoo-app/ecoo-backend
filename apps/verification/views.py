@@ -28,7 +28,11 @@ def verify_wallet(request, wallet_id=None):
     if wallet.owner != request.user:
         raise PermissionDenied("The wallet does not belong to you")
 
-    data = request.data
+    data = {}
+
+    for verification_input in request.data:
+        data[verification_input['label']] = verification_input['value']
+
     data['currency'] = wallet.currency
 
     if wallet.category == WALLET_CATEGORIES.COMPANY.value:
