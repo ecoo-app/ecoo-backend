@@ -1,4 +1,4 @@
-from django.core.exceptions import FieldError, PermissionDenied
+from django.core.exceptions import FieldError, PermissionDenied, MultipleObjectsReturned
 from django.shortcuts import render
 from rest_framework import generics
 from rest_framework.decorators import api_view
@@ -44,6 +44,27 @@ def verify_wallet(request, wallet_id=None):
     except FieldError:
         raise_api_exception(
             422, 'Verification could not be done, wrong format of body')
+    except MultipleObjectsReturned:
+        results = VerificationModel.objects.filter(**data)
+        with_state_open = results.filter(state=VERIFICATION_STATES.OPEN.value)
+
+        if len(with_state_open)==1:
+            obj = with_state_open[0]
+            created = False
+
+        else:
+            requested_values = results.filter(state=VERIFICATION_STATES.REQUESTED.value, receiving_wallet=wallet)
+            
+            if len(requested_values)>0:
+                obj = requested_values[0]
+                created = False
+
+            else:
+                obj = VerificationModel.objects.create(**data)
+                created = True
+
+        
+
     verification_ok = False
 
     if created:
@@ -75,7 +96,7 @@ def verify_wallet(request, wallet_id=None):
     if verification_ok:
         wallet.state = WALLET_STATES.VERIFIED.value
         wallet.save()
-        
+
         if wallet.category == WALLET_CATEGORIES.CONSUMER.value:
             create_claim_transaction(wallet)
 
@@ -87,7 +108,8 @@ def verify_wallet(request, wallet_id=None):
 
 @api_view(['GET'])
 def get_verification_input(request, currency_uuid=None):
-    for_company = request.query_params.get('used_for_companies', 'false').lower() == 'true'
+    for_company = request.query_params.get(
+        'used_for_companies', 'false').lower() == 'true'
     if for_company:
         return Response(CompanyVerification.to_verification_input_dict())
     else:
