@@ -55,6 +55,20 @@ class UserVerificationAdmin(admin.ModelAdmin):
     class Meta:
         model = UserVerification
 
+    # TODO: make more genereal -> use mixin?
+    def import_csv(self, request):
+        if request.method == "POST":
+            csv_file = request.FILES["csv_file"]
+            reader = csv.reader(csv_file)
+            # Create Hero objects from passed in data
+            # ...
+            self.message_user(request, "Your csv file has been imported")
+            return redirect("..")
+        form = CsvImportForm()
+        payload = {"form": form}
+        return render(
+            request, "admin/csv_form.html", payload)
+
 
 @admin.register(CompanyVerification)
 class CompanyVerificationAdmin(admin.ModelAdmin):
