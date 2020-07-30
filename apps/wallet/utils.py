@@ -8,6 +8,8 @@ from apps.wallet.models import TRANSACTION_STATES, MetaTransaction, Transaction
 
 class CustomCursorPagination(CursorPagination):
     ordering = 'created'
+    page_size = 10
+    page_size_query_param = 'page_size'
 
 
 MESSAGE_STRUCTURE = {

@@ -58,8 +58,8 @@ class Wallet(CurrencyOwnedMixin):
         unique=True, max_length=60)  # encoded public_key
 
     category = models.IntegerField(
-        default=0, choices=WALLET_CATEGORY_CHOICES)
-    state = models.IntegerField(default=0, choices=WALLET_STATE_CHOICES)
+        default=WALLET_CATEGORIES.CONSUMER.value, choices=WALLET_CATEGORY_CHOICES)
+    state = models.IntegerField(default=WALLET_STATES.UNVERIFIED.value, choices=WALLET_STATE_CHOICES)
 
     @property
     def address(self):
@@ -103,6 +103,13 @@ class Wallet(CurrencyOwnedMixin):
         devices = FCMDevice.objects.filter(user=self.owner)
         devices.send_message(title="eCoupon", body=message)
 
+class OwnerWallet(Wallet):
+    private_key = models.CharField(unique=True, max_length=128)
+    
+    def save(self, *args, **kwargs): 
+        self.state = WALLET_CATEGORIES.OWNER.value
+        super(OwnerWallet, self).save(*args, **kwargs) 
+
 
 class TRANSACTION_STATES(Enum):
     OPEN = 1
@@ -137,6 +144,21 @@ class Transaction(UUIDModel):
     def is_mint_transaction(self):
         return self.from_wallet == None
 
+    @property
+    def tag(self):
+        if self.from_wallet and self.from_wallet == self.from_wallet.currency.owner_wallet:
+            return 'from_owner'
+        
+        if self.to_wallet == self.to_wallet.currency.owner_wallet:
+            return 'to_owner'
+        
+        return ''
+    
+    @staticmethod
+    def get_belonging_to_user(user):
+        belonging_wallets = user.wallets.all()
+        return Transaction.objects.filter(Q(from_wallet__in=belonging_wallets) | Q(to_wallet__in=belonging_wallets))
+
 
 class MetaTransaction(Transaction):
     nonce = models.IntegerField()
@@ -152,8 +174,3 @@ class MetaTransaction(Transaction):
                     'token_id': self.from_wallet.currency.token_id}
             ]
         }
-
-    @staticmethod
-    def get_belonging_to_user(user):
-        belonging_wallets = user.wallets.all()
-        return MetaTransaction.objects.filter(Q(from_wallet__in=belonging_wallets) | Q(to_wallet__in=belonging_wallets))
