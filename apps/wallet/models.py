@@ -57,8 +57,8 @@ class Wallet(CurrencyOwnedMixin):
         unique=True, max_length=60)  # encoded public_key
 
     category = models.IntegerField(
-        default=0, choices=WALLET_CATEGORY_CHOICES)
-    state = models.IntegerField(default=0, choices=WALLET_STATE_CHOICES)
+        default=WALLET_CATEGORIES.CONSUMER.value, choices=WALLET_CATEGORY_CHOICES)
+    state = models.IntegerField(default=WALLET_STATES.UNVERIFIED.value, choices=WALLET_STATE_CHOICES)
 
     @property
     def address(self):
@@ -85,6 +85,13 @@ class Wallet(CurrencyOwnedMixin):
         characters = get_random_string(2, string.ascii_uppercase)
         digits = str(random.randint(0, 999999)).zfill(6)
         return characters + digits
+
+class OwnerWallet(Wallet):
+    private_key = models.CharField(unique=True, max_length=128)
+    
+    def save(self, *args, **kwargs): 
+        self.state = WALLET_CATEGORIES.OWNER.value
+        super(OwnerWallet, self).save(*args, **kwargs) 
 
 
 class TRANSACTION_STATES(Enum):
