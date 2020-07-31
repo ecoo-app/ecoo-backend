@@ -265,7 +265,7 @@ TEZOS_NODE = "https://rpc.tzkt.io/carthagenet/"
 
 FCM_DJANGO_SETTINGS = {
         "APP_VERBOSE_NAME": "FCM Django",
-        "FCM_SERVER_KEY": "[your api key]",
+        "FCM_SERVER_KEY": '__FCM_KEY__',
          # true if you want to have only one active device per registered user at a time
          # default: False
         "ONE_DEVICE_PER_USER": False,
