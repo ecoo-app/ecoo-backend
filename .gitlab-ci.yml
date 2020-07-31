@@ -79,6 +79,9 @@ k8s-deploy-development:
     # OAUTH GOOGLE
     - find k8s -type f -name \*.yaml -exec sed -i "s|__GOOGLE_OAUTH2_KEY__|"$GOOGLE_OAUTH2_DEV_KEY"|g" {} +
     - find k8s -type f -name \*.yaml -exec sed -i "s|__GOOGLE_OAUTH2_SECRET__|"$GOOGLE_OAUTH2_DEV_SECRET"|g" {} +
+
+    # FCM
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__FCM_KEY__|"$FCM_KEY"|g" {} +
     
     - kubectl apply -f k8s/common/namespace.yaml
     - kubectl apply -f k8s/development/secret.yaml
@@ -119,6 +122,9 @@ k8s-deploy-production:
     # OAUTH GOOGLE
     - find k8s -type f -name \*.yaml -exec sed -i "s|__GOOGLE_OAUTH2_KEY__|"$GOOGLE_OAUTH2_PROD_KEY"|g" {} +
     - find k8s -type f -name \*.yaml -exec sed -i "s|__GOOGLE_OAUTH2_SECRET__|"$GOOGLE_OAUTH2_PROD_SECRET"|g" {} +
+
+    # FCM
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__FCM_KEY__|"$FCM_KEY"|g" {} +
 
     - kubectl apply -f k8s/common/namespace.yaml
     - kubectl apply -f k8s/production/ --recursive
