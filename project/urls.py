@@ -20,10 +20,16 @@ from django.contrib import admin
 from django.contrib.auth import views
 from django.urls import path
 from django.views.generic import RedirectView, TemplateView
+from fcm_django.api.rest_framework import FCMDeviceAuthorizedViewSet
+from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import (TokenObtainPairView,
                                             TokenRefreshView)
 
 import apps.wallet.urls as wallet_url
+
+router = DefaultRouter()
+
+router.register('', FCMDeviceAuthorizedViewSet)
 
 urlpatterns = [
     path('jet/', include('jet.urls', 'jet')),  # Django JET URLS
@@ -36,6 +42,7 @@ urlpatterns = [
     path('api/verification/', include('apps.verification.urls')),
     path('api/oauth/', include('rest_framework_social_oauth2.urls')),
     # path('social/', include('social_django.urls', namespace='social')),
+    path('api/devices/', include(router.urls)),
 ]
 
 if settings.DEBUG:

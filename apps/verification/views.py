@@ -93,6 +93,7 @@ def verify_wallet(request, wallet_id=None):
         obj_new.receiving_wallet = wallet
         obj_new.save()
 
+
     if verification_ok:
         wallet.state = WALLET_STATES.VERIFIED.value
         wallet.save()
@@ -101,6 +102,10 @@ def verify_wallet(request, wallet_id=None):
             create_claim_transaction(wallet)
 
     else:
+        if wallet.state == WALLET_STATES.UNVERIFIED:
+            wallet.state = WALLET_STATES.PENDING.value
+            wallet.save()
+
         raise_api_exception(406, 'Verification could not be done')
 
     return Response(WalletSerializer(wallet).data)
