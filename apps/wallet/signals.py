@@ -36,7 +36,7 @@ def custom_meta_transaction_validation(sender, instance, **kwargs):
 
     instance.to_wallet.notify_owner_receiving_money(
         instance.from_wallet, instance.amount)
-    instance.to_wallet.notify_transfer_successful(
+    instance.from_wallet.notify_transfer_successful(
         instance.to_wallet, instance.amount)
 
 
