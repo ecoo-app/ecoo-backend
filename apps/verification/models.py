@@ -94,7 +94,7 @@ class CompanyVerification(AbstractVerificationEntry):
 class UserVerification(AbstractVerificationEntry):
     name = models.CharField(max_length=128)
     address = models.CharField(max_length=128)
-    telephone_number = models.CharField(max_length=10)
+    telephone_number = models.CharField(max_length=16)
     date_of_birth = models.DateField()
     receiving_wallet = models.ForeignKey(
         Wallet, blank=True, null=True, on_delete=models.SET_NULL, related_name='user_claims')

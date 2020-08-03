@@ -71,14 +71,17 @@ k8s-deploy-development:
     - find k8s -type f -name \*.yaml -exec sed -i "s|__DJANGO_DB_NAME_DEVELOPMENT__|"$DJANGO_DB_NAME_DEVELOPMENT"|g" {} +
     
     # OAUTH APPLE
-    # - find k8s -type f -name \*.yaml -exec sed -i "s|__APPLE_ID_CLIENT__|"$APPLE_ID_CLIENT_DEV"|g" {} +
-    # - find k8s -type f -name \*.yaml -exec sed -i "s|__APPLE_ID_TEAM__|"$APPLE_ID_TEAM_DEV"|g" {} +
-    # - find k8s -type f -name \*.yaml -exec sed -i "s|__APPLE_ID_KEY__|"$APPLE_ID_KEY_DEV"|g" {} +
-    # - find k8s -type f -name \*.yaml -exec sed -i "s|__APPLE_ID_SECRET__|"$APPLE_ID_SECRET_DEV"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__APPLE_ID_CLIENT__|"$APPLE_ID_CLIENT_DEV"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__APPLE_ID_TEAM__|"$APPLE_ID_TEAM_DEV"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__APPLE_ID_KEY__|"$APPLE_ID_KEY_DEV"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__APPLE_ID_SECRET__|"$APPLE_ID_SECRET_DEV"|g" {} +
     
     # OAUTH GOOGLE
     - find k8s -type f -name \*.yaml -exec sed -i "s|__GOOGLE_OAUTH2_KEY__|"$GOOGLE_OAUTH2_DEV_KEY"|g" {} +
     - find k8s -type f -name \*.yaml -exec sed -i "s|__GOOGLE_OAUTH2_SECRET__|"$GOOGLE_OAUTH2_DEV_SECRET"|g" {} +
+
+    # FCM
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__FCM_KEY__|"$FCM_KEY"|g" {} +
     
     - kubectl apply -f k8s/common/namespace.yaml
     - kubectl apply -f k8s/development/secret.yaml
@@ -93,6 +96,7 @@ k8s-deploy-production:
   stage: deploy
   only:
     - master
+    - develop
   when: manual
   image: google/cloud-sdk
   before_script:
@@ -110,14 +114,17 @@ k8s-deploy-production:
     - find k8s -type f -name \*.yaml -exec sed -i "s|__DJANGO_DB_NAME_PRODUCTION__|"$DJANGO_DB_NAME_PRODUCTION"|g" {} +
 
     # OAUTH APPLE
-    # - find k8s -type f -name \*.yaml -exec sed -i "s|__APPLE_ID_CLIENT__|"$APPLE_ID_CLIENT_PROD"|g" {} +
-    # - find k8s -type f -name \*.yaml -exec sed -i "s|__APPLE_ID_TEAM__|"$APPLE_ID_TEAM_PROD"|g" {} +
-    # - find k8s -type f -name \*.yaml -exec sed -i "s|__APPLE_ID_KEY__|"$APPLE_ID_KEY_PROD"|g" {} +
-    # - find k8s -type f -name \*.yaml -exec sed -i "s|__APPLE_ID_SECRET__|"$APPLE_ID_SECRET_PROD"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__APPLE_ID_CLIENT__|"$APPLE_ID_CLIENT_PROD"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__APPLE_ID_TEAM__|"$APPLE_ID_TEAM_PROD"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__APPLE_ID_KEY__|"$APPLE_ID_KEY_PROD"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__APPLE_ID_SECRET__|"$APPLE_ID_SECRET_PROD"|g" {} +
     
     # OAUTH GOOGLE
     - find k8s -type f -name \*.yaml -exec sed -i "s|__GOOGLE_OAUTH2_KEY__|"$GOOGLE_OAUTH2_PROD_KEY"|g" {} +
     - find k8s -type f -name \*.yaml -exec sed -i "s|__GOOGLE_OAUTH2_SECRET__|"$GOOGLE_OAUTH2_PROD_SECRET"|g" {} +
+
+    # FCM
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__FCM_KEY__|"$FCM_KEY"|g" {} +
 
     - kubectl apply -f k8s/common/namespace.yaml
     - kubectl apply -f k8s/production/ --recursive
