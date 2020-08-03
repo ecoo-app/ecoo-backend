@@ -66,6 +66,9 @@ class AbstractVerificationEntry(CurrencyOwnedMixin):
     class Meta:
         abstract = True
 
+    def get_fields(self):
+        return [(field.verbose_name, field.value_from_object(self)) for field in self.__class__._meta.fields]        
+
 
 class CompanyVerification(AbstractVerificationEntry):
     name = models.CharField(max_length=128)

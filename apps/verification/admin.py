@@ -1,9 +1,17 @@
 from django.contrib import admin
-
+from django.conf.urls import url
+from django.db import transaction
+from io import StringIO
 from apps.verification.models import (CompanyVerification, UserVerification,
                                       VerificationEntry, VerificationInput,
                                       VerificationInputData)
 from apps.wallet.utils import create_claim_transaction
+from apps.verification.forms import ImportForm
+from django.template.response import TemplateResponse
+from django.contrib import messages
+from django.http import HttpResponseRedirect
+from apps.currency.models import Currency
+import csv
 
 
 def approve_verification(modeladmin, request, queryset):
@@ -42,8 +50,48 @@ def approve_verification(modeladmin, request, queryset):
 approve_verification.short_description = 'Approve selected verification entries and transfer money'
 
 
+class ImportMixin:
+    def import_csv(self, request):
+        if not request.user.is_superuser:
+            raise PermissionDenied
+
+        form = ImportForm()
+        if request.method == 'POST':
+            form = ImportForm(request.POST, request.FILES)
+            if form.is_valid():
+                currency = form.cleaned_data['currency']
+                is_row_valid = lambda x: all( (row.get(x) is not None and row.get(x) is not '') for x in self.import_validate_fields)
+                csv_reader = csv.DictReader(StringIO(form.cleaned_data['csv_file'].read().decode('UTF-8')))
+                created, line_number = 0, 1
+                with transaction.atomic():
+                    for row in csv_reader:
+                        line_number += 1
+                        if not is_row_valid(row):
+                            form.add_error('csv_file', 'Line Nr {} is invalid:{}'.format(str(line_number),row))
+                            transaction.set_rollback(True)
+                            break
+
+                        row['currency_id'] = currency.pk
+                        user_verification = UserVerification(**row)
+                        user_verification.save()                    
+                        created += 1
+
+                    if form.is_valid():
+                        messages.add_message(request, messages.SUCCESS, '{} Objects created'.format(created))
+                        return HttpResponseRedirect(request.META['HTTP_REFERER'])
+        return TemplateResponse(request, 'admin/import_csv.html', {'form': form, 'opts': self.opts, 'media': self.media, 'title': 'Import', 'import_validate_fields': self.import_validate_fields, 'import_name': self.import_name})
+
+    def get_extra_urls(self):
+        return [
+            url(r'^' + self.import_name.replace('_', '-') + '/$', self.admin_site.admin_view(self.import_csv), name=self.import_name),
+        ]
+
+
+
+
+
 @admin.register(UserVerification)
-class UserVerificationAdmin(admin.ModelAdmin):
+class UserVerificationAdmin(ImportMixin, admin.ModelAdmin):
     list_display = ['name', 'address', 'currency', 'state']
     list_filter = (
         'currency', 'state'
@@ -51,34 +99,32 @@ class UserVerificationAdmin(admin.ModelAdmin):
     search_fields = ['name', 'address']
 
     actions = [approve_verification]
+    
+    import_name = 'user_import'
+    import_validate_fields = ['name', 'address', 'telephone_number', 'date_of_birth']
 
     class Meta:
         model = UserVerification
 
-    # TODO: make more genereal -> use mixin?
-    def import_csv(self, request):
-        if request.method == "POST":
-            csv_file = request.FILES["csv_file"]
-            reader = csv.reader(csv_file)
-            # Create Hero objects from passed in data
-            # ...
-            self.message_user(request, "Your csv file has been imported")
-            return redirect("..")
-        form = CsvImportForm()
-        payload = {"form": form}
-        return render(
-            request, "admin/csv_form.html", payload)
+    def get_urls(self):
+        return self.get_extra_urls() + super(UserVerificationAdmin, self).get_urls()
 
 
 @admin.register(CompanyVerification)
-class CompanyVerificationAdmin(admin.ModelAdmin):
+class CompanyVerificationAdmin(ImportMixin, admin.ModelAdmin):
     list_display = ['name', 'uid', 'currency', 'state']
     list_filter = ['currency', 'state']
     search_fields = ['name', 'address']
     actions = [approve_verification]
 
+    import_name = 'company_import'
+    import_validate_fields = ['name', 'owner_name', 'owner_address', 'owner_telephone_number']    
+
     class Meta:
         model = CompanyVerification
+
+    def get_urls(self):
+        return self.get_extra_urls() + super(CompanyVerificationAdmin, self).get_urls()
 
 
 # admin.site.register(VerificationEntry)
