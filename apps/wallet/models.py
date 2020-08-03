@@ -21,6 +21,8 @@ class Company(UUIDModel):
                               on_delete=models.DO_NOTHING)
     name = models.CharField(max_length=32)
 
+    class Meta:
+        verbose_name_plural = "Companies"
 
 class WALLET_STATES(Enum):
     UNVERIFIED = 0
