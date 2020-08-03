@@ -94,7 +94,7 @@ class Wallet(CurrencyOwnedMixin):
 
     def notify_transfer_successful(self, to_wallet_id, amount):
         self.__notify_owner_devices(
-            f'You have send {amount/pow(10,self.currency.decimals)} CHF to {to_wallet_id}')
+            f'You have sent {amount/pow(10,self.currency.decimals)} CHF to {to_wallet_id}')
 
     def notify_owner_verified(self):
         self.__notify_owner_devices(f'Wallet {self.wallet_id} is now verified')
