@@ -138,7 +138,7 @@ TRANSACTION_STATE_CHOICES = (
 class WalletPublicKeyTransferRequest(UUIDModel):
     wallet = models.ForeignKey(
         Wallet, on_delete=models.DO_NOTHING, related_name='transfer_requests')
-    old_public_key = models.CharField(max_length=60)
+    old_public_key = models.CharField(max_length=60, blank=True)
     new_public_key = models.CharField(max_length=60)
     state = models.IntegerField(choices=TRANSACTION_STATE_CHOICES, default=1)
 
