@@ -9,7 +9,7 @@ from apps.custom_auth.serializers import ApplicationSerializer
 class CustomAuthTest(APITestCase):
     def setUp(self):
         self.superuser = get_user_model().objects.create_superuser(email='abc@abc.ch',
-            username="testuser", password="abcd", )
+                                                                   username="testuser", password="abcd", )
         pass
 
     def test_application_endpoint(self):
@@ -20,4 +20,4 @@ class CustomAuthTest(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual([ApplicationSerializer(app).data],
-                         response.data)
+                         response.data['results'])

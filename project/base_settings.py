@@ -157,7 +157,8 @@ REST_FRAMEWORK = {
         'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
         'rest_framework_social_oauth2.authentication.SocialAuthentication',
     ),
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'DEFAULT_PAGINATION_CLASS': 'apps.wallet.utils.CustomCursorPagination',
+    'PAGE_SIZE': 10,
 }
 
 SIMPLE_JWT = {
@@ -264,12 +265,12 @@ TEZOS_BLOCK_WAIT_TIME = 5
 TEZOS_NODE = "https://rpc.tzkt.io/carthagenet/"
 
 FCM_DJANGO_SETTINGS = {
-        "APP_VERBOSE_NAME": "FCM Django",
-        "FCM_SERVER_KEY": '__FCM_KEY__',
-         # true if you want to have only one active device per registered user at a time
-         # default: False
-        "ONE_DEVICE_PER_USER": False,
-         # devices to which notifications cannot be sent,
-         # are deleted upon receiving error response from FCM
-        "DELETE_INACTIVE_DEVICES": True,
+    "APP_VERBOSE_NAME": "FCM Django",
+    "FCM_SERVER_KEY": '__FCM_KEY__',
+    # true if you want to have only one active device per registered user at a time
+    # default: False
+    "ONE_DEVICE_PER_USER": False,
+    # devices to which notifications cannot be sent,
+    # are deleted upon receiving error response from FCM
+    "DELETE_INACTIVE_DEVICES": True,
 }

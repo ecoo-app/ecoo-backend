@@ -10,8 +10,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/manage.py",
             "args": [
-                "test",
-                "apps.wallet.tests_api.WalletPublicKeyTransferRequestApiTest"
+                "test"
             ],
             "django": true
         }

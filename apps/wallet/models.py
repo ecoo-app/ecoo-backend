@@ -25,6 +25,7 @@ class Company(UUIDModel):
         ordering = ['created_at']
         verbose_name_plural = "Companies"
 
+
 class WALLET_STATES(Enum):
     UNVERIFIED = 0
     PENDING = 1
@@ -56,13 +57,14 @@ class Wallet(CurrencyOwnedMixin):
     company = models.ForeignKey(
         Company, blank=True, null=True, on_delete=models.SET_NULL, related_name='wallets')
 
-    wallet_id = models.CharField(unique=True, max_length=128)
+    wallet_id = models.CharField(unique=True, blank=True, max_length=128)
     public_key = models.CharField(
         unique=True, max_length=60)  # encoded public_key
 
     category = models.IntegerField(
         default=WALLET_CATEGORIES.CONSUMER.value, choices=WALLET_CATEGORY_CHOICES)
-    state = models.IntegerField(default=WALLET_STATES.UNVERIFIED.value, choices=WALLET_STATE_CHOICES)
+    state = models.IntegerField(
+        default=WALLET_STATES.UNVERIFIED.value, choices=WALLET_STATE_CHOICES)
 
     @property
     def address(self):
@@ -109,16 +111,18 @@ class Wallet(CurrencyOwnedMixin):
     def __notify_owner_devices(self, message):
         devices = FCMDevice.objects.filter(user=self.owner)
         devices.send_message(title="eCoupon", body=message)
-    
+
     class Meta:
         ordering = ['created_at']
 
+
 class OwnerWallet(Wallet):
     private_key = models.CharField(unique=True, max_length=128)
-    
-    def save(self, *args, **kwargs): 
+
+    def save(self, *args, **kwargs):
         self.state = WALLET_CATEGORIES.OWNER.value
         super(OwnerWallet, self).save(*args, **kwargs)
+
 
 class TRANSACTION_STATES(Enum):
     OPEN = 1
@@ -158,7 +162,6 @@ class Transaction(UUIDModel):
 
     state = models.IntegerField(choices=TRANSACTION_STATE_CHOICES, default=1)
 
-    created = models.DateTimeField(auto_now_add=True)
     submitted_to_chain_at = models.DateTimeField(null=True, blank=True)
 
     operation_hash = models.CharField(max_length=128, blank=True)

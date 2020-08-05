@@ -20,7 +20,10 @@ def create_owner_wallet(sender, instance, created, **kwargs):
         retry = True
         while retry:
             try:
-                OwnerWallet.objects.create(currency=instance, private_key=private_key, wallet_id=OwnerWallet.generate_wallet_id(), public_key=public_key, category=WALLET_CATEGORIES.OWNER.value)
+                owner_wallet = OwnerWallet.objects.create(currency=instance, private_key=private_key, wallet_id=OwnerWallet.generate_wallet_id(
+                ), public_key=public_key, category=WALLET_CATEGORIES.OWNER.value)
+                instance.owner_wallet = owner_wallet
+                instance.save()
                 retry = False
             except IntegrityError:
                 retry = True

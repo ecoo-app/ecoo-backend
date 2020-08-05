@@ -1,30 +1,37 @@
 from django.test import TestCase
 from apps.currency.models import Currency
-from apps.wallet.models import Wallet, MetaTransaction, Transaction, WalletPublicKeyTransferRequest, TRANSACTION_STATES
+from apps.wallet.models import WALLET_STATES, Wallet, MetaTransaction, Transaction, WalletPublicKeyTransferRequest, TRANSACTION_STATES
+from apps.wallet.signals import custom_meta_transaction_validation
 from pytezos import pytezos, michelson
 from apps.wallet.utils import publish_open_mint_transactions_to_chain, publish_open_meta_transactions_to_chain, publish_open_transfer_transactions_to_chain, pack_meta_transaction, publish_wallet_recovery_transfer_balance, read_nonce_from_chain
 import time
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.db.models.signals import pre_save
 
 
 class WalletTestCase(TestCase):
     def setUp(self):
-        pass
+        pre_save.disconnect(custom_meta_transaction_validation,
+                            sender=MetaTransaction, dispatch_uid='custom_meta_transaction_validation')
+
+    def tearDown(self):
+        pre_save.connect(custom_meta_transaction_validation,
+                         sender=MetaTransaction, dispatch_uid='custom_meta_transaction_validation')
 
     def test_address_calculation(self):
         currency = Currency.objects.create(token_id=0, name="test")
         wallet = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
-        ), public_key="edpku976gpuAD2bXyx1XGraeKuCo1gUZ3LAJcHM12W1ecxZwoiu22R", currency=currency)
+        ), public_key="edpku976gpuAD2bXyx1XGraeKuCo1gUZ3LAJcHM12W1ecxZwoiu22R", currency=currency, state=WALLET_STATES.VERIFIED.value)
         self.assertEqual(
             wallet.nonce, 0)
 
     def test_nonce_calculation(self):
         currency = Currency.objects.create(token_id=0, name="test")
         wallet1 = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
-        ), public_key="edpku976gpuAD2bXyx1XGraeKuCo1gUZ3LAJcHM12W1ecxZwoiu22R", currency=currency)
+        ), public_key="edpku976gpuAD2bXyx1XGraeKuCo1gUZ3LAJcHM12W1ecxZwoiu22R", currency=currency, state=WALLET_STATES.VERIFIED.value)
         wallet2 = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
-        ), public_key="edpku3g7CeTEvSKhxipD4Q2B6EiEP8cR323u8PFmGFgKRVRvCneEmT", currency=currency)
+        ), public_key="edpku3g7CeTEvSKhxipD4Q2B6EiEP8cR323u8PFmGFgKRVRvCneEmT", currency=currency, state=WALLET_STATES.VERIFIED.value)
         Transaction.objects.create(to_wallet=wallet1, amount=100)
         MetaTransaction.objects.create(
             from_wallet=wallet1, to_wallet=wallet2, amount=10, nonce=1)
@@ -48,9 +55,9 @@ class WalletTestCase(TestCase):
     def test_balance_calculation(self):
         currency = Currency.objects.create(token_id=0, name="test")
         wallet1 = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
-        ), public_key="edpku976gpuAD2bXyx1XGraeKuCo1gUZ3LAJcHM12W1ecxZwoiu22R", currency=currency)
+        ), public_key="edpku976gpuAD2bXyx1XGraeKuCo1gUZ3LAJcHM12W1ecxZwoiu22R", currency=currency, state=WALLET_STATES.VERIFIED.value)
         wallet2 = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
-        ), public_key="edpku3g7CeTEvSKhxipD4Q2B6EiEP8cR323u8PFmGFgKRVRvCneEmT", currency=currency)
+        ), public_key="edpku3g7CeTEvSKhxipD4Q2B6EiEP8cR323u8PFmGFgKRVRvCneEmT", currency=currency, state=WALLET_STATES.VERIFIED.value)
         Transaction.objects.create(to_wallet=wallet1, amount=100)
         MetaTransaction.objects.create(
             from_wallet=wallet1, to_wallet=wallet2, amount=10, nonce=1)
@@ -76,9 +83,9 @@ class MetaTransactionTestCase(TestCase):
     def test_validation(self):
         currency = Currency.objects.create(token_id=0, name="test")
         wallet1 = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
-        ), public_key="edpku976gpuAD2bXyx1XGraeKuCo1gUZ3LAJcHM12W1ecxZwoiu22R", currency=currency)
+        ), public_key="edpku976gpuAD2bXyx1XGraeKuCo1gUZ3LAJcHM12W1ecxZwoiu22R", currency=currency, state=WALLET_STATES.VERIFIED.value)
         wallet2 = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
-        ), public_key="edpku3g7CeTEvSKhxipD4Q2B6EiEP8cR323u8PFmGFgKRVRvCneEmT", currency=currency)
+        ), public_key="edpku3g7CeTEvSKhxipD4Q2B6EiEP8cR323u8PFmGFgKRVRvCneEmT", currency=currency, state=WALLET_STATES.VERIFIED.value)
 
         Transaction.objects.create(to_wallet=wallet1, amount=100)
         with self.assertRaises(ValidationError):
@@ -97,9 +104,9 @@ class TransactionTestCase(TestCase):
     def setUp(self):
         self.currency = Currency.objects.create(token_id=0, name="test")
         self.wallet1 = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
-        ), public_key="edpku976gpuAD2bXyx1XGraeKuCo1gUZ3LAJcHM12W1ecxZwoiu22R", currency=self.currency)
+        ), public_key="edpku976gpuAD2bXyx1XGraeKuCo1gUZ3LAJcHM12W1ecxZwoiu22R", currency=self.currency, state=WALLET_STATES.VERIFIED.value)
         self.wallet2 = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
-        ), public_key="edpku3g7CeTEvSKhxipD4Q2B6EiEP8cR323u8PFmGFgKRVRvCneEmT", currency=self.currency)
+        ), public_key="edpku3g7CeTEvSKhxipD4Q2B6EiEP8cR323u8PFmGFgKRVRvCneEmT", currency=self.currency, state=WALLET_STATES.VERIFIED.value)
 
     def test_transfer_ordering(self):
         Transaction.objects.create(to_wallet=self.wallet1, amount=100)
@@ -130,9 +137,9 @@ class BlockchainSyncTestCase(TestCase):
         self.token_contract = self.pytezos_client.contract(
             settings.TEZOS_TOKEN_CONTRACT_ADDRESS)
         self.wallet1 = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
-        ), public_key=self.pytezos_client.key.public_key(), currency=self.currency)
+        ), public_key=self.pytezos_client.key.public_key(), currency=self.currency, state=WALLET_STATES.VERIFIED.value)
         self.wallet2 = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
-        ), public_key="edpku3g7CeTEvSKhxipD4Q2B6EiEP8cR323u8PFmGFgKRVRvCneEmT", currency=self.currency)
+        ), public_key="edpku3g7CeTEvSKhxipD4Q2B6EiEP8cR323u8PFmGFgKRVRvCneEmT", currency=self.currency, state=WALLET_STATES.VERIFIED.value)
         Transaction.objects.create(to_wallet=self.wallet1, amount=1000)
 
     def test_wallet_recover_transfer(self):
