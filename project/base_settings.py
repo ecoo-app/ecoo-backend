@@ -50,8 +50,10 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
     'django_filters',
+
+    "fcm_django",
+
     'apps.wallet',
-    'apps.devices',
     'apps.currency',
     'apps.verification',
     'project'
@@ -219,7 +221,9 @@ SITE_ID = 1
 SOCIAL_AUTH_APPLE_ID_CLIENT = '__APPLE_ID_CLIENT__'
 SOCIAL_AUTH_APPLE_ID_TEAM = '__APPLE_ID_TEAM__'  # Your Team ID, ie K2232113
 SOCIAL_AUTH_APPLE_ID_KEY = '__APPLE_ID_KEY__'  # Your Key ID, ie Y2P99J3N81K
-SOCIAL_AUTH_APPLE_ID_SECRET = '__APPLE_ID_SECRET__'
+SOCIAL_AUTH_APPLE_ID_SECRET = """-----BEGIN PRIVATE KEY-----
+__APPLE_ID_SECRET__
+-----END PRIVATE KEY-----"""
 SOCIAL_AUTH_APPLE_ID_SCOPE = ['email', 'name']
 SOCIAL_AUTH_APPLE_ID_EMAIL_AS_USERNAME = True
 
@@ -258,3 +262,14 @@ TEZOS_TOKEN_CONTRACT_ADDRESS = "KT1P4cKoPtLERkWcibpGgAi1uifRyi9N8hSi"
 TEZOS_CALLBACK_CONTRACT_ADDRESS = "KT1FM1yaa8sfADNojRBGnt9QGXssCicVbeTY"
 TEZOS_BLOCK_WAIT_TIME = 5
 TEZOS_NODE = "https://rpc.tzkt.io/carthagenet/"
+
+FCM_DJANGO_SETTINGS = {
+        "APP_VERBOSE_NAME": "FCM Django",
+        "FCM_SERVER_KEY": '__FCM_KEY__',
+         # true if you want to have only one active device per registered user at a time
+         # default: False
+        "ONE_DEVICE_PER_USER": False,
+         # devices to which notifications cannot be sent,
+         # are deleted upon receiving error response from FCM
+        "DELETE_INACTIVE_DEVICES": True,
+}

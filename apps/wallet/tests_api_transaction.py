@@ -283,11 +283,12 @@ class TransactionApiTest(APITestCase):
         response = self.client.get('/api/wallet/transaction/list/')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, [])
+        self.assertEqual(response.data['results'], [])
 
         self.client.force_authenticate(user=self.user)
 
         response = self.client.get('/api/wallet/transaction/list/')
+        response_result = [dict(r) for r in response.data['results']]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # self.assertEqual(response.data, [TransactionSerializer(

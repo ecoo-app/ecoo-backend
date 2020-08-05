@@ -10,6 +10,8 @@ from rest_framework.pagination import CursorPagination
 
 class CustomCursorPagination(CursorPagination):
     ordering = 'created'
+    page_size = 10
+    page_size_query_param = 'page_size'
 
 
 MESSAGE_STRUCTURE = {
@@ -309,5 +311,5 @@ def publish_wallet_recovery_transfer_balance():
 
 
 def create_claim_transaction(wallet):
-    Transaction.objects.create(from_wallet=wallet.currency.owner_wallet,
-                               to_wallet=wallet, amount=wallet.currency.starting_capital)
+    Transaction.objects.create(from_wallet=wallet.currency.owner_wallet,to_wallet=wallet, amount=wallet.currency.starting_capital)
+    wallet.notify_owner_receiving_money(from_wallet_id=wallet.currency.owner_wallet, amount=wallet.currency.starting_capital)

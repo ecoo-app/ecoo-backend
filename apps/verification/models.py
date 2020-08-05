@@ -66,6 +66,9 @@ class AbstractVerificationEntry(CurrencyOwnedMixin):
     class Meta:
         abstract = True
 
+    def get_fields(self):
+        return [(field.verbose_name, field.value_from_object(self)) for field in self.__class__._meta.fields]        
+
 
 class CompanyVerification(AbstractVerificationEntry):
     name = models.CharField(max_length=128)
@@ -79,17 +82,28 @@ class CompanyVerification(AbstractVerificationEntry):
 
     @staticmethod
     def to_verification_input_dict():
-        return {'name': 'Text', 'owner_name': 'text', 'owner_address': 'text', 'owner_telephone_number': 'Text', 'uid': 'Text'}
+        return [
+            {'label':'name', 'type': 'text'},
+            {'label':'owner_name', 'type': 'text'},
+            {'label':'owner_address', 'type': 'text'},
+            {'label':'owner_telephone_number', 'type': 'text'},
+            {'label':'uid', 'type': 'text'}
+            ]
 
 
 class UserVerification(AbstractVerificationEntry):
     name = models.CharField(max_length=128)
     address = models.CharField(max_length=128)
-    telephone_number = models.CharField(max_length=10)
+    telephone_number = models.CharField(max_length=16)
     date_of_birth = models.DateField()
     receiving_wallet = models.ForeignKey(
         Wallet, blank=True, null=True, on_delete=models.SET_NULL, related_name='user_claims')
 
     @staticmethod
     def to_verification_input_dict():
-        return {'name': 'Text', 'address': 'text', 'telephone_number': 'Text', 'date_of_birth': 'Date'}
+        return [
+            {'label':'name', 'type': 'text'},
+            {'label':'address', 'type': 'text'},
+            {'label':'telephone_number', 'type': 'text'},
+            {'label':'date_of_birth', 'type': 'date'},
+            ]
