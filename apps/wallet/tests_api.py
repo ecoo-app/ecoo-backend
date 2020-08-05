@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.test import APIClient, APIRequestFactory, APITestCase
 
 from apps.currency.models import Currency
-from apps.wallet.models import WALLET_STATES, MetaTransaction, Wallet
+from apps.wallet.models import WALLET_STATES, MetaTransaction, Wallet, WalletPublicKeyTransferRequest
 from apps.wallet.serializers import PublicWalletSerializer, WalletSerializer
 from apps.wallet.utils import (pack_meta_transaction,
                                publish_open_meta_transactions_to_chain,
@@ -33,7 +33,7 @@ class WalletApiTest(APITestCase):
 
         self.currency = Currency.objects.create(token_id=0, name="TEZ")
 
-    # TODO: create test to check the wallet category 
+    # TODO: create test to check the wallet category
 
     def test_create_wallet_unauthorized(self):
         wallet_count = Wallet.objects.all().count()
@@ -131,3 +131,63 @@ class WalletApiTest(APITestCase):
             self.wallet_1).data, WalletSerializer(self.wallet_1_2).data])
 
         self.client.force_authenticate(user=None)
+
+
+class WalletPublicKeyTransferRequestApiTest(APITestCase):
+    pubkey_1 = 'edpkuvNy6TuQ2z8o9wnoaTtTXkzQk7nhegCHfxBc4ecsd4qG71KYNG'
+    pubkey_2 = 'edpkuvNy6TuQ2z8o9wnoaTtTXkzQk7nhegCHfxBc4ecsd4qG71KYNg'
+
+    def setUp(self):
+        self.user = get_user_model().objects.create(
+            username="testuser", password="abcd")
+        self.user_2 = get_user_model().objects.create(
+            username="testuser_2", password="abcd")
+        self.currency = Currency.objects.create(token_id=0, name="TEZ")
+        self.wallet_1 = Wallet.objects.create(owner=self.user, wallet_id=Wallet.generate_wallet_id(
+        ), public_key="edpku976gpuAD2bXyx1XGraeKuCo1gUZ3LAJcHM12W1ecxZwoiu22R", currency=self.currency)
+
+        self.wallet_1_2 = Wallet.objects.create(owner=self.user, wallet_id=Wallet.generate_wallet_id(
+        ), public_key="edpku976gpuAD2bXyx1XGraeKuCo1gUZ3LAJcHM12W1ecxZwoiu22f", currency=self.currency)
+
+        self.wallet_2 = Wallet.objects.create(owner=self.user_2, wallet_id=Wallet.generate_wallet_id(
+        ), public_key="edpku976gpuAD2bXyx1XGraeKuCo1gUZ3LAJcHM12W1ecxZwoiu22r", currency=self.currency)
+
+        self.currency = Currency.objects.create(token_id=0, name="TEZ")
+
+    # TODO: create test to check the wallet category
+
+    def test_create_wallet_public_key_transfer_request_unauthorized(self):
+        wallet_public_key_transfer_request_count = WalletPublicKeyTransferRequest.objects.all().count()
+        response = self.client.post('/api/wallet/wallet_public_key_transfer_request/', {
+            "wallet": self.wallet_1.uuid,
+            "new_public_key": self.pubkey_1
+        }, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(wallet_public_key_transfer_request_count,
+                         WalletPublicKeyTransferRequest.objects.all().count())
+
+    def test_wallet_public_key_transfer_request_correct_and_duplicate(self):
+        #   incorrect request
+        self.client.force_authenticate(user=self.user_2)
+
+        wallet_public_key_transfer_request_count = WalletPublicKeyTransferRequest.objects.all().count()
+        response = self.client.post('/api/wallet/wallet_public_key_transfer_request/', {
+            "wallet": self.wallet_1.uuid,
+            "new_public_key": self.pubkey_1
+        }, format='json')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(wallet_public_key_transfer_request_count,
+                         WalletPublicKeyTransferRequest.objects.all().count())
+
+    def test_wallet_public_key_transfer_request_correct_and_duplicate(self):
+        # correct request
+        self.client.force_authenticate(user=self.user)
+        wallet_public_key_transfer_request_count = WalletPublicKeyTransferRequest.objects.all().count()
+        response = self.client.post('/api/wallet/wallet_public_key_transfer_request/', {
+            "wallet": self.wallet_1.uuid,
+            "new_public_key": self.pubkey_1
+        }, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(wallet_public_key_transfer_request_count +
+                         1, WalletPublicKeyTransferRequest.objects.all().count())

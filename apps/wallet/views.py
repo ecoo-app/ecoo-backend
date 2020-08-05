@@ -11,12 +11,13 @@ from rest_framework import generics, mixins, status
 from rest_framework.decorators import api_view
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
+from rest_framework.permissions import BasePermission
 
 from apps.wallet.models import (WALLET_CATEGORIES, WALLET_STATES,
-                                Transaction, MetaTransaction, Wallet)
+                                Transaction, MetaTransaction, Wallet, WalletPublicKeyTransferRequest)
 from apps.wallet.serializers import (CreateWalletSerializer,
                                      PublicWalletSerializer,
-                                     TransactionSerializer, WalletSerializer)
+                                     TransactionSerializer, WalletSerializer, WalletPublicKeyTransferRequestSerializer)
 from apps.wallet.utils import (CustomCursorPagination, create_message,
                                read_nonce_from_chain)
 from project.utils import raise_api_exception
@@ -176,9 +177,8 @@ class TransactionList(generics.ListAPIView):
         return Transaction.get_belonging_to_user(self.request.user)
 
 
-@api_view(['POST'])
-def migrate_wallet(request):
-    # TODO: implement
+class WalletPublicKeyTransferRequestListCreate(generics.ListCreateAPIView):
+    serializer_class = WalletPublicKeyTransferRequestSerializer
 
-    return JsonResponse({'foo': 'bar'})
-    # return Response({'msg':'ok'}, status=status.HTTP_201_CREATED)
+    def get_queryset(self):
+        return self.request.user.wallets.transfer_requests
