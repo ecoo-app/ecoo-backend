@@ -34,10 +34,10 @@ class VerificationApiTest(APITestCase):
         self.wallet_2 = Wallet.objects.create(owner=self.user_2, wallet_id=Wallet.generate_wallet_id(
         ), public_key=self.pubkey_2, currency=self.currency)
 
-        self.owner_wallet_1 = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
-        ), category=WALLET_CATEGORIES.OWNER.value, public_key="edpku976gpuAD2bXyx1XGraeKuCo1gUZ3LAJcHM12W1ecxZwoiu22R", currency=self.currency, state=WALLET_STATES.VERIFIED.value)
-
-        Transaction.objects.create(to_wallet=self.owner_wallet_1, amount=2000)
+        Transaction.objects.create(
+            to_wallet=self.currency.owner_wallet, amount=2000)
+        Transaction.objects.create(
+            to_wallet=self.currency_2.owner_wallet, amount=2000)
 
     def test_different_user_claim(self):
         verification_input = UserVerification.objects.create(
@@ -187,8 +187,8 @@ class VerificationApiTest(APITestCase):
             '/api/verification/verify/'+self.wallet_1.wallet_id, verification_data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(old_balance+ self.currency.starting_capital, self.wallet_1.balance)
-
+        self.assertEqual(
+            old_balance + self.currency.starting_capital, self.wallet_1.balance)
 
     def test_correct_claim(self):
         start_amount = self.wallet_1.balance
@@ -234,7 +234,8 @@ class VerificationApiTest(APITestCase):
         verification_entity_company.save()
         company_verification_count = CompanyVerification.objects.all().count()
 
-        verification_data = [{'label': k, 'value': v} for k, v in data_company.items()]
+        verification_data = [{'label': k, 'value': v}
+                             for k, v in data_company.items()]
 
         response = self.client.post(
             '/api/verification/verify/'+self.wallet_1_2.wallet_id, verification_data, format='json')
@@ -283,7 +284,8 @@ class VerificationApiTest(APITestCase):
         data['state'] = VERIFICATION_STATES.CLAIMED.value
         self.assertEqual(UserVerification.objects.filter(**data).count(), 1)
 
-        self.assertEqual(response_2.status_code, status.HTTP_406_NOT_ACCEPTABLE)
+        self.assertEqual(response_2.status_code,
+                         status.HTTP_406_NOT_ACCEPTABLE)
         data['state'] = VERIFICATION_STATES.DOUBLE_CLAIM.value
         self.assertEqual(UserVerification.objects.filter(**data).count(), 1)
 
@@ -304,7 +306,8 @@ class VerificationApiTest(APITestCase):
             user_verification_count = UserVerification.objects.all().count()
             old_balance = self.wallet_1.balance
 
-            verification_data = [{'label': k, 'value': v} for k, v in data.items()]
+            verification_data = [{'label': k, 'value': v}
+                                 for k, v in data.items()]
 
             response = self.client.post(
                 '/api/verification/verify/'+self.wallet_1.wallet_id, verification_data, format='json')
@@ -338,7 +341,6 @@ class VerificationApiTest(APITestCase):
         data['state'] = VERIFICATION_STATES.CLAIM_LIMIT_REACHED.value
         self.assertEqual(UserVerification.objects.filter(**data).count(), 1)
 
-
     def test_get_verification_input(self):
         self.client.force_authenticate(user=self.user)
 
@@ -346,16 +348,19 @@ class VerificationApiTest(APITestCase):
             '/api/verification/verificationinput/list/')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data,UserVerification.to_verification_input_dict() )
+        self.assertEqual(
+            response.data, UserVerification.to_verification_input_dict())
 
         response = self.client.get(
             '/api/verification/verificationinput/list/?used_for_companies=False')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data,UserVerification.to_verification_input_dict() )
-        
+        self.assertEqual(
+            response.data, UserVerification.to_verification_input_dict())
+
         response = self.client.get(
             '/api/verification/verificationinput/list/?used_for_companies=true')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data,CompanyVerification.to_verification_input_dict() )
+        self.assertEqual(
+            response.data, CompanyVerification.to_verification_input_dict())

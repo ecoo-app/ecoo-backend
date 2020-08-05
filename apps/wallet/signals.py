@@ -2,19 +2,34 @@ from django.core.exceptions import ValidationError
 from django.db.models import Max
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
-
-from apps.wallet.models import (WALLET_STATES, MetaTransaction, Transaction,
-                                Wallet)
+from apps.wallet.models import MetaTransaction, Transaction, WalletPublicKeyTransferRequest, TRANSACTION_STATES, WALLET_CATEGORIES, WALLET_STATES, Wallet
+from apps.wallet.utils import create_message
+import pytezos
+from pytezos import Key
 
 
 @receiver(pre_save, sender=Transaction, dispatch_uid='custom_transaction_validation')
 def custom_transaction_validation(sender, instance, **kwargs):
+    if instance.to_wallet.transfer_requests.exclude(state=TRANSACTION_STATES.DONE.value).exists():
+        raise ValidationError(
+            "Wallet transfer ongoing for destination wallet, cannot send funds to this wallet at the moment.")
     if instance.amount <= 0:
         raise ValidationError("Amount must be > 0")
     if instance.is_mint_transaction and not instance.to_wallet.currency.allow_minting:
         raise ValidationError(
             "Currency must allow minting if you want to mint")
-    # The notification of the wallet is handled inside the utils.create_claim_transaction if it's not a MetaTransaction
+    if not instance.is_mint_transaction:
+        if instance.from_wallet.balance < instance.amount:
+            raise ValidationError(
+                "Balance of from_wallet must be greater than amount")
+        if instance.from_wallet.currency != instance.to_wallet.currency:
+            raise ValidationError(
+                "'From wallet' and 'to wallet' need to use same currency")
+        if instance.from_wallet.transfer_requests.exclude(state=TRANSACTION_STATES.DONE.value).exists():
+            raise ValidationError(
+                "Wallet transfer ongoing for source wallet, cannot send funds from this wallet at the moment.")
+        if instance.from_wallet.state != WALLET_STATES.VERIFIED.value:
+            raise ValidationError("Only verified addresses can send money")
 
 
 @receiver(pre_save, sender=MetaTransaction, dispatch_uid='custom_meta_transaction_validation')
@@ -24,15 +39,22 @@ def custom_meta_transaction_validation(sender, instance, **kwargs):
         raise ValidationError("Metatransaction always must have from")
     if not instance.nonce or instance.nonce <= 0:
         raise ValidationError("Nonce must be > 0")
-    if instance.from_wallet.balance < instance.amount:
-        raise ValidationError(
-            "Balance of from_wallet must be greater than amount")
     if instance.nonce <= (MetaTransaction.objects.filter(from_wallet=instance.from_wallet).aggregate(Max('nonce'))['nonce__max'] or 0):
         raise ValidationError(
             "Nonce must be higher than from_wallet's last meta transaction")
     if instance.from_wallet.currency != instance.to_wallet.currency:
         raise ValidationError(
             "'From wallet' and 'to wallet' need to use same currency")
+
+    message = create_message(instance.from_wallet, instance.to_wallet,
+                             instance.nonce, instance.from_wallet.currency.token_id, instance.amount)
+    key = pytezos.Key.from_encoded_key(instance.from_wallet.public_key)
+
+    try:
+        key.verify(instance.signature, message)
+    except ValueError:
+        raise ValidationError(
+            "Signature is invalid")
 
     instance.to_wallet.notify_owner_receiving_money(
         instance.from_wallet, instance.amount)
@@ -42,6 +64,16 @@ def custom_meta_transaction_validation(sender, instance, **kwargs):
 
 @receiver(pre_save, sender=Wallet, dispatch_uid='pre_save_signal_wallet')
 def pre_save_signal_wallet(sender, instance, **kwargs):
+    if instance.company is not None:
+        if instance.company.owner != instance.owner:
+            raise ValidationError(
+                "You are not the owner of the company")
+        instance.category = WALLET_CATEGORIES.COMPANY.value
+
+    if instance.wallet_id is None or len(instance.wallet_id) <= 0:
+        instance.wallet_id = Wallet.generate_wallet_id()
+        while Wallet.objects.filter(wallet_id=instance.wallet_id).exists():
+            instance.wallet_id = Wallet.generate_wallet_id()
     if instance.uuid is not None:
         try:
             previous = Wallet.objects.get(uuid=instance.uuid)

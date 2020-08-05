@@ -17,10 +17,8 @@ class Currency(UUIDModel):
     starting_capital = models.IntegerField(default=10, blank=False, null=False)
     max_claims = models.IntegerField(default=5)
 
-    @property
-    def owner_wallet(self):
-        from apps.wallet.models import Wallet, WALLET_CATEGORIES
-        return Wallet.objects.filter(currency=self, category=WALLET_CATEGORIES.OWNER.value).first()
+    owner_wallet = models.ForeignKey(
+        "wallet.OwnerWallet", null=True, on_delete=models.DO_NOTHING, related_name="currencies")
 
     class Meta:
         verbose_name_plural = 'Currencies'

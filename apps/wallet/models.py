@@ -22,7 +22,9 @@ class Company(UUIDModel):
     name = models.CharField(max_length=32)
 
     class Meta:
+        ordering = ['created_at']
         verbose_name_plural = "Companies"
+
 
 class WALLET_STATES(Enum):
     UNVERIFIED = 0
@@ -55,13 +57,14 @@ class Wallet(CurrencyOwnedMixin):
     company = models.ForeignKey(
         Company, blank=True, null=True, on_delete=models.SET_NULL, related_name='wallets')
 
-    wallet_id = models.CharField(unique=True, max_length=128)
+    wallet_id = models.CharField(unique=True, blank=True, max_length=128)
     public_key = models.CharField(
         unique=True, max_length=60)  # encoded public_key
 
     category = models.IntegerField(
         default=WALLET_CATEGORIES.CONSUMER.value, choices=WALLET_CATEGORY_CHOICES)
-    state = models.IntegerField(default=WALLET_STATES.UNVERIFIED.value, choices=WALLET_STATE_CHOICES)
+    state = models.IntegerField(
+        default=WALLET_STATES.UNVERIFIED.value, choices=WALLET_STATE_CHOICES)
 
     @property
     def address(self):
@@ -74,6 +77,10 @@ class Wallet(CurrencyOwnedMixin):
     @property
     def nonce(self):
         return self.from_transactions.count()
+
+    @property
+    def is_in_public_key_transfer(self):
+        return self.transfer_requests.filter(state=2).exists()
 
     @property
     def claim_count(self):
@@ -105,12 +112,16 @@ class Wallet(CurrencyOwnedMixin):
         devices = FCMDevice.objects.filter(user=self.owner)
         devices.send_message(title="eCoupon", body=message)
 
+    class Meta:
+        ordering = ['created_at']
+
+
 class OwnerWallet(Wallet):
     private_key = models.CharField(unique=True, max_length=128)
-    
-    def save(self, *args, **kwargs): 
+
+    def save(self, *args, **kwargs):
         self.state = WALLET_CATEGORIES.OWNER.value
-        super(OwnerWallet, self).save(*args, **kwargs) 
+        super(OwnerWallet, self).save(*args, **kwargs)
 
 
 class TRANSACTION_STATES(Enum):
@@ -128,6 +139,20 @@ TRANSACTION_STATE_CHOICES = (
 )
 
 
+class WalletPublicKeyTransferRequest(UUIDModel):
+    wallet = models.ForeignKey(
+        Wallet, on_delete=models.DO_NOTHING, related_name='transfer_requests')
+    old_public_key = models.CharField(max_length=60, blank=True)
+    new_public_key = models.CharField(max_length=60)
+    state = models.IntegerField(choices=TRANSACTION_STATE_CHOICES, default=1)
+
+    submitted_to_chain_at = models.DateTimeField(null=True, blank=True)
+    operation_hash = models.CharField(max_length=128, blank=True)
+
+    class Meta:
+        ordering = ['created_at']
+
+
 class Transaction(UUIDModel):
     from_wallet = models.ForeignKey(
         Wallet, on_delete=models.DO_NOTHING, related_name='from_transactions', null=True)
@@ -137,7 +162,6 @@ class Transaction(UUIDModel):
 
     state = models.IntegerField(choices=TRANSACTION_STATE_CHOICES, default=1)
 
-    created = models.DateTimeField(auto_now_add=True)
     submitted_to_chain_at = models.DateTimeField(null=True, blank=True)
 
     operation_hash = models.CharField(max_length=128, blank=True)
@@ -150,16 +174,19 @@ class Transaction(UUIDModel):
     def tag(self):
         if self.from_wallet and self.from_wallet == self.from_wallet.currency.owner_wallet:
             return 'from_owner'
-        
+
         if self.to_wallet == self.to_wallet.currency.owner_wallet:
             return 'to_owner'
-        
+
         return ''
-    
+
     @staticmethod
     def get_belonging_to_user(user):
         belonging_wallets = user.wallets.all()
         return Transaction.objects.filter(Q(from_wallet__in=belonging_wallets) | Q(to_wallet__in=belonging_wallets))
+
+    class Meta:
+        ordering = ['created_at']
 
 
 class MetaTransaction(Transaction):
@@ -176,3 +203,6 @@ class MetaTransaction(Transaction):
                     'token_id': self.from_wallet.currency.token_id}
             ]
         }
+
+    class Meta:
+        ordering = ['created_at']
