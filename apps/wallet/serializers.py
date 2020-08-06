@@ -19,7 +19,7 @@ class WalletSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Wallet
-        fields = ['wallet_id', 'balance', 'public_key',
+        fields = ['owner', 'wallet_id', 'balance', 'public_key',
                   'nonce', 'currency', 'category', 'state']
         read_only_fields = ['state', 'created_at']
 
