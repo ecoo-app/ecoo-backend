@@ -45,7 +45,6 @@ netstruct==1.1.2
 oauthlib==3.1.0
 pendulum==2.1.1
 ply==3.11
-psycopg2-binary==2.8.4
 pyblake2==1.1.2
 pycodestyle==2.6.0
 pycountry==20.7.3

@@ -22,6 +22,11 @@ class WalletAdmin(admin.ModelAdmin):
 class OwnerWalletAdmin(WalletAdmin):
     exclude = ['company', ]
 
+# @admin.register(PaperWallet)
+# class OwnerWalletAdmin(WalletAdmin):
+#     exclude = ['company', ]
+
+
 
 @admin.register(Transaction)
 class TransactionAdmin(admin.ModelAdmin):
