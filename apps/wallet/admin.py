@@ -1,17 +1,20 @@
 from django.contrib import admin, messages
-from apps.wallet.models import CashOutRequest, Company, Transaction, MetaTransaction, Wallet, OwnerWallet, TRANSACTION_STATES
+from apps.wallet.models import CashOutRequest,  WalletPublicKeyTransferRequest, Company, Transaction, MetaTransaction, Wallet, OwnerWallet, TRANSACTION_STATES
 from django.utils.translation import ugettext_lazy as _
 import requests
 from django.conf import settings
 from django import forms
 import datetime
+from django.shortcuts import render
 
 
 @admin.register(Wallet)
 class WalletAdmin(admin.ModelAdmin):
+    readonly_fields = ['wallet_id']
     fields = ['currency', 'wallet_id', 'category',
               'owner', 'public_key', 'state']
-    list_display = ['wallet_id', 'owner', 'state', 'category', 'currency']
+    list_display = ['wallet_id', 'owner', 'balance',
+                    'nonce', 'state', 'category', 'currency']
     list_filter = ['currency', 'category', 'state']
 
 
@@ -22,22 +25,26 @@ class OwnerWalletAdmin(WalletAdmin):
 
 @admin.register(Transaction)
 class TransactionAdmin(admin.ModelAdmin):
-    actions = ['generate_payout_file']
+    readonly_fields = ['submitted_to_chain_at', 'operation_hash', 'notes']
     list_display = ['from_wallet', 'to_wallet', 'amount', 'state']
     list_filter = ['from_wallet__currency', 'state']
     search_fields = ['from_wallet__wallet_id', 'to_wallet__wallet_id']
-
-    def generate_payout_file(self, request, queryset):
-        pass
-
-    generate_payout_file.short_description = 'Generate Payout XML'
 
 
 @admin.register(MetaTransaction)
 class MetaTransactionAdmin(admin.ModelAdmin):
+    readonly_fields = ['submitted_to_chain_at', 'operation_hash', 'notes']
     list_display = ['from_wallet', 'to_wallet', 'amount', 'state']
     list_filter = ['from_wallet__currency', 'state']
     search_fields = ['from_wallet__wallet_id', 'to_wallet__wallet_id']
+
+
+@admin.register(WalletPublicKeyTransferRequest)
+class WalletPublicKeyTransferRequestAdmin(admin.ModelAdmin):
+    readonly_fields = ['submitted_to_chain_at', 'operation_hash', 'notes']
+    list_display = ['wallet', 'old_public_key', 'new_public_key', 'state']
+    list_filter = ['wallet', 'state']
+    search_fields = ['wallet__wallet_id']
 
 
 @admin.register(CashOutRequest)
@@ -54,6 +61,9 @@ class CashOutRequestAdmin(admin.ModelAdmin):
         'transaction__from_wallet__wallet_id', 'beneficiary_name']
 
     def generate_payout_file(self, request, queryset):
+        class PaymentDateForm(forms.Form):
+            payment_date = forms.DateField(initial=datetime.date.today)
+
         if queryset.exclude(state=TRANSACTION_STATES.OPEN.value).exists():
             self.message_user(request, _(
                 'Only open cashout out requests can be used in this action'), messages.ERROR)

@@ -15,7 +15,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.permissions import BasePermission
 
-from apps.wallet.models import WALLET_CATEGORIES, WALLET_STATES, Transaction, MetaTransaction, Wallet, WalletPublicKeyTransferRequest
+from apps.wallet.models import WALLET_CATEGORIES, WALLET_STATES, CashOutRequest, Transaction, MetaTransaction, Wallet, WalletPublicKeyTransferRequest
 from apps.wallet.serializers import CashOutRequestSerializer, MetaTransactionSerializer, TransactionSerializer, WalletSerializer, WalletPublicKeyTransferRequestSerializer
 from apps.wallet.utils import create_message, read_nonce_from_chain
 

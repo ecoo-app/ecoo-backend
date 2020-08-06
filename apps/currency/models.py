@@ -18,7 +18,7 @@ class Currency(UUIDModel):
     max_claims = models.IntegerField(default=5)
 
     owner_wallet = models.ForeignKey(
-        "wallet.OwnerWallet", null=True, on_delete=models.DO_NOTHING, related_name="currencies")
+        "wallet.OwnerWallet", null=True, editable=False, on_delete=models.DO_NOTHING, related_name="currencies")
 
     class Meta:
         verbose_name_plural = 'Currencies'
