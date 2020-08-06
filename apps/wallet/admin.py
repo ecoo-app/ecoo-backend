@@ -5,6 +5,7 @@ import requests
 from django.conf import settings
 from django import forms
 import datetime
+from django.shortcuts import render
 
 
 @admin.register(Wallet)
@@ -12,7 +13,8 @@ class WalletAdmin(admin.ModelAdmin):
     readonly_fields = ['wallet_id']
     fields = ['currency', 'wallet_id', 'category',
               'owner', 'public_key', 'state']
-    list_display = ['wallet_id', 'owner', 'state', 'category', 'currency']
+    list_display = ['wallet_id', 'owner', 'balance',
+                    'nonce', 'state', 'category', 'currency']
     list_filter = ['currency', 'category', 'state']
 
 
@@ -59,6 +61,9 @@ class CashOutRequestAdmin(admin.ModelAdmin):
         'transaction__from_wallet__wallet_id', 'beneficiary_name']
 
     def generate_payout_file(self, request, queryset):
+        class PaymentDateForm(forms.Form):
+            payment_date = forms.DateField(initial=datetime.date.today)
+
         if queryset.exclude(state=TRANSACTION_STATES.OPEN.value).exists():
             self.message_user(request, _(
                 'Only open cashout out requests can be used in this action'), messages.ERROR)

@@ -159,6 +159,12 @@ class Transaction(UUIDModel):
 
     notes = models.TextField(blank=True, editable=False)
 
+    def __str__(self):
+        if self.from_wallet:
+            return "{} -{}-> {}".format(self.from_wallet.wallet_id, self.amount, self.to_wallet.wallet_id)
+        else:
+            return "-{}-> {}".format(self.amount, self.to_wallet.wallet_id)
+
     @property
     def is_mint_transaction(self):
         return self.from_wallet == None

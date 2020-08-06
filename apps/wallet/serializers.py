@@ -6,6 +6,9 @@ from apps.wallet.models import CashOutRequest, MetaTransaction, Transaction, Wal
 
 
 class WalletSerializer(serializers.ModelSerializer):
+    owner = serializers.HiddenField(
+        default=serializers.CurrentUserDefault()
+    )
     currency = serializers.PrimaryKeyRelatedField(
         queryset=Currency.objects.all())
 
