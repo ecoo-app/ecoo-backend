@@ -9,8 +9,7 @@ class WalletSerializer(serializers.ModelSerializer):
     owner = serializers.HiddenField(
         default=serializers.CurrentUserDefault()
     )
-    currency = serializers.PrimaryKeyRelatedField(
-        queryset=Currency.objects.all())
+    currency = CurrencySerializer
 
     def validate_owner(self, value):
         if value != self.context['request'].user:
