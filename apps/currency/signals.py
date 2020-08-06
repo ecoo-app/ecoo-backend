@@ -15,7 +15,7 @@ def create_owner_wallet(sender, instance, created, **kwargs):
     if created:
         key = pytezos.crypto.Key.generate()
         private_key = key.secret_key()
-        public_key = key.public_key_hash()
+        public_key = key.public_key()
 
         retry = True
         while retry:

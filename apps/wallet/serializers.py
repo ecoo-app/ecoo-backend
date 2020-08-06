@@ -2,7 +2,7 @@ from rest_framework import serializers
 import collections
 from apps.currency.models import Currency
 from apps.currency.serializers import CurrencySerializer
-from apps.wallet.models import MetaTransaction, Transaction, Wallet, WalletPublicKeyTransferRequest
+from apps.wallet.models import CashOutRequest, MetaTransaction, Transaction, Wallet, WalletPublicKeyTransferRequest
 
 
 class WalletSerializer(serializers.ModelSerializer):
@@ -18,6 +18,7 @@ class WalletSerializer(serializers.ModelSerializer):
         model = Wallet
         fields = ['wallet_id', 'balance', 'public_key',
                   'nonce', 'currency', 'category', 'state']
+        read_only_fields = ['state', 'created_at']
 
 
 class WalletPublicKeyTransferRequestSerializer(serializers.ModelSerializer):
@@ -32,6 +33,8 @@ class WalletPublicKeyTransferRequestSerializer(serializers.ModelSerializer):
         model = WalletPublicKeyTransferRequest
         fields = ['wallet', 'old_public_key',
                   'new_public_key', 'state', 'submitted_to_chain_at', 'operation_hash']
+        read_only_fields = ['state', 'created_at',
+                            'submitted_to_chain_at', 'operation_hash']
 
 
 class TransactionSerializer(serializers.ModelSerializer):
@@ -48,7 +51,9 @@ class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Transaction
         fields = ['from_wallet', 'to_wallet',
-                  'amount', 'state', 'tag', 'created_at']
+                  'amount', 'state', 'tag', 'created_at', 'submitted_to_chain_at', 'operation_hash']
+        read_only_fields = ['state', 'created_at',
+                            'submitted_to_chain_at', 'operation_hash']
 
 
 class MetaTransactionSerializer(TransactionSerializer):
@@ -57,3 +62,20 @@ class MetaTransactionSerializer(TransactionSerializer):
         model = MetaTransaction
         fields = ['from_wallet', 'to_wallet', 'amount',
                   'state', 'tag', 'created_at', 'signature', 'nonce']
+        read_only_fields = ['state', 'created_at']
+
+
+class CashOutRequestSerializer(serializers.ModelSerializer):
+    transaction = serializers.PrimaryKeyRelatedField(
+        queryset=Transaction.objects.all())
+
+    def validate_transaction(self, value):
+        if value.from_wallet.owner != self.context['request'].user:
+            raise serializers.ValidationError("Does not belong to user")
+        return value
+
+    class Meta:
+        model = CashOutRequest
+        fields = ['transaction', 'beneficiary_name',
+                  'beneficiary_iban', 'created_at', 'state']
+        read_only_fields = ['state', 'created_at']

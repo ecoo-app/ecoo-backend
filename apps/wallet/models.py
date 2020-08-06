@@ -14,6 +14,7 @@ from pytezos.crypto import Key
 
 from apps.currency.mixins import CurrencyOwnedMixin
 from project.mixins import UUIDModel
+from django.utils.translation import ugettext_lazy as _
 
 
 class Company(UUIDModel):
@@ -139,20 +140,6 @@ TRANSACTION_STATE_CHOICES = (
 )
 
 
-class WalletPublicKeyTransferRequest(UUIDModel):
-    wallet = models.ForeignKey(
-        Wallet, on_delete=models.DO_NOTHING, related_name='transfer_requests')
-    old_public_key = models.CharField(max_length=60, blank=True)
-    new_public_key = models.CharField(max_length=60)
-    state = models.IntegerField(choices=TRANSACTION_STATE_CHOICES, default=1)
-
-    submitted_to_chain_at = models.DateTimeField(null=True, blank=True)
-    operation_hash = models.CharField(max_length=128, blank=True)
-
-    class Meta:
-        ordering = ['created_at']
-
-
 class Transaction(UUIDModel):
     from_wallet = models.ForeignKey(
         Wallet, on_delete=models.DO_NOTHING, related_name='from_transactions', null=True)
@@ -160,7 +147,8 @@ class Transaction(UUIDModel):
         Wallet, on_delete=models.DO_NOTHING, related_name='to_transactions')
     amount = models.IntegerField()
 
-    state = models.IntegerField(choices=TRANSACTION_STATE_CHOICES, default=1)
+    state = models.IntegerField(
+        choices=TRANSACTION_STATE_CHOICES, default=TRANSACTION_STATES.OPEN.value)
 
     submitted_to_chain_at = models.DateTimeField(null=True, blank=True)
 
@@ -203,6 +191,37 @@ class MetaTransaction(Transaction):
                     'token_id': self.from_wallet.currency.token_id}
             ]
         }
+
+    class Meta:
+        ordering = ['created_at']
+
+
+class WalletPublicKeyTransferRequest(UUIDModel):
+    wallet = models.ForeignKey(
+        Wallet, on_delete=models.DO_NOTHING, related_name='transfer_requests')
+    old_public_key = models.CharField(max_length=60, blank=True)
+    new_public_key = models.CharField(max_length=60)
+    state = models.IntegerField(
+        choices=TRANSACTION_STATE_CHOICES, default=TRANSACTION_STATES.OPEN.value)
+
+    submitted_to_chain_at = models.DateTimeField(null=True, blank=True)
+    operation_hash = models.CharField(max_length=128, blank=True)
+
+    class Meta:
+        ordering = ['created_at']
+
+
+class CashOutRequest(UUIDModel):
+    transaction = models.OneToOneField(
+        Transaction, on_delete=models.DO_NOTHING, related_name='cash_out_requests', unique=True)
+
+    state = models.IntegerField(
+        choices=TRANSACTION_STATE_CHOICES, default=TRANSACTION_STATES.OPEN.value)
+
+    beneficiary_name = models.CharField(
+        max_length=255, verbose_name=_('Beneficiary name'))
+    beneficiary_iban = models.CharField(
+        max_length=255, verbose_name=_('IBAN'))
 
     class Meta:
         ordering = ['created_at']

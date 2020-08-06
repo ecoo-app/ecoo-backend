@@ -2,10 +2,11 @@ from django.core.exceptions import ValidationError
 from django.db.models import Max
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
-from apps.wallet.models import MetaTransaction, Transaction, WalletPublicKeyTransferRequest, TRANSACTION_STATES, WALLET_CATEGORIES, WALLET_STATES, Wallet
+from apps.wallet.models import CashOutRequest, MetaTransaction, Transaction, WalletPublicKeyTransferRequest, TRANSACTION_STATES, WALLET_CATEGORIES, WALLET_STATES, Wallet
 from apps.wallet.utils import create_message
 import pytezos
 from pytezos import Key
+from schwifty import IBAN
 
 
 @receiver(pre_save, sender=Transaction, dispatch_uid='custom_transaction_validation')
@@ -82,3 +83,14 @@ def pre_save_signal_wallet(sender, instance, **kwargs):
                 instance.notify_owner_verified()
         except Wallet.DoesNotExist:
             pass
+
+
+@receiver(pre_save, sender=CashOutRequest, dispatch_uid='custom_cash_out_request_validation')
+def custom_cash_out_request_validation(sender, instance, **kwargs):
+    try:
+        IBAN(instance.beneficiary_iban)
+    except:
+        raise ValidationError('the iban is incorrect')
+    if instance.transaction.to_wallet.uuid != instance.transaction.to_wallet.currency.owner_wallet.uuid:
+        raise ValidationError(
+            'cash out only possible with transactions going to the owner wallet of the currency')
