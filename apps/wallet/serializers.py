@@ -6,8 +6,10 @@ from apps.wallet.models import CashOutRequest, MetaTransaction, Transaction, Wal
 
 
 class WalletSerializer(serializers.ModelSerializer):
-    currency = serializers.PrimaryKeyRelatedField(
-        queryset=Currency.objects.all())
+    owner = serializers.HiddenField(
+        default=serializers.CurrentUserDefault()
+    )
+    currency = CurrencySerializer
 
     def validate_owner(self, value):
         if value != self.context['request'].user:
@@ -16,7 +18,7 @@ class WalletSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Wallet
-        fields = ['wallet_id', 'balance', 'public_key',
+        fields = ['owner', 'wallet_id', 'balance', 'public_key',
                   'nonce', 'currency', 'category', 'state']
         read_only_fields = ['state', 'created_at']
 

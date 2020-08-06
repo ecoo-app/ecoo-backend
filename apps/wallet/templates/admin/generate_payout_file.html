@@ -23,7 +23,7 @@
                     <ul>
                         {% for cash_out_request in cash_out_requests %}
                             <li>
-                               {{cash_out_requests.beneficiary_name (cash_out_requests.beneficiary_iban)}}: {{cash_out_requests.transaction.amount}} CHF
+                               {{cash_out_request.beneficiary_name}} ({{cash_out_request.beneficiary_iban}}): {{cash_out_request.transaction.amount}} CHF
                             </li>
                         {% endfor %}
                     </ul>
