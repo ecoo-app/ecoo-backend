@@ -10,7 +10,8 @@
             "request": "launch",
             "program": "${workspaceFolder}/manage.py",
             "args": [
-                "test"
+                "test",
+                "apps.wallet.tests_api"
             ],
             "django": true
         }

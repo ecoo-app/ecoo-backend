@@ -274,3 +274,5 @@ FCM_DJANGO_SETTINGS = {
     # are deleted upon receiving error response from FCM
     "DELETE_INACTIVE_DEVICES": True,
 }
+
+PAIN_SERVICE_URL = "https://pain-service-backend.prod.gke.papers.tech"
