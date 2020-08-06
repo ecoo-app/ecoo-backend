@@ -280,3 +280,5 @@ FCM_DJANGO_SETTINGS = {
 }
 LOGIN_URL = 'two_factor:login'
 LOGIN_REDIRECT_URL = 'two_factor:profile'
+
+PAIN_SERVICE_URL = "https://pain-service-backend.prod.gke.papers.tech"
