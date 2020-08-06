@@ -1,11 +1,23 @@
 from django.contrib import admin, messages
-from apps.wallet.models import CashOutRequest,  WalletPublicKeyTransferRequest, Company, Transaction, MetaTransaction, Wallet, OwnerWallet, TRANSACTION_STATES
+from apps.wallet.models import CashOutRequest,  WalletPublicKeyTransferRequest, Company, Transaction, MetaTransaction, Wallet, OwnerWallet, PaperWallet, TRANSACTION_STATES, WALLET_CATEGORIES
 from django.utils.translation import ugettext_lazy as _
 import requests
 from django.conf import settings
 from django import forms
 import datetime
 from django.shortcuts import render
+from django.conf.urls import url
+from apps.wallet.forms import GenerateWalletForm
+from django.template.response import TemplateResponse
+from django.http import HttpResponseRedirect
+import pytezos
+from django.db import IntegrityError
+import qrcode
+import zipfile
+import base64
+from PIL import Image  
+import io
+from io import BytesIO, StringIO
 
 
 @admin.register(Wallet)
@@ -22,9 +34,72 @@ class WalletAdmin(admin.ModelAdmin):
 class OwnerWalletAdmin(WalletAdmin):
     exclude = ['company', ]
 
-# @admin.register(PaperWallet)
-# class OwnerWalletAdmin(WalletAdmin):
-#     exclude = ['company', ]
+def download_zip(modeladmin, request, queryset):
+    zip_filename = "qr_codes.zip"
+    s = StringIO()
+    zf = zipfile.ZipFile(s, "w")
+    for wallet in queryset.all():
+        qr_code = qrcode.make(wallet.private_key)
+        zip_path = wallet.wallet_id + '.jpg'
+        zf.write(zip_path, qr_code.tobytes())
+
+    zf.close()
+    response = HttpResponse(s.getvalue(), mimetype = "application/x-zip-compressed")
+    response['Content-Disposition'] = 'attachment; filename=%s' % zip_filename
+    return response
+
+download_zip.short_description = "Download QR-Code Zip"
+
+@admin.register(PaperWallet)
+class PaperWalletAdmin(WalletAdmin):
+    exclude = ['company', ]
+    actions = [download_zip]
+
+
+    def get_urls(self):
+        return [
+            url(r'^generate-wallets/$', self.admin_site.admin_view(self.generate_wallets), name='generate_wallets'),
+        ] + super(PaperWalletAdmin, self).get_urls()
+
+
+
+    def generate_wallets(self, request):
+        if not request.user.is_superuser:
+            raise PermissionDenied
+
+
+        form = GenerateWalletForm()
+        if request.method == 'POST':
+            form = GenerateWalletForm(request.POST, request.FILES)
+            if form.is_valid():
+                amount = form.cleaned_data['amount']
+                currency = form.cleaned_data['currency']
+
+                for i in range(amount):
+                    self.generate_wallet(currency)
+                    print(str(i) + ' wallet generated')
+
+                if form.is_valid():
+                    messages.add_message(request, messages.SUCCESS, '{} Wallets generated'.format(amount))
+                    return HttpResponseRedirect(request.META['HTTP_REFERER'])
+
+        return TemplateResponse(request, 'admin/generate_wallets.html', {'form': form, 'opts': self.opts, 'media': self.media,})
+
+    def generate_wallet(self, currency):
+        key = pytezos.crypto.Key.generate()
+        private_key = key.secret_key()
+        public_key = key.public_key()
+
+        retry = True
+        while retry:
+            try:
+                owner_wallet = PaperWallet.objects.create(currency=currency, private_key=private_key, wallet_id=PaperWallet.generate_wallet_id(), public_key=public_key, category=WALLET_CATEGORIES.CONSUMER.value)
+                retry = False
+            except IntegrityError:
+                retry = True
+
+
+
 
 
 
