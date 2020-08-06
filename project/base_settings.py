@@ -279,6 +279,6 @@ FCM_DJANGO_SETTINGS = {
     "DELETE_INACTIVE_DEVICES": True,
 }
 LOGIN_URL = 'two_factor:login'
-LOGIN_REDIRECT_URL = 'two_factor:profile'
+LOGIN_REDIRECT_URL = 'admin:index'
 
 PAIN_SERVICE_URL = "https://pain-service-backend.prod.gke.papers.tech"
