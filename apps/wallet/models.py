@@ -58,7 +58,8 @@ class Wallet(CurrencyOwnedMixin):
     company = models.ForeignKey(
         Company, blank=True, null=True, on_delete=models.SET_NULL, related_name='wallets')
 
-    wallet_id = models.CharField(unique=True, blank=True, max_length=128)
+    wallet_id = models.CharField(
+        unique=True, blank=True, editable=False, max_length=128)
     public_key = models.CharField(
         unique=True, max_length=60)  # encoded public_key
 
@@ -142,7 +143,7 @@ TRANSACTION_STATE_CHOICES = (
 
 class Transaction(UUIDModel):
     from_wallet = models.ForeignKey(
-        Wallet, on_delete=models.DO_NOTHING, related_name='from_transactions', null=True)
+        Wallet, on_delete=models.DO_NOTHING, related_name='from_transactions', blank=True, null=True)
     to_wallet = models.ForeignKey(
         Wallet, on_delete=models.DO_NOTHING, related_name='to_transactions')
     amount = models.IntegerField()
@@ -150,9 +151,13 @@ class Transaction(UUIDModel):
     state = models.IntegerField(
         choices=TRANSACTION_STATE_CHOICES, default=TRANSACTION_STATES.OPEN.value)
 
-    submitted_to_chain_at = models.DateTimeField(null=True, blank=True)
+    submitted_to_chain_at = models.DateTimeField(
+        null=True, blank=True, editable=False)
 
-    operation_hash = models.CharField(max_length=128, blank=True)
+    operation_hash = models.CharField(
+        max_length=128, blank=True, editable=False)
+
+    notes = models.TextField(blank=True, editable=False)
 
     @property
     def is_mint_transaction(self):
@@ -206,6 +211,8 @@ class WalletPublicKeyTransferRequest(UUIDModel):
 
     submitted_to_chain_at = models.DateTimeField(null=True, blank=True)
     operation_hash = models.CharField(max_length=128, blank=True)
+
+    notes = models.TextField(blank=True, editable=False)
 
     class Meta:
         ordering = ['created_at']

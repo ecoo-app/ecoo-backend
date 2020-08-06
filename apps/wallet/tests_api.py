@@ -6,7 +6,7 @@ from rest_framework.test import APIClient, APIRequestFactory, APITestCase
 
 from apps.currency.models import Currency
 from apps.wallet.models import WALLET_STATES, CashOutRequest, Transaction, MetaTransaction, Wallet, WalletPublicKeyTransferRequest
-from apps.wallet.serializers import WalletSerializer, WalletPublicKeyTransferRequestSerializer
+from apps.wallet.serializers import WalletSerializer, WalletPublicKeyTransferRequestSerializer, CashOutRequestSerializer
 from apps.wallet.utils import (pack_meta_transaction,
                                publish_open_meta_transactions_to_chain,
                                read_nonce_from_chain)
@@ -286,12 +286,32 @@ class CashOutRequestApiTest(APITestCase):
         self.assertEqual(cash_out_request_count +
                          1, CashOutRequest.objects.all().count())
 
-        cash_out_request_count = CashOutRequest.objects.all().count()
         self.client.force_authenticate(user=self.user)
-        wallet_public_key_transfer_request_count = WalletPublicKeyTransferRequest.objects.all().count()
         with self.assertRaises(IntegrityError):
             response = self.client.post('/api/wallet/cash_out_request/', {
                 "transaction": self.token_transaction.uuid,
                 "beneficiary_name": "Papers AG",
                 "beneficiary_iban": "CH2509000000619652574"
             }, format='json')
+
+    def test_cash_out_request_list(self):
+        # correct request
+        self.client.force_authenticate(user=self.user)
+        CashOutRequest.objects.all().delete()
+        response = self.client.post('/api/wallet/cash_out_request/', {
+            "transaction": self.token_transaction.uuid,
+            "beneficiary_name": "Papers AG",
+            "beneficiary_iban": "CH2509000000619652574"
+        }, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get('/api/wallet/cash_out_request/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['results'], list(map(lambda cash_out_request: CashOutRequestSerializer(
+            cash_out_request).data, CashOutRequest.objects.all())))
+
+        self.client.force_authenticate(user=self.user_2)
+        response = self.client.get('/api/wallet/cash_out_request/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['results'], [])

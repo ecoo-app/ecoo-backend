@@ -85,7 +85,7 @@ def create_message(from_wallet, to_wallet, nonce, token_id, amount):
                             }
                         ]
                     ]
-                    }
+                }
         ]
     }
     return michelson.pack.pack(message_to_encode, MESSAGE_STRUCTURE)
@@ -167,14 +167,13 @@ def publish_open_meta_transactions_to_chain():
 
             if operation_result['contents'][0]['metadata']['operation_result']['status'] == 'applied':
                 selected_transactions.update(
-                    state=TRANSACTION_STATES.DONE.value, submitted_to_chain_at=now(), operation_hash=operation_result['hash'])
+                    state=TRANSACTION_STATES.DONE.value, submitted_to_chain_at=now(), operation_hash=operation_result['hash'], notes='')
             else:
                 selected_transactions.update(
-                    state=TRANSACTION_STATES.FAILED.value, submitted_to_chain_at=now())
+                    state=TRANSACTION_STATES.FAILED.value, submitted_to_chain_at=now(), notes='Error during sync: {}'.format(json.dumps(operation_result)))
         except Exception as error:
-            print(error)
             selected_transactions.update(
-                state=TRANSACTION_STATES.FAILED.value, submitted_to_chain_at=now())
+                state=TRANSACTION_STATES.FAILED.value, submitted_to_chain_at=now(), notes='Error during sync: {}'.format(error))
 
 
 def publish_open_mint_transactions_to_chain():
@@ -197,13 +196,13 @@ def publish_open_mint_transactions_to_chain():
 
                 if operation_result['contents'][0]['metadata']['operation_result']['status'] == 'applied':
                     selected_transactions.update(
-                        state=TRANSACTION_STATES.DONE.value, submitted_to_chain_at=now(), operation_hash=operation_result['hash'])
+                        state=TRANSACTION_STATES.DONE.value, submitted_to_chain_at=now(), operation_hash=operation_result['hash'], notes='')
                 else:
                     selected_transactions.update(
-                        state=TRANSACTION_STATES.FAILED.value, submitted_to_chain_at=now())
+                        state=TRANSACTION_STATES.FAILED.value, submitted_to_chain_at=now(), notes='Error during sync: {}'.format(json.dumps(operation_result)))
         except Exception as error:
             selected_transactions.update(
-                state=TRANSACTION_STATES.FAILED.value, submitted_to_chain_at=now())
+                state=TRANSACTION_STATES.FAILED.value, submitted_to_chain_at=now(), notes='Error during sync: {}'.format(error))
 
 
 def publish_open_transfer_transactions_to_chain():
@@ -240,13 +239,13 @@ def publish_open_transfer_transactions_to_chain():
 
             if operation_result['contents'][0]['metadata']['operation_result']['status'] == 'applied':
                 selected_transactions.update(
-                    state=TRANSACTION_STATES.DONE.value, submitted_to_chain_at=now(), operation_hash=operation_result['hash'])
+                    state=TRANSACTION_STATES.DONE.value, submitted_to_chain_at=now(), operation_hash=operation_result['hash'], notes='')
             else:
                 selected_transactions.update(
-                    state=TRANSACTION_STATES.FAILED.value, submitted_to_chain_at=now())
+                    state=TRANSACTION_STATES.FAILED.value, submitted_to_chain_at=now(), notes='Error during sync: {}'.format(json.dumps(operation_result)))
         except Exception as error:
             selected_transactions.update(
-                state=TRANSACTION_STATES.FAILED.value, submitted_to_chain_at=now())
+                state=TRANSACTION_STATES.FAILED.value, submitted_to_chain_at=now(), notes='Error during sync: {}'.format(error))
 
 
 def publish_wallet_recovery_transfer_balance():
@@ -299,14 +298,19 @@ def publish_wallet_recovery_transfer_balance():
                     allowed_wallet_public_key_transfer_request.submitted_to_chain_at = now()
                     allowed_wallet_public_key_transfer_request.operation_hash = operation_result[
                         'hash']
+                    allowed_wallet_public_key_transfer_request.notes = ''
                     allowed_wallet_public_key_transfer_request.save()
             else:
                 for allowed_wallet_public_key_transfer_request in allowed_wallet_public_key_transfer_requests:
                     allowed_wallet_public_key_transfer_request.state = TRANSACTION_STATES.FAILED.value
+                    allowed_wallet_public_key_transfer_request.notes = 'Error during sync: {}'.format(
+                        json.dumps(operation_result))
                     allowed_wallet_public_key_transfer_request.save()
         except Exception as error:
             for allowed_wallet_public_key_transfer_request in allowed_wallet_public_key_transfer_requests:
                 allowed_wallet_public_key_transfer_request.state = TRANSACTION_STATES.FAILED.value
+                allowed_wallet_public_key_transfer_request.notes = 'Error during sync: {}'.format(
+                    error)
                 allowed_wallet_public_key_transfer_request.save()
 
 
