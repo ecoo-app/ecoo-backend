@@ -36,20 +36,20 @@ class OwnerWalletAdmin(WalletAdmin):
 
 def download_zip(modeladmin, request, queryset):
 
+
     zip_filename = os.path.join(settings.MEDIA_ROOT, 'zip', 'qr_codes_{}.zip'.format(uuid.uuid4()))
     zf = zipfile.ZipFile(zip_filename, 'w')
 
     for wallet in queryset.all():
 
-        # TODO load PK from config
-        key = os.urandom(32)
-
-        nonce_data = os.urandom(24)
-        pk_data = pysodium.crypto_aead_xchacha20poly1305_ietf_encrypt(wallet.private_key, None, nonce_data, key)
+        encryption_key = bytes.fromhex(settings.ENCRYPTION_KEY)
+        nonce =  os.urandom(24)
+        pk = pysodium.crypto_aead_xchacha20poly1305_ietf_encrypt(wallet.private_key, None, nonce, encryption_key)
+        
         payload = {
-            'nonce': "".join( chr(x) for x in bytearray(nonce_data) ),
+            'nonce': nonce.hex(),
             'id': wallet.wallet_id,
-            'pk': "".join( chr(x) for x in bytearray(pk_data) )
+            'pk': pk.hex()
         }
 
         qr_code = pyqrcode.create(json.dumps(payload))
