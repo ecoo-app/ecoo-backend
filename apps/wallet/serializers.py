@@ -24,7 +24,8 @@ class WalletSerializer(serializers.ModelSerializer):
 
 
 class WalletPublicKeyTransferRequestSerializer(serializers.ModelSerializer):
-    wallet = serializers.PrimaryKeyRelatedField(queryset=Wallet.objects.all())
+    wallet = serializers.SlugRelatedField(many=False, read_only=False,
+                                          slug_field='wallet_id', queryset=Wallet.objects.all())
 
     def validate_wallet(self, value):
         if value.owner != self.context['request'].user:

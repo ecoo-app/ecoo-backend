@@ -170,7 +170,7 @@ class WalletPublicKeyTransferRequestApiTest(APITestCase):
 
         wallet_public_key_transfer_request_count = WalletPublicKeyTransferRequest.objects.all().count()
         response = self.client.post('/api/wallet/wallet_public_key_transfer_request/', {
-            "wallet": self.wallet_1.uuid,
+            "wallet": self.wallet_1.wallet_id,
             "new_public_key": self.pubkey_1
         }, format='json')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
@@ -182,7 +182,7 @@ class WalletPublicKeyTransferRequestApiTest(APITestCase):
         self.client.force_authenticate(user=self.user)
         wallet_public_key_transfer_request_count = WalletPublicKeyTransferRequest.objects.all().count()
         response = self.client.post('/api/wallet/wallet_public_key_transfer_request/', {
-            "wallet": self.wallet_1.uuid,
+            "wallet": self.wallet_1.wallet_id,
             "new_public_key": self.pubkey_1
         }, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -194,7 +194,7 @@ class WalletPublicKeyTransferRequestApiTest(APITestCase):
         self.client.force_authenticate(user=self.user)
         wallet_public_key_transfer_request_count = WalletPublicKeyTransferRequest.objects.all().count()
         response = self.client.post('/api/wallet/wallet_public_key_transfer_request/', {
-            "wallet": self.wallet_1.uuid,
+            "wallet": self.wallet_1.wallet_id,
             "new_public_key": self.pubkey_1
         }, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
