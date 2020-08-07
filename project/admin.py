@@ -8,7 +8,6 @@ class MyAdminSite(AdminSite):
 
         wallet_menu = next(
             (m for m in app_list if m['app_label'] == 'wallet' and m['has_module_perms']), None)
-        print(wallet_menu)
         if wallet_menu is not None:
             extra_items = []
             extra_items.append(

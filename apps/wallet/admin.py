@@ -9,16 +9,16 @@ from django.shortcuts import render
 from django.conf.urls import url
 from apps.wallet.forms import GenerateWalletForm
 from django.template.response import TemplateResponse
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 import pytezos
 from django.db import IntegrityError
-import qrcode
 import zipfile
 import base64
-from PIL import Image  
-import io
-from io import BytesIO, StringIO
-
+import pyqrcode
+import pysodium
+import os
+import json
+import uuid
 
 @admin.register(Wallet)
 class WalletAdmin(admin.ModelAdmin):
@@ -35,18 +35,31 @@ class OwnerWalletAdmin(WalletAdmin):
     exclude = ['company', ]
 
 def download_zip(modeladmin, request, queryset):
-    zip_filename = "qr_codes.zip"
-    s = StringIO()
-    zf = zipfile.ZipFile(s, "w")
-    for wallet in queryset.all():
-        qr_code = qrcode.make(wallet.private_key)
-        zip_path = wallet.wallet_id + '.jpg'
-        zf.write(zip_path, qr_code.tobytes())
 
+    zip_filename = os.path.join(settings.MEDIA_ROOT, 'zip', 'qr_codes_{}.zip'.format(uuid.uuid4()))
+    zf = zipfile.ZipFile(zip_filename, 'w')
+
+    for wallet in queryset.all():
+
+        # TODO load PK from config
+        key = os.urandom(32)
+
+        nonce_data = os.urandom(24)
+        pk_data = pysodium.crypto_aead_xchacha20poly1305_ietf_encrypt(wallet.private_key, None, nonce_data, key)
+        payload = {
+            'nonce': "".join( chr(x) for x in bytearray(nonce_data) ),
+            'id': wallet.wallet_id,
+            'pk': "".join( chr(x) for x in bytearray(pk_data) )
+        }
+
+        qr_code = pyqrcode.create(json.dumps(payload))
+        filename = os.path.join(settings.MEDIA_ROOT, 'qr', wallet.wallet_id + '.png') 
+        qr_code.png(filename, scale=5)
+        zf.write(filename)
     zf.close()
-    response = HttpResponse(s.getvalue(), mimetype = "application/x-zip-compressed")
-    response['Content-Disposition'] = 'attachment; filename=%s' % zip_filename
-    return response
+
+    zip_file = open(zip_filename,'rb').read()
+    return HttpResponse(zip_file, content_type = "application/zip")
 
 download_zip.short_description = "Download QR-Code Zip"
 
