@@ -41,10 +41,10 @@ def download_zip(modeladmin, request, queryset):
     zf = zipfile.ZipFile(zip_filename, 'w')
 
     for wallet in queryset.all():
-
         encryption_key = bytes.fromhex(settings.ENCRYPTION_KEY)
-        nonce =  os.urandom(24)
-        pk = pysodium.crypto_aead_xchacha20poly1305_ietf_encrypt(wallet.private_key, None, nonce, encryption_key)
+        nonce =  pysodium.randombytes(pysodium.crypto_secretbox_NONCEBYTES)
+        pk = pysodium.crypto_aead_xchacha20poly1305_ietf_encrypt(wallet.private_key.encode('UTF-8'), None, nonce, encryption_key)
+        decrypted_pk = pysodium.crypto_aead_xchacha20poly1305_ietf_decrypt(pk, None, nonce, encryption_key)
         
         payload = {
             'nonce': nonce.hex(),
