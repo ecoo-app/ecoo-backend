@@ -127,6 +127,7 @@ class OwnerWallet(Wallet):
 
 
 class PaperWallet(Wallet):
+    user_verification = models.ForeignKey('verification.UserVerification', null=True,on_delete=models.DO_NOTHING, )
     private_key = models.CharField(unique=True, max_length=128)
 
     def save(self, *args, **kwargs):
