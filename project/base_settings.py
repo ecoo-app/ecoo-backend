@@ -65,7 +65,6 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    # 'project.middleware.RemoveNextMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -282,3 +281,6 @@ LOGIN_URL = 'two_factor:login'
 LOGIN_REDIRECT_URL = 'admin:index'
 
 PAIN_SERVICE_URL = "https://pain-service-backend.prod.gke.papers.tech"
+
+# Test encryption key, override for prod
+ENCRYPTION_KEY = '63298563e90a5d9cd751136c91cc5c7d471c362148480fe4dac2943e6e36051b'
