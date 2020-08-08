@@ -8,7 +8,7 @@ import time
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db.models.signals import pre_save
-
+from unittest import skip
 
 class WalletTestCase(TestCase):
     def setUp(self):
@@ -126,6 +126,7 @@ class TransactionTestCase(TestCase):
             Transaction.objects.create(to_wallet=self.wallet1, amount=100)
 
 
+@skip("no sync")
 class BlockchainSyncTestCase(TestCase):
     def setUp(self):
         self.currency = Currency.objects.create(token_id=0, name="TEZ")
