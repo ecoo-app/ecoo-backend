@@ -23,13 +23,6 @@ class CreateUserView(CreateAPIView):
     serializer_class = UserSerializer
 
 
-@permission_classes([AllowAny])
-def test_view(request):
-    print(request)
-    print(request.user)
-    return JsonResponse({'foo': 'bar'})
-
-
 @api_view(http_method_names=['POST'])
 @permission_classes([AllowAny])
 @psa()

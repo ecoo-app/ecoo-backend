@@ -66,7 +66,6 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    # 'project.middleware.RemoveNextMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -286,3 +285,6 @@ PAIN_SERVICE_URL = "https://pain-service-backend.prod.gke.papers.tech"
 MAILJET_API_URL = 'https://api.mailjet.com/v4/'
 MAILJET_SMS_TOKEN = '61be7c85f45a4ebba72a612ac9bb5bc8'
 MAILJET_SENDER_ID = 'ECOO'
+
+# Test encryption key, override for prod
+ENCRYPTION_KEY = '63298563e90a5d9cd751136c91cc5c7d471c362148480fe4dac2943e6e36051b'

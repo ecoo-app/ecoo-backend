@@ -126,6 +126,14 @@ class OwnerWallet(Wallet):
         super(OwnerWallet, self).save(*args, **kwargs)
 
 
+class PaperWallet(Wallet):
+    user_verification = models.ForeignKey('verification.UserVerification', null=True,on_delete=models.DO_NOTHING, )
+    private_key = models.CharField(unique=True, max_length=128)
+
+    def save(self, *args, **kwargs):
+        self.state = WALLET_CATEGORIES.OWNER.value
+        super(PaperWallet, self).save(*args, **kwargs)
+
 class TRANSACTION_STATES(Enum):
     OPEN = 1
     PENDING = 2
