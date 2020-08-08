@@ -33,7 +33,7 @@ class AbstractVerification(UUIDModel):
 
 class CompanyVerification(AbstractVerification):
     company_profile = models.OneToOneField(
-        CompanyProfile, on_delete=models.DO_NOTHING, related_name='company_verification', null=True)
+        CompanyProfile, on_delete=models.DO_NOTHING, related_name='company_verification', blank=True, null=True)
 
     name = models.CharField(max_length=128)
     uid = models.CharField(max_length=15)
@@ -41,7 +41,7 @@ class CompanyVerification(AbstractVerification):
 
 class UserVerification(AbstractVerification):
     user_profile = models.OneToOneField(
-        UserProfile, on_delete=models.DO_NOTHING, related_name='user_verification', null=True)
+        UserProfile, on_delete=models.DO_NOTHING, related_name='user_verification', blank=True, null=True)
 
     first_name = models.CharField(max_length=128)
     last_name = models.CharField(max_length=128)
