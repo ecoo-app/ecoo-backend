@@ -45,6 +45,7 @@ urlpatterns = [
     path('api/wallet/', include('apps.wallet.urls')),
     path('api/auth/', include('apps.custom_auth.urls')),
     path('api/currency/', include('apps.currency.urls')),
+    path('api/profiles/', include('apps.profiles.urls')),
     path('api/verification/', include('apps.verification.urls')),
     path('api/oauth/', include('rest_framework_social_oauth2.urls')),
     path('', include(tf_urls)),

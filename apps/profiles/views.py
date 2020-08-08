@@ -1,0 +1,32 @@
+from django_filters.rest_framework import DjangoFilterBackend
+from project.utils import raise_api_exception
+import binascii
+
+import pytezos
+from django.conf import settings
+from django.core.exceptions import PermissionDenied
+from django.db import IntegrityError
+from django.db.models import Q
+from django.shortcuts import render
+from rest_framework import generics, mixins, status, filters
+from rest_framework.decorators import api_view
+from rest_framework.exceptions import ValidationError
+from rest_framework.response import Response
+from rest_framework.permissions import BasePermission
+
+from apps.profiles.serializers import UserProfileSerializer, CompanyProfileSerializer
+from apps.profiles.models import UserProfile, CompanyProfile
+
+
+class UserProfileListCreate(generics.ListCreateAPIView):
+    serializer_class = UserProfileSerializer
+
+    def get_queryset(self):
+        return self.request.user.user_profiles
+
+
+class CompanyProfileListCreate(generics.ListCreateAPIView):
+    serializer_class = CompanyProfileSerializer
+
+    def get_queryset(self):
+        return self.request.user.company_profiles
