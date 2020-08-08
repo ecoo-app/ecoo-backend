@@ -25,6 +25,9 @@ class CompanyProfile(UUIDModel):
     address_town = models.CharField(max_length=128, blank=True)
     address_postal_code = models.CharField(max_length=128, blank=True)
 
+    # 0 -> no match with the verifications entries
+    # 1 -> there has been a match but pin is pending
+    # 2 -> match and pin fully verified
     @property
     def verification_stage(self):
         if hasattr(self, 'company_verification'):
