@@ -46,7 +46,7 @@ INSTALLED_APPS = [
     'social_django',
     'rest_framework_social_oauth2',
 
-    #2fa
+    # 2fa
     'django_otp',
     'django_otp.plugins.otp_static',
     'django_otp.plugins.otp_totp',
@@ -60,6 +60,7 @@ INSTALLED_APPS = [
 
     'apps.wallet',
     'apps.currency',
+    'apps.profiles',
     'apps.verification',
     'project'
 ]
@@ -282,3 +283,6 @@ LOGIN_URL = 'two_factor:login'
 LOGIN_REDIRECT_URL = 'admin:index'
 
 PAIN_SERVICE_URL = "https://pain-service-backend.prod.gke.papers.tech"
+MAILJET_API_URL = 'https://api.mailjet.com/v4/'
+MAILJET_SMS_TOKEN = '61be7c85f45a4ebba72a612ac9bb5bc8'
+MAILJET_SENDER_ID = 'ECOO'

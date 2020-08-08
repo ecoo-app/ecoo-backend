@@ -1,4 +1,4 @@
-import random
+import secrets
 import string
 from enum import Enum
 
@@ -95,7 +95,7 @@ class Wallet(CurrencyOwnedMixin):
     @staticmethod
     def generate_wallet_id():
         characters = get_random_string(2, string.ascii_uppercase)
-        digits = str(random.randint(0, 999999)).zfill(6)
+        digits = str(secrets.randbelow(999999)).zfill(6)
         return characters + digits
 
     def notify_owner_receiving_money(self, from_wallet_id, amount):
