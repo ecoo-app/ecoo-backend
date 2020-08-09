@@ -127,4 +127,4 @@ class CompanyVerificationAdmin(ImportMixin, admin.ModelAdmin):
 
 @admin.register(SMSPinVerification)
 class SMSPinVerificationAdmin(admin.ModelAdmin):
-    readonly_fields = ['owner', 'pin']
+    readonly_fields = ['user_profile', 'pin']
