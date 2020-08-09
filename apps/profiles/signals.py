@@ -1,12 +1,12 @@
 from django.core.exceptions import ValidationError
 from django.db.models import Max
-from django.db.models.signals import pre_save
+from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from apps.profiles.models import CompanyProfile, UserProfile
 from apps.verification.models import CompanyVerification, UserVerification, SMSPinVerification, AddressPinVerification, VERIFICATION_STATES
 
 
-@receiver(pre_save, sender=CompanyProfile, dispatch_uid='custom_company_profile_validation')
+@receiver(post_save, sender=CompanyProfile, dispatch_uid='custom_company_profile_validation')
 def custom_company_profile_validation(sender, instance, **kwargs):
     if not instance.uid:
         raise ValidationError(
@@ -22,7 +22,7 @@ def custom_company_profile_validation(sender, instance, **kwargs):
                                                                          state=VERIFICATION_STATES.PENDING.value)
 
 
-@receiver(pre_save, sender=UserProfile, dispatch_uid='custom_user_profile_validation')
+@receiver(post_save, sender=UserProfile, dispatch_uid='custom_user_profile_validation')
 def custom_user_profile_validation(sender, instance, **kwargs):
     if not instance.telephone_number.startswith("+417"):
         raise ValidationError(
