@@ -1,6 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.db.models import Max
-from django.db.models.signals import pre_save
+from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from apps.profiles.models import CompanyProfile, UserProfile
 from apps.verification.models import CompanyVerification, UserVerification, SMSPinVerification, AddressPinVerification, VERIFICATION_STATES
