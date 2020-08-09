@@ -124,3 +124,7 @@ class CompanyVerificationAdmin(ImportMixin, admin.ModelAdmin):
 
     def get_urls(self):
         return self.get_extra_urls() + super(CompanyVerificationAdmin, self).get_urls()
+
+@admin.register(SMSPinVerification)
+class SMSPinVerificationAdmin(admin.ModelAdmin):
+    readonly_fields = ['owner', 'pin']
