@@ -1,5 +1,4 @@
 import pytezos
-from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.db.models import Max
 from django.db.models.signals import post_save

@@ -11,6 +11,7 @@ from django.db.models.signals import pre_save
 from django.utils.crypto import get_random_string
 from fcm_django.models import FCMDevice
 from pytezos.crypto import Key
+import pytezos
 
 from apps.currency.mixins import CurrencyOwnedMixin
 from project.mixins import UUIDModel
@@ -114,6 +115,16 @@ class Wallet(CurrencyOwnedMixin):
         devices = FCMDevice.objects.filter(user=self.owner)
         devices.send_message(title="eCoupon", body=message)
 
+    def clean(self, *args, **kwargs):
+
+        if self.company is not None:
+            if self.company.owner != self.owner:
+                raise ValidationError("You are not the owner of the company")
+        
+        super(Wallet, self).clean(*args, **kwargs)            
+
+
+
     class Meta:
         ordering = ['created_at']
 
@@ -192,6 +203,28 @@ class Transaction(UUIDModel):
         belonging_wallets = user.wallets.all()
         return Transaction.objects.filter(Q(from_wallet__in=belonging_wallets) | Q(to_wallet__in=belonging_wallets))
 
+    def clean(self, *args, **kwargs):
+
+        if self.to_wallet.transfer_requests.exclude(state=TRANSACTION_STATES.DONE.value).exists():
+            raise ValidationError("Wallet transfer ongoing for destination wallet, cannot send funds to this wallet at the moment.")
+        if self.amount <= 0:
+            raise ValidationError("Amount must be > 0")
+        if self.is_mint_transaction and not self.to_wallet.currency.allow_minting:
+            raise ValidationError("Currency must allow minting if you want to mint")
+        
+        if not self.is_mint_transaction:
+            if self.from_wallet.balance < self.amount:
+                raise ValidationError("Balance of from_wallet must be greater than amount")
+            if self.from_wallet.currency != self.to_wallet.currency:
+                raise ValidationError("'From wallet' and 'to wallet' need to use same currency")
+            if self.from_wallet.transfer_requests.exclude(state=TRANSACTION_STATES.DONE.value).exists():
+                raise ValidationError("Wallet transfer ongoing for source wallet, cannot send funds from this wallet at the moment.")
+            if self.from_wallet.state != WALLET_STATES.VERIFIED.value:
+                raise ValidationError("Only verified addresses can send money")
+
+        super(Transaction, self).clean(*args, **kwargs)            
+
+
     class Meta:
         ordering = ['created_at']
 
@@ -210,6 +243,27 @@ class MetaTransaction(Transaction):
                     'token_id': self.from_wallet.currency.token_id}
             ]
         }
+
+    def clean(self, *args, **kwargs):
+        if self.is_mint_transaction:
+            raise ValidationError("Metatransaction always must have from")
+        if not self.nonce or self.nonce <= 0:
+            raise ValidationError("Nonce must be > 0")
+        if self.nonce <= (MetaTransaction.objects.filter(from_wallet=self.from_wallet).aggregate(Max('nonce'))['nonce__max'] or 0):
+            raise ValidationError("Nonce must be higher than from_wallet's last meta transaction")
+        if self.from_wallet.currency != instance.to_wallet.currency:
+            raise ValidationError("'From wallet' and 'to wallet' need to use same currency")
+
+        message = create_message(self.from_wallet, self.to_wallet,
+                                self.nonce, self.from_wallet.currency.token_id, self.amount)
+        key = pytezos.Key.from_encoded_key(self.from_wallet.public_key)
+        try:
+            key.verify(self.signature, message)
+        except ValueError:
+            raise ValidationError("Signature is invalid")
+
+
+        super(MetaTransaction, self).clean(*args, **kwargs)   
 
     class Meta:
         ordering = ['created_at']
@@ -243,6 +297,16 @@ class CashOutRequest(UUIDModel):
         max_length=255, verbose_name=_('Beneficiary name'))
     beneficiary_iban = models.CharField(
         max_length=255, verbose_name=_('IBAN'))
+
+    def clean(self, *args, **kwargs):
+        try:
+            IBAN(self.beneficiary_iban)
+        except:
+            raise ValidationError('the iban is incorrect')
+        if instance.transaction.to_wallet.uuid != instance.transaction.to_wallet.currency.owner_wallet.uuid:
+            raise ValidationError('cash out only possible with transactions going to the owner wallet of the currency')
+
+        super(CashOutRequest, self).clean(*args, **kwargs)   
 
     class Meta:
         ordering = ['created_at']

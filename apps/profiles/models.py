@@ -38,6 +38,11 @@ class CompanyProfile(UUIDModel):
         else:
             return 0
 
+    def clean(self, *args, **kwargs):
+        if not self.uid:
+            raise ValidationError("Either uid or owner information has to be filled out")
+        super(CompanyProfile, self).clean(*args, **kwargs)            
+
     class Meta:
         ordering = ['created_at']
         verbose_name_plural = _('Company Profiles')
@@ -66,6 +71,11 @@ class UserProfile(UUIDModel):
                 return 1
         else:
             return 0
+
+    def clean(self, *args, **kwargs):
+        if not self.telephone_number.startswith("+417"):
+            raise ValidationError("Only Swiss mobile numbers are allowed")
+        super(UserProfile, self).clean(*args, **kwargs)            
 
     class Meta:
         ordering = ['created_at']
