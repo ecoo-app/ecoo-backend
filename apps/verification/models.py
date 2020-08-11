@@ -52,6 +52,10 @@ class UserVerification(AbstractVerification):
 
     date_of_birth = models.DateField()
 
+    def has_pin(self):
+        return 0 < SMSPinVerification.objects.filter(user_profile=self.user_profile, state=VERIFICATION_STATES.CLAIMED.value).count()
+
+
 
 class AddressPinVerification(AbstractVerification):
     company_profile = models.OneToOneField(

@@ -10,6 +10,7 @@ from django.template.response import TemplateResponse
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from apps.currency.models import Currency
+from apps.verification.filters import VerificaitonFilter
 import csv
 
 
@@ -94,8 +95,8 @@ class ImportMixin:
 @admin.register(UserVerification)
 class UserVerificationAdmin(ImportMixin, admin.ModelAdmin):
     list_display = ['first_name', 'last_name', 'address_street',
-                    'address_town', 'address_postal_code', 'date_of_birth']
-    list_filter = ['state']
+                    'address_town', 'address_postal_code', 'date_of_birth',]
+    list_filter = ['state', VerificaitonFilter]
     search_fields = ['first_name', 'last_name', 'address_street',
                      'address_town', 'address_postal_code', 'date_of_birth']
 
@@ -113,7 +114,7 @@ class UserVerificationAdmin(ImportMixin, admin.ModelAdmin):
 @admin.register(CompanyVerification)
 class CompanyVerificationAdmin(ImportMixin, admin.ModelAdmin):
     list_display = ['name', 'uid', 'state']
-    list_filter = ['state']
+    list_filter = ['state', VerificaitonFilter]
     search_fields = ['name', 'uid']
 
     import_name = 'company_import'
