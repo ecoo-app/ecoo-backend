@@ -20,6 +20,7 @@ import os
 import json
 import uuid
 
+
 @admin.register(Wallet)
 class WalletAdmin(admin.ModelAdmin):
     readonly_fields = ['wallet_id']
@@ -34,18 +35,21 @@ class WalletAdmin(admin.ModelAdmin):
 class OwnerWalletAdmin(WalletAdmin):
     exclude = ['company', ]
 
+
 def download_zip(modeladmin, request, queryset):
 
-
-    zip_filename = os.path.join(settings.MEDIA_ROOT, 'zip', 'qr_codes_{}.zip'.format(uuid.uuid4()))
+    zip_filename = os.path.join(
+        settings.MEDIA_ROOT, 'zip', 'qr_codes_{}.zip'.format(uuid.uuid4()))
     zf = zipfile.ZipFile(zip_filename, 'w')
 
     for wallet in queryset.all():
         encryption_key = bytes.fromhex(settings.ENCRYPTION_KEY)
-        nonce =  pysodium.randombytes(pysodium.crypto_secretbox_NONCEBYTES)
-        pk = pysodium.crypto_aead_xchacha20poly1305_ietf_encrypt(wallet.private_key.encode('UTF-8'), None, nonce, encryption_key)
-        decrypted_pk = pysodium.crypto_aead_xchacha20poly1305_ietf_decrypt(pk, None, nonce, encryption_key)
-        
+        nonce = pysodium.randombytes(pysodium.crypto_secretbox_NONCEBYTES)
+        pk = pysodium.crypto_aead_xchacha20poly1305_ietf_encrypt(
+            wallet.private_key.encode('UTF-8'), None, nonce, encryption_key)
+        decrypted_pk = pysodium.crypto_aead_xchacha20poly1305_ietf_decrypt(
+            pk, None, nonce, encryption_key)
+
         payload = {
             'nonce': nonce.hex(),
             'id': wallet.wallet_id,
@@ -53,33 +57,33 @@ def download_zip(modeladmin, request, queryset):
         }
 
         qr_code = pyqrcode.create(json.dumps(payload))
-        filename = os.path.join(settings.MEDIA_ROOT, 'qr', wallet.wallet_id + '.png') 
+        filename = os.path.join(settings.MEDIA_ROOT,
+                                'qr', wallet.wallet_id + '.png')
         qr_code.png(filename, scale=5)
         zf.write(filename)
     zf.close()
 
-    zip_file = open(zip_filename,'rb').read()
-    return HttpResponse(zip_file, content_type = "application/zip")
+    zip_file = open(zip_filename, 'rb').read()
+    return HttpResponse(zip_file, content_type="application/zip")
+
 
 download_zip.short_description = "Download QR-Code Zip"
+
 
 @admin.register(PaperWallet)
 class PaperWalletAdmin(WalletAdmin):
     exclude = ['company', ]
     actions = [download_zip]
 
-
     def get_urls(self):
         return [
-            url(r'^generate-wallets/$', self.admin_site.admin_view(self.generate_wallets), name='generate_wallets'),
+            url(r'^generate-wallets/$', self.admin_site.admin_view(
+                self.generate_wallets), name='generate_wallets'),
         ] + super(PaperWalletAdmin, self).get_urls()
-
-
 
     def generate_wallets(self, request):
         if not request.user.is_superuser:
             raise PermissionDenied
-
 
         form = GenerateWalletForm()
         if request.method == 'POST':
@@ -93,10 +97,11 @@ class PaperWalletAdmin(WalletAdmin):
                     print(str(i) + ' wallet generated')
 
                 if form.is_valid():
-                    messages.add_message(request, messages.SUCCESS, '{} Wallets generated'.format(amount))
+                    messages.add_message(
+                        request, messages.SUCCESS, '{} Wallets generated'.format(amount))
                     return HttpResponseRedirect(request.META['HTTP_REFERER'])
 
-        return TemplateResponse(request, 'admin/generate_wallets.html', {'form': form, 'opts': self.opts, 'media': self.media,})
+        return TemplateResponse(request, 'admin/generate_wallets.html', {'form': form, 'opts': self.opts, 'media': self.media, })
 
     def generate_wallet(self, currency):
         key = pytezos.crypto.Key.generate()
@@ -106,14 +111,11 @@ class PaperWalletAdmin(WalletAdmin):
         retry = True
         while retry:
             try:
-                owner_wallet = PaperWallet.objects.create(currency=currency, private_key=private_key, wallet_id=PaperWallet.generate_wallet_id(), public_key=public_key, category=WALLET_CATEGORIES.CONSUMER.value)
+                owner_wallet = PaperWallet.objects.create(currency=currency, private_key=private_key, wallet_id=PaperWallet.generate_wallet_id(
+                ), public_key=public_key, category=WALLET_CATEGORIES.CONSUMER.value)
                 retry = False
             except IntegrityError:
                 retry = True
-
-
-
-
 
 
 @admin.register(Transaction)
@@ -122,6 +124,12 @@ class TransactionAdmin(admin.ModelAdmin):
     list_display = ['from_wallet', 'to_wallet', 'amount', 'state']
     list_filter = ['from_wallet__currency', 'state']
     search_fields = ['from_wallet__wallet_id', 'to_wallet__wallet_id']
+
+    def retry_failed(modeladmin, request, queryset):
+        queryset.filter(state=TRANSACTION_STATES.FAILED.value).update(
+            state=TRANSACTION_STATES.OPEN.value)
+
+    retry_failed.short_description = _('retry failed transactions')
 
 
 @admin.register(MetaTransaction)
