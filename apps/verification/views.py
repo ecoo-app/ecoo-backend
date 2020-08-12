@@ -1,94 +1,66 @@
-from django.core.exceptions import FieldError, PermissionDenied
-from django.shortcuts import render
-from rest_framework import generics
+from django.core.exceptions import PermissionDenied
+from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-
-from apps.verification.models import (VERIFICATION_STATES, CompanyVerification,
-                                      UserVerification, VerificationInput)
-from apps.verification.serializers import (VerificationInputDataSerializer,
-                                           VerificationInputSerializer)
-from apps.wallet.models import (WALLET_CATEGORIES, WALLET_STATES,
-                                MetaTransaction, Wallet)
-from apps.wallet.serializers import WalletSerializer
+from apps.profiles.models import UserProfile, CompanyProfile
+from apps.verification.models import SMSPinVerification, VERIFICATION_STATES
+from apps.wallet.models import WALLET_CATEGORIES, WALLET_STATES
 from apps.wallet.utils import create_claim_transaction
 from project.utils import raise_api_exception
-
-
-class VerificationInputList(generics.ListAPIView):
-    serializer_class = VerificationInputSerializer
-    filterset_fields = ['currency__uuid', 'used_for_companies']
-    queryset = VerificationInput.objects.all()
+from apps.verification.utils import send_sms
 
 
 @api_view(['POST'])
-def verify_wallet(request, wallet_id=None):
-    wallet = Wallet.objects.get(wallet_id=wallet_id)
-
-    if wallet.owner != request.user:
-        raise PermissionDenied("The wallet does not belong to you")
-
-    data = {}
-
-    for verification_input in request.data:
-        data[verification_input['label']] = verification_input['value']
-
-    data['currency'] = wallet.currency
-
-    if wallet.category == WALLET_CATEGORIES.COMPANY.value:
-        VerificationModel = CompanyVerification
+def resend_user_profile_pin(request, user_profile_uuid=None):
+    user_profile = UserProfile.objects.get(uuid=user_profile_uuid)
+    if user_profile.owner != request.user:
+        raise PermissionDenied("The profile does not belong to you")
+    if user_profile.sms_pin_verification.state == VERIFICATION_STATES.PENDING.value:
+        send_sms(user_profile.telephone_number,
+                 user_profile.sms_pin_verification.pin)
+        return Response(status=status.HTTP_204_NO_CONTENT)
     else:
-        VerificationModel = UserVerification
-    try:
-        obj, created = VerificationModel.objects.get_or_create(**data)
-    except FieldError:
         raise_api_exception(
-            422, 'Verification could not be done, wrong format of body')
-    verification_ok = False
+            422, 'no pin verification open for given user profile at this time')
 
-    if created:
-        obj.state = VERIFICATION_STATES.REQUESTED.value
-        obj.receiving_wallet = wallet
-        obj.save()
-    elif obj.state == VERIFICATION_STATES.OPEN.value:
-        obj.receiving_wallet = wallet
 
-        if wallet.claim_count >= wallet.currency.max_claims:
-            obj.state = VERIFICATION_STATES.CLAIM_LIMIT_REACHED.value
-            obj.save()
-            raise_api_exception(
-                403, f'You can not claim more than {wallet.currency.max_claims} times')
-        obj.state = VERIFICATION_STATES.CLAIMED.value
-        obj.save()
-        verification_ok = True
+@api_view(['POST'])
+def verify_user_profile_pin(request, user_profile_uuid=None):
+    user_profile = UserProfile.objects.get(uuid=user_profile_uuid)
+    if user_profile.owner != request.user:
+        raise PermissionDenied("The profile does not belong to you")
 
+    if user_profile.sms_pin_verification.state == VERIFICATION_STATES.PENDING.value and user_profile.sms_pin_verification.pin == request.data.get('pin', 'XX'):
+        user_profile.sms_pin_verification.state = VERIFICATION_STATES.CLAIMED.value
+        user_profile.sms_pin_verification.save()
+        user_profile.user_verification.state = VERIFICATION_STATES.CLAIMED.value
+        user_profile.user_verification.save()
+        user_profile.wallet.state = WALLET_STATES.VERIFIED.value
+        user_profile.wallet.save()
+        create_claim_transaction(user_profile.wallet)
+        return Response(status=status.HTTP_204_NO_CONTENT)
     else:
-        if obj.receiving_wallet == wallet:
-            raise_api_exception(
-                403, 'You can not request or claim twice with the same data')
+        user_profile.sms_pin_verification.delete()
+        SMSPinVerification.objects.create(
+            user_profile=user_profile, state=VERIFICATION_STATES.PENDING.value)
+        raise_api_exception(
+            422, 'PIN did not match, we resent a new one')
 
-        obj_new = VerificationModel.objects.create(**data)
-        obj_new.state = VERIFICATION_STATES.DOUBLE_CLAIM.value
-        obj_new.receiving_wallet = wallet
-        obj_new.save()
 
-    if verification_ok:
-        wallet.state = WALLET_STATES.VERIFIED.value
-        wallet.save()
-        
-        if wallet.category == WALLET_CATEGORIES.CONSUMER.value:
-            create_claim_transaction(wallet)
+@api_view(['POST'])
+def verify_company_profile_pin(request, company_profile_uuid=None):
+    company_profile = CompanyProfile.objects.get(uuid=company_profile_uuid)
+    if company_profile.owner != request.user:
+        raise PermissionDenied("The profile does not belong to you")
 
+    if company_profile.address_pin_verification.state == VERIFICATION_STATES.PENDING.value and company_profile.address_pin_verification.pin == request.data.get('pin', 'XX'):
+        company_profile.address_pin_verification.state = VERIFICATION_STATES.CLAIMED.value
+        company_profile.address_pin_verification.save()
+        company_profile.company_verification.state = VERIFICATION_STATES.CLAIMED.value
+        company_profile.company_verification.save()
+        company_profile.wallet.state = WALLET_STATES.VERIFIED.value
+        company_profile.wallet.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
     else:
-        raise_api_exception(406, 'Verification could not be done')
-
-    return Response(WalletSerializer(wallet).data)
-
-
-@api_view(['GET'])
-def get_verification_input(request, currency_uuid=None):
-    for_company = request.query_params.get('used_for_companies', 'false').lower() == 'true'
-    if for_company:
-        return Response(CompanyVerification.to_verification_input_dict())
-    else:
-        return Response(UserVerification.to_verification_input_dict())
+        raise_api_exception(
+            422, 'PIN did not match')

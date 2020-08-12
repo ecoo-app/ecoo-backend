@@ -8,6 +8,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from oauth2_provider.models import Application
+from rest_framework.pagination import PageNumberPagination
 from social_django.utils import psa
 
 from apps.custom_auth.serializers import SocialSerializer, UserSerializer, ApplicationSerializer
@@ -20,13 +21,6 @@ class CreateUserView(CreateAPIView):
         permissions.AllowAny
     ]
     serializer_class = UserSerializer
-
-
-@permission_classes([AllowAny])
-def test_view(request):
-    print(request)
-    print(request.user)
-    return JsonResponse({'foo': 'bar'})
 
 
 @api_view(http_method_names=['POST'])
@@ -70,7 +64,9 @@ class UserDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
 
         return Response(UserSerializer(user).data)
 
+
 @permission_classes([AllowAny])
 class ApplicationsView(generics.ListAPIView):
+    pagination_class = PageNumberPagination
     serializer_class = ApplicationSerializer
     queryset = Application.objects.all()

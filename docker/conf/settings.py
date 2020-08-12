@@ -8,7 +8,7 @@ from project.base_settings import *
 # Postgres DB
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.environ.get('DJANGO_DB_NAME', 'postgres'),
         'USER': os.environ.get('DJANGO_DB_USER', 'postgres'),
         'PASSWORD': os.environ.get('DJANGO_DB_PASSWORD', 'postgres'),
@@ -51,3 +51,6 @@ SOCIAL_AUTH_APPLE_ID_SECRET = os.environ.get('APPLE_ID_SECRET', '?')
 
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.environ.get('GOOGLE_OAUTH2_KEY', '?')
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.environ.get('GOOGLE_OAUTH2_SECRET', '?')
+
+# FCM
+FCM_DJANGO_SETTINGS["FCM_SERVER_KEY"] = os.environ.get('FCM_KEY', '?')

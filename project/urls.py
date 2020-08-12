@@ -20,22 +20,37 @@ from django.contrib import admin
 from django.contrib.auth import views
 from django.urls import path
 from django.views.generic import RedirectView, TemplateView
+from fcm_django.api.rest_framework import FCMDeviceAuthorizedViewSet
+from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import (TokenObtainPairView,
                                             TokenRefreshView)
-
 import apps.wallet.urls as wallet_url
+from two_factor.urls import urlpatterns as tf_urls
+from project.mixins import AdminSiteOTPRequiredMixinRedirSetup
+
+admin.site.__class__ = AdminSiteOTPRequiredMixinRedirSetup
+
+
+admin.site.site_header = 'ecoo-admin'
+admin.site.site_title = 'ecoo-admin'
+
+router = DefaultRouter()
+
+router.register('', FCMDeviceAuthorizedViewSet)
 
 urlpatterns = [
-    path('jet/', include('jet.urls', 'jet')),  # Django JET URLS
     path('admin/', admin.site.urls),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/wallet/', include('apps.wallet.urls')),
     path('api/auth/', include('apps.custom_auth.urls')),
     path('api/currency/', include('apps.currency.urls')),
+    path('api/profiles/', include('apps.profiles.urls')),
     path('api/verification/', include('apps.verification.urls')),
     path('api/oauth/', include('rest_framework_social_oauth2.urls')),
+    path('', include(tf_urls)),
     # path('social/', include('social_django.urls', namespace='social')),
+    path('api/devices/', include(router.urls)),
 ]
 
 if settings.DEBUG:

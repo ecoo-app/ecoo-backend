@@ -32,7 +32,6 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
-    'jet',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -47,12 +46,21 @@ INSTALLED_APPS = [
     'social_django',
     'rest_framework_social_oauth2',
 
+    # 2fa
+    'django_otp',
+    'django_otp.plugins.otp_static',
+    'django_otp.plugins.otp_totp',
+    'two_factor',
+
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
     'django_filters',
+
+    "fcm_django",
+
     'apps.wallet',
-    'apps.devices',
     'apps.currency',
+    'apps.profiles',
     'apps.verification',
     'project'
 ]
@@ -63,6 +71,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django_otp.middleware.OTPMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
@@ -155,7 +164,9 @@ REST_FRAMEWORK = {
         'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
         'rest_framework_social_oauth2.authentication.SocialAuthentication',
     ),
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'DEFAULT_PAGINATION_CLASS': 'project.utils.CustomCursorPagination',
+    'EXCEPTION_HANDLER': 'project.utils.custom_exception_handler',
+    'PAGE_SIZE': 10,
 }
 
 SIMPLE_JWT = {
@@ -184,9 +195,6 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
 
-JET_DEFAULT_THEME = 'light-gray'
-JET_SIDE_MENU_COMPACT = True
-JET_CHANGE_FORM_SIBLING_LINKS = False
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static_root')
@@ -219,7 +227,9 @@ SITE_ID = 1
 SOCIAL_AUTH_APPLE_ID_CLIENT = '__APPLE_ID_CLIENT__'
 SOCIAL_AUTH_APPLE_ID_TEAM = '__APPLE_ID_TEAM__'  # Your Team ID, ie K2232113
 SOCIAL_AUTH_APPLE_ID_KEY = '__APPLE_ID_KEY__'  # Your Key ID, ie Y2P99J3N81K
-SOCIAL_AUTH_APPLE_ID_SECRET = '__APPLE_ID_SECRET__'
+SOCIAL_AUTH_APPLE_ID_SECRET = """-----BEGIN PRIVATE KEY-----
+__APPLE_ID_SECRET__
+-----END PRIVATE KEY-----"""
 SOCIAL_AUTH_APPLE_ID_SCOPE = ['email', 'name']
 SOCIAL_AUTH_APPLE_ID_EMAIL_AS_USERNAME = True
 
@@ -258,3 +268,24 @@ TEZOS_TOKEN_CONTRACT_ADDRESS = "KT1P4cKoPtLERkWcibpGgAi1uifRyi9N8hSi"
 TEZOS_CALLBACK_CONTRACT_ADDRESS = "KT1FM1yaa8sfADNojRBGnt9QGXssCicVbeTY"
 TEZOS_BLOCK_WAIT_TIME = 5
 TEZOS_NODE = "https://rpc.tzkt.io/carthagenet/"
+
+FCM_DJANGO_SETTINGS = {
+    "APP_VERBOSE_NAME": "FCM Django",
+    "FCM_SERVER_KEY": '__FCM_KEY__',
+    # true if you want to have only one active device per registered user at a time
+    # default: False
+    "ONE_DEVICE_PER_USER": False,
+    # devices to which notifications cannot be sent,
+    # are deleted upon receiving error response from FCM
+    "DELETE_INACTIVE_DEVICES": True,
+}
+LOGIN_URL = 'two_factor:login'
+LOGIN_REDIRECT_URL = 'admin:index'
+
+PAIN_SERVICE_URL = "https://pain-service-backend.prod.gke.papers.tech"
+MAILJET_API_URL = 'https://api.mailjet.com/v4/'
+MAILJET_SMS_TOKEN = '61be7c85f45a4ebba72a612ac9bb5bc8'
+MAILJET_SENDER_ID = 'ECOO'
+
+# Test encryption key, override for prod
+ENCRYPTION_KEY = '63298563e90a5d9cd751136c91cc5c7d471c362148480fe4dac2943e6e36051b'

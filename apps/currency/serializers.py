@@ -19,4 +19,4 @@ class CurrencySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Currency
-        fields = ['uuid', 'name', 'token_id','campaign_end', 'claim_deadline', 'allow_minting', 'owner_wallet', 'starting_capital']
+        fields = ['uuid', 'name', 'symbol', 'token_id', 'decimals', 'campaign_end', 'claim_deadline', 'allow_minting', 'owner_wallet', 'starting_capital']
