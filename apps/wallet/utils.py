@@ -3,6 +3,7 @@ from pytezos import pytezos, michelson
 from django.utils.timezone import now
 from django.conf import settings
 from django.utils.timezone import now
+from apps.wallet.models import Transaction, MetaTransaction, WalletPublicKeyTransferRequest
 
 
 MESSAGE_STRUCTURE = {
