@@ -121,7 +121,11 @@ class ProfileApiTest(APITestCase):
         user_profile = UserProfile.objects.get(pk=user_profile.pk)
         pin = user_profile.sms_pin_verification.pin
         response = self.client.post(
-            '/api/verification/verify_user_profile_pin/{}'.format(user_profile.pk), {'pin': pin}, format='json')
+            '/api/verification/verify_user_profile_pin/{}'.format(user_profile.pk), {'pin': pin, 'wallet_id': self.wallet_1_2.wallet_id}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+        response = self.client.post(
+            '/api/verification/verify_user_profile_pin/{}'.format(user_profile.pk), {'pin': pin, 'wallet_id': self.wallet_1.wallet_id}, format='json')
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
         response = self.client.post(
@@ -137,7 +141,10 @@ class ProfileApiTest(APITestCase):
             pk=user_profile.sms_pin_verification.pk)
         self.assertEqual(sms_pin_verification.state,
                          VERIFICATION_STATES.CLAIMED.value)
+
+        self.wallet_1.refresh_from_db()
         self.assertEqual(self.wallet_1.balance, 10)
+        self.assertEqual(self.wallet_1.state, WALLET_STATES.VERIFIED.value)
 
         response = self.client.post(
             '/api/profiles/user_profiles/', data, format='json')
@@ -211,8 +218,13 @@ class ProfileApiTest(APITestCase):
 
         company_profile = CompanyProfile.objects.get(pk=company_profile.pk)
         pin = company_profile.address_pin_verification.pin
+
         response = self.client.post(
-            '/api/verification/verify_company_profile_pin/{}'.format(company_profile.pk), {'pin': pin}, format='json')
+            '/api/verification/verify_company_profile_pin/{}'.format(company_profile.pk), {'pin': pin, 'wallet_id': self.wallet_1.wallet_id}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+        response = self.client.post(
+            '/api/verification/verify_company_profile_pin/{}'.format(company_profile.pk), {'pin': pin, 'wallet_id': self.wallet_1_2.wallet_id}, format='json')
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
         company_verification = CompanyVerification.objects.get(
@@ -223,7 +235,9 @@ class ProfileApiTest(APITestCase):
             pk=company_profile.address_pin_verification.pk)
         self.assertEqual(address_pin_verification.state,
                          VERIFICATION_STATES.CLAIMED.value)
-        self.assertEqual(self.wallet_1.balance, 0)
+        self.wallet_1_2.refresh_from_db()
+        self.assertEqual(self.wallet_1_2.balance, 0)
+        self.assertEqual(self.wallet_1_2.state, WALLET_STATES.VERIFIED.value)
 
         response = self.client.post(
             '/api/profiles/company_profiles/', data, format='json')
