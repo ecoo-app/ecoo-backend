@@ -164,7 +164,8 @@ REST_FRAMEWORK = {
         'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
         'rest_framework_social_oauth2.authentication.SocialAuthentication',
     ),
-    'DEFAULT_PAGINATION_CLASS': 'apps.wallet.utils.CustomCursorPagination',
+    'DEFAULT_PAGINATION_CLASS': 'project.utils.CustomCursorPagination',
+    'EXCEPTION_HANDLER': 'project.utils.custom_exception_handler',
     'PAGE_SIZE': 10,
 }
 

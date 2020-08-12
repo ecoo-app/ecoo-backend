@@ -10,20 +10,22 @@ def accept_verfication_and_create_transaction(obj):
 
 
 def send_sms(to_number: str, message: str):
-    send_sms_url = settings.MAILJET_API_URL + 'sms-send'
-    response = requests.post(send_sms_url,
-                             headers={
-                                 'Authorization': 'Bearer ' + settings.MAILJET_SMS_TOKEN,
-                                 'Content-Type': 'application/json'
-                             },
-                             json={
-                                 'Text': message,
-                                 'To': to_number,
-                                 'From': settings.MAILJET_SENDER_ID
-                             })
-    # TODO: Check different possible responses and handle outcomes accordingly, e.g. with status
-
-    return (response.ok, response.text)
+    if not settings.DEBUG:
+        send_sms_url = settings.MAILJET_API_URL + 'sms-send'
+        response = requests.post(send_sms_url,
+                                 headers={
+                                     'Authorization': 'Bearer ' + settings.MAILJET_SMS_TOKEN,
+                                     'Content-Type': 'application/json'
+                                 },
+                                 json={
+                                     'Text': message,
+                                     'To': to_number,
+                                     'From': settings.MAILJET_SENDER_ID
+                                 })
+        # TODO: Check different possible responses and handle outcomes accordingly, e.g. with status
+        return (response.ok, response.text)
+    else:
+        print('sending immaginary SMS to {}:"{}"'.format(to_number, message))
 
 
 def send_postcard(text='', title='', firstname='', lastname='', company='', street='', house_nr='', zip='', city='', country='Switzerland', po_box='', additional_address_info=''):
@@ -57,4 +59,3 @@ def send_postcard(text='', title='', firstname='', lastname='', company='', stre
                                  'branding': POST_API_CONFIG['branding']
                              })
 
-    return (response.ok, response.text)

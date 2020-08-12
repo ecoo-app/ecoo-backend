@@ -10,8 +10,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/manage.py",
             "args": [
-                "test",
-                "apps.profiles.tests"
+                "test"
             ],
             "django": true
         }

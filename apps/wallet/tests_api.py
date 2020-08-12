@@ -288,12 +288,13 @@ class CashOutRequestApiTest(APITestCase):
                          1, CashOutRequest.objects.all().count())
 
         self.client.force_authenticate(user=self.user)
-        with self.assertRaises(ValidationError):
-            response = self.client.post('/api/wallet/cash_out_request/', {
-                "transaction": self.token_transaction.uuid,
-                "beneficiary_name": "Papers AG",
-                "beneficiary_iban": "CH2509000000619652574"
-            }, format='json')
+        response = self.client.post('/api/wallet/cash_out_request/', {
+            "transaction": self.token_transaction.uuid,
+            "beneficiary_name": "Papers AG",
+            "beneficiary_iban": "CH2509000000619652574"
+        }, format='json')
+        self.assertEqual(response.status_code,
+                         status.HTTP_422_UNPROCESSABLE_ENTITY)
 
     def test_cash_out_request_list(self):
         # correct request
