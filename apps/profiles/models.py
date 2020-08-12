@@ -18,7 +18,7 @@ from apps.wallet.models import Wallet, WALLET_CATEGORIES
 
 class CompanyProfile(UUIDModel):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL,
-                              on_delete=models.DO_NOTHING, related_name='company_profiles')
+                              on_delete=models.CASCADE, related_name='company_profiles')
 
     name = models.CharField(max_length=128)
     uid = models.CharField(max_length=15, blank=True)
@@ -28,7 +28,7 @@ class CompanyProfile(UUIDModel):
     address_postal_code = models.CharField(max_length=128, blank=True)
 
     wallet = models.ForeignKey(
-        Wallet, on_delete=models.DO_NOTHING, related_name='company_profiles')
+        Wallet, on_delete=models.CASCADE, related_name='company_profiles')
     # 0 -> no match with the verifications entries
     # 1 -> there has been a match but pin is pending
     # 2 -> match and pin fully verified
@@ -62,7 +62,7 @@ class CompanyProfile(UUIDModel):
 
 class UserProfile(UUIDModel):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL,
-                              on_delete=models.DO_NOTHING, related_name='user_profiles')
+                              on_delete=models.CASCADE, related_name='user_profiles')
 
     first_name = models.CharField(max_length=128)
     last_name = models.CharField(max_length=128)
@@ -75,7 +75,7 @@ class UserProfile(UUIDModel):
     date_of_birth = models.DateField()
 
     wallet = models.ForeignKey(
-        Wallet, on_delete=models.DO_NOTHING, related_name='user_profiles')
+        Wallet, on_delete=models.CASCADE, related_name='user_profiles')
 
     @property
     def verification_stage(self):

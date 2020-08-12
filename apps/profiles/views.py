@@ -25,7 +25,21 @@ class UserProfileListCreate(generics.ListCreateAPIView):
         return self.request.user.user_profiles
 
 
+class UserProfileDestroy(generics.DestroyAPIView):
+    serializer_class = UserProfileSerializer
+
+    def get_queryset(self):
+        return self.request.user.user_profiles
+
+
 class CompanyProfileListCreate(generics.ListCreateAPIView):
+    serializer_class = CompanyProfileSerializer
+
+    def get_queryset(self):
+        return self.request.user.company_profiles
+
+
+class CompanyProfileDestroy(generics.DestroyAPIView):
     serializer_class = CompanyProfileSerializer
 
     def get_queryset(self):

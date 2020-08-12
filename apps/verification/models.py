@@ -33,7 +33,7 @@ class AbstractVerification(UUIDModel):
 
 class CompanyVerification(AbstractVerification):
     company_profile = models.OneToOneField(
-        CompanyProfile, on_delete=models.DO_NOTHING, related_name='company_verification', blank=True, null=True)
+        CompanyProfile, on_delete=models.SET_NULL, related_name='company_verification', blank=True, null=True)
 
     name = models.CharField(max_length=128)
     uid = models.CharField(max_length=15)
@@ -41,7 +41,7 @@ class CompanyVerification(AbstractVerification):
 
 class UserVerification(AbstractVerification):
     user_profile = models.OneToOneField(
-        UserProfile, on_delete=models.DO_NOTHING, related_name='user_verification', blank=True, null=True)
+        UserProfile, on_delete=models.SET_NULL, related_name='user_verification', blank=True, null=True)
 
     first_name = models.CharField(max_length=128)
     last_name = models.CharField(max_length=128)
@@ -56,16 +56,15 @@ class UserVerification(AbstractVerification):
         return 0 < SMSPinVerification.objects.filter(user_profile=self.user_profile, state=VERIFICATION_STATES.CLAIMED.value).count()
 
 
-
 class AddressPinVerification(AbstractVerification):
     company_profile = models.OneToOneField(
-        CompanyProfile, on_delete=models.DO_NOTHING, related_name='address_pin_verification')
+        CompanyProfile, on_delete=models.CASCADE, related_name='address_pin_verification')
 
     pin = models.CharField(max_length=8, blank=True)
 
 
 class SMSPinVerification(AbstractVerification):
     user_profile = models.OneToOneField(
-        UserProfile, on_delete=models.DO_NOTHING, related_name='sms_pin_verification')
+        UserProfile, on_delete=models.CASCADE, related_name='sms_pin_verification')
 
     pin = models.CharField(max_length=8, blank=True)
