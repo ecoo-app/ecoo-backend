@@ -263,3 +263,87 @@ class ProfileApiTest(APITestCase):
 
         # cannot reuse burned verification
         self.assertEqual(response.data['verification_stage'], 0)
+
+    def test_user_profile_destroy(self):
+        user_verification = UserVerification.objects.create(
+            first_name="Alessandro",
+            last_name="De Carli",
+            address_street="Sonnmattstr. 121",
+            address_postal_code="5242",
+            address_town="Birr",
+            date_of_birth="1989-06-24"
+        )
+
+        data = {
+            "first_name": "Alessandro",
+            "last_name": "De Carli",
+            "address_street": "Sonnmattstr. 121",
+            "address_postal_code": "5242",
+            "address_town": "Birr",
+            "telephone_number": "+41763057500",
+            "date_of_birth": "1989-06-24",
+            "wallet": self.wallet_2.wallet_id
+        }
+
+        self.client.force_authenticate(user=self.user_2)
+        response = self.client.post(
+            '/api/profiles/user_profiles/', data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        user_2_profile_uuid = response.data['uuid']
+
+        self.client.force_authenticate(user=self.user)
+        data['wallet'] = self.wallet_1.wallet_id
+        response = self.client.post(
+            '/api/profiles/user_profiles/', data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        user_1_profile_uuid = response.data['uuid']
+
+        response = self.client.delete(
+            '/api/profiles/user_profiles/{}/'.format(user_2_profile_uuid), data, format='json')
+        self.assertEqual(response.status_code,
+                         status.HTTP_404_NOT_FOUND)
+        # we did not delete, because it's the wrong user
+        self.assertEqual(UserProfile.objects.all().count(), 2)
+
+        response = self.client.delete(
+            '/api/profiles/user_profiles/{}/'.format(user_1_profile_uuid), data, format='json')
+        self.assertEqual(response.status_code,
+                         status.HTTP_204_NO_CONTENT)
+        self.assertEqual(UserProfile.objects.all().count(), 1)
+
+    def test_company_profile_verification_flow(self):
+        company_verification = CompanyVerification.objects.create(
+            name="Papers AG",
+            uid="12-3-4-3"
+        )
+
+        data = {
+            "name": "Papers AG",
+            "uid": "12-3-4-3",
+            "address_street": "Sonnmattstr. 121",
+            "address_postal_code": "5242",
+            "address_town": "Birr",
+            "wallet": self.wallet_1_2.wallet_id
+        }
+
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(
+            '/api/profiles/company_profiles/', data, format='json')
+        # the second create overrides user 2
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        user_1_profile_uuid = response.data['uuid']
+
+        self.client.force_authenticate(user=self.user_2)
+        response = self.client.delete(
+            '/api/profiles/company_profiles/{}/'.format(user_1_profile_uuid), data, format='json')
+        self.assertEqual(response.status_code,
+                         status.HTTP_404_NOT_FOUND)
+        # we did not delete, because it's the wrong user
+        self.assertEqual(CompanyProfile.objects.all().count(), 1)
+
+        self.client.force_authenticate(user=self.user)
+        response = self.client.delete(
+            '/api/profiles/company_profiles/{}/'.format(user_1_profile_uuid), data, format='json')
+        self.assertEqual(response.status_code,
+                         status.HTTP_204_NO_CONTENT)
+        self.assertEqual(CompanyProfile.objects.all().count(), 0)
