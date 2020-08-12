@@ -93,6 +93,7 @@ class PaperWalletAdmin(WalletAdmin):
                 currency = form.cleaned_data['currency']
 
                 for i in range(amount):
+                    i += 1
                     self.generate_wallet(currency)
                     print(str(i) + ' wallet generated')
 
