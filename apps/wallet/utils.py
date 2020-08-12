@@ -3,14 +3,6 @@ from pytezos import pytezos, michelson
 from django.utils.timezone import now
 from django.conf import settings
 from django.utils.timezone import now
-from pytezos import michelson, pytezos
-from rest_framework.pagination import CursorPagination
-
-
-class CustomCursorPagination(CursorPagination):
-    ordering = 'created_at'
-    page_size = 10
-    page_size_query_param = 'page_size'
 
 
 MESSAGE_STRUCTURE = {
@@ -84,7 +76,7 @@ def create_message(from_wallet, to_wallet, nonce, token_id, amount):
                             }
                         ]
                     ]
-                }
+            }
         ]
     }
     return michelson.pack.pack(message_to_encode, MESSAGE_STRUCTURE)
