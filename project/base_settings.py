@@ -288,3 +288,38 @@ MAILJET_SENDER_ID = 'ECOO'
 
 # Test encryption key, override for prod
 ENCRYPTION_KEY = '63298563e90a5d9cd751136c91cc5c7d471c362148480fe4dac2943e6e36051b'
+
+POST_API_CONFIG = {
+    'client_id': 'aab50d904093a2c9792a6bc7ba4f54d3',
+    'client_secret': '36eb8194fa891e4c1b9a03e929977d31',
+    'base_url': 'https://apiint.post.ch/pcc/api/',
+    'token_url': 'https://apiint.post.ch/OAuth/token',
+    'scope': 'PCCAPI',
+
+    'campaign_key': 'ef11746b-29f7-4229-b0ab-bcefe51daaeb',
+
+    'sender': {
+        'firstname': '',
+        'lastname': '',
+        'company': 'Papers AG',
+        'street': 'Dammstrasse',
+        'houseNr': '16',
+        'zip': '6300',
+        'city': 'Zug'
+    },
+
+    'branding': {
+        'brandingText': {
+            'text': 'test',
+            'blockColor': '#FFFFFF',
+            'textColor': '#000000'
+        },
+        'brandingQRCode': {
+            'encodedText': 'test',
+            'accompanyingText': 'test',
+            'blockColor': '#FFFFFF',
+            'textColor': '#000000'
+        }
+    }
+
+}
