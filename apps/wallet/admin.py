@@ -100,7 +100,7 @@ class PaperWalletAdmin(WalletAdmin):
 
     def generate_wallet(self, currency):
         key = pytezos.crypto.Key.generate()
-        private_key = key.secret_key()
+        private_key = key.secret_key(None, False)
         public_key = key.public_key()
 
         retry = True
