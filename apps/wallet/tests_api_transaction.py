@@ -83,14 +83,15 @@ class TransactionApiTest(APITestCase):
 
         tx_count = MetaTransaction.objects.all().count()
 
-        with self.assertRaises(ValidationError):
-            response = self.client.post('/api/wallet/meta_transaction/', {
-                'from_wallet': self.wallet_pk.wallet_id,
-                'to_wallet': self.wallet_2.wallet_id,
-                'amount': 10,
-                'signature': signature,
-                'nonce': self.wallet_pk.nonce+1
-            })
+        response = self.client.post('/api/wallet/meta_transaction/', {
+            'from_wallet': self.wallet_pk.wallet_id,
+            'to_wallet': self.wallet_2.wallet_id,
+            'amount': 10,
+            'signature': signature,
+            'nonce': self.wallet_pk.nonce+1
+        })
+        self.assertEqual(response.status_code,
+                         status.HTTP_422_UNPROCESSABLE_ENTITY)
         self.assertEqual(tx_count, MetaTransaction.objects.all().count())
 
     def test_transaction_create_different_currency(self):
@@ -111,14 +112,15 @@ class TransactionApiTest(APITestCase):
 
         tx_count = MetaTransaction.objects.all().count()
 
-        with self.assertRaises(ValidationError):
-            response = self.client.post('/api/wallet/meta_transaction/', {
-                'from_wallet': self.wallet_pk.wallet_id,
-                'to_wallet': self.wallet_2_2.wallet_id,
-                'amount': 10,
-                'signature': signature,
-                'nonce': self.wallet_pk.nonce+1
-            })
+        response = self.client.post('/api/wallet/meta_transaction/', {
+            'from_wallet': self.wallet_pk.wallet_id,
+            'to_wallet': self.wallet_2_2.wallet_id,
+            'amount': 10,
+            'signature': signature,
+            'nonce': self.wallet_pk.nonce+1
+        })
+        self.assertEqual(response.status_code,
+                         status.HTTP_422_UNPROCESSABLE_ENTITY)
         self.assertEqual(tx_count, MetaTransaction.objects.all().count())
 
     def test_transaction_create_nonce_issue(self):
@@ -138,14 +140,15 @@ class TransactionApiTest(APITestCase):
         signature = self.key.sign(packed_meta_transaction)
 
         tx_count = MetaTransaction.objects.all().count()
-        with self.assertRaises(ValidationError):
-            response = self.client.post('/api/wallet/meta_transaction/', {
-                'from_wallet': self.wallet_pk.wallet_id,
-                'to_wallet': self.wallet_2.wallet_id,
-                'amount': 10,
-                'signature': signature,
-                'nonce': self.wallet_pk.nonce+2
-            })
+        response = self.client.post('/api/wallet/meta_transaction/', {
+            'from_wallet': self.wallet_pk.wallet_id,
+            'to_wallet': self.wallet_2.wallet_id,
+            'amount': 10,
+            'signature': signature,
+            'nonce': self.wallet_pk.nonce+2
+        })
+        self.assertEqual(response.status_code,
+                         status.HTTP_422_UNPROCESSABLE_ENTITY)
         self.assertEqual(tx_count, MetaTransaction.objects.all().count())
 
     def test_transaction_create_balance_too_small(self):
@@ -161,15 +164,15 @@ class TransactionApiTest(APITestCase):
         signature = self.key.sign(packed_meta_transaction)
 
         tx_count = MetaTransaction.objects.all().count()
-        with self.assertRaises(ValidationError):
-            response = self.client.post('/api/wallet/meta_transaction/', {
-                'from_wallet': self.wallet_pk.wallet_id,
-                'to_wallet': self.wallet_2.wallet_id,
-                'amount': 200,
-                'signature': signature,
-                'nonce': self.wallet_pk.nonce+1
-            })
-
+        response = self.client.post('/api/wallet/meta_transaction/', {
+            'from_wallet': self.wallet_pk.wallet_id,
+            'to_wallet': self.wallet_2.wallet_id,
+            'amount': 200,
+            'signature': signature,
+            'nonce': self.wallet_pk.nonce+1
+        })
+        self.assertEqual(response.status_code,
+                         status.HTTP_422_UNPROCESSABLE_ENTITY)
         self.assertEqual(tx_count, MetaTransaction.objects.all().count())
 
     def test_transaction_create_signature_invalid(self):
@@ -189,15 +192,17 @@ class TransactionApiTest(APITestCase):
         signature = self.key.sign(packed_meta_transaction)
 
         tx_count = MetaTransaction.objects.all().count()
-        with self.assertRaises(ValidationError):
-            response = self.client.post('/api/wallet/meta_transaction/', {
-                'from_wallet': self.wallet_pk.wallet_id,
-                'to_wallet': self.wallet_2.wallet_id,
-                'amount': 10,
-                'signature': signature,
-                'nonce': self.wallet_pk.nonce+1
-            })
 
+        response = self.client.post('/api/wallet/meta_transaction/', {
+            'from_wallet': self.wallet_pk.wallet_id,
+            'to_wallet': self.wallet_2.wallet_id,
+            'amount': 10,
+            'signature': signature,
+            'nonce': self.wallet_pk.nonce+1
+        })
+
+        self.assertEqual(response.status_code,
+                         status.HTTP_422_UNPROCESSABLE_ENTITY)
         self.assertEqual(tx_count, MetaTransaction.objects.all().count())
 
     def test_transaction_create_correct(self):
