@@ -67,7 +67,7 @@ def download_zip(modeladmin, request, queryset):
     return HttpResponse(zip_file, content_type="application/zip")
 
 
-download_zip.short_description = "Download QR-Code Zip"
+download_zip.short_description = _('Download QR-Code Zip')
 
 
 @admin.register(PaperWallet)
@@ -98,8 +98,7 @@ class PaperWalletAdmin(WalletAdmin):
                     print(str(i) + ' wallet generated')
 
                 if form.is_valid():
-                    messages.add_message(
-                        request, messages.SUCCESS, '{} Wallets generated'.format(amount))
+                    messages.add_message(request, messages.SUCCESS, _('{amount} Wallets generated') % { amount: amount})
                     return HttpResponseRedirect(request.META['HTTP_REFERER'])
 
         return TemplateResponse(request, 'admin/generate_wallets.html', {'form': form, 'opts': self.opts, 'media': self.media, })
@@ -168,11 +167,10 @@ class CashOutRequestAdmin(admin.ModelAdmin):
             payment_date = forms.DateField(initial=datetime.date.today)
 
         if queryset.exclude(state=TRANSACTION_STATES.OPEN.value).exists():
-            self.message_user(request, _(
-                'Only open cashout out requests can be used in this action'), messages.ERROR)
+            self.message_user(request, _('Only open cashout out requests can be used in this action'), messages.ERROR)
         elif queryset.exclude(transaction__state=TRANSACTION_STATES.DONE.value).exists():
-            self.message_user(request, _(
-                'Only settled (done) transactions can be used in this action'), messages.ERROR)
+            self.message_user(request, _('Only settled (done) transactions can be used in this action'), messages.ERROR)
+
         elif 'apply' in request.POST:
             form = PaymentDateForm(request.POST)
             if form.is_valid():
@@ -193,15 +191,14 @@ class CashOutRequestAdmin(admin.ModelAdmin):
                 requests.post(
                     "{}/api/v1/generate_xml/".format(settings.PAIN_SERVICE_URL), json=pain_payload)
             else:
-                self.message_user(request, _(
-                    'Please enter a correct payment date'), messages.ERROR)
+                self.message_user(request, _('Please enter a correct payment date'), messages.ERROR)
         else:
             form = PaymentDateForm()
             return render(request,
                           'admin/generate_payout_file.html',
                           context={'form': form, 'cash_out_requests': queryset})
 
-    generate_payout_file.short_description = 'Generate Payout XML'
+    generate_payout_file.short_description = _('Generate Payout XML')
 
 
 # TODO: add proper admin sites

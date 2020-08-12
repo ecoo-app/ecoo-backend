@@ -3,25 +3,26 @@ from enum import Enum
 from django.db import models
 
 from project.mixins import UUIDModel
+from django.utils.translation import gettext as _
 
 
 class Currency(UUIDModel):
-    name = models.CharField(max_length=32)
-    symbol = models.CharField(max_length=5, default="")
-    token_id = models.IntegerField()
-    decimals = models.IntegerField(default=0)
+    name = models.CharField(verbose_name=_('Name'), max_length=32)
+    symbol = models.CharField(verbose_name=_('Symbol'), max_length=5, default="")
+    token_id = models.IntegerField(verbose_name=_('Token Id'))
+    decimals = models.IntegerField(verbose_name=_('Decimals'), default=0)
 
-    allow_minting = models.BooleanField(default=True)
-    campaign_end = models.DateField(null=True)
-    claim_deadline = models.DateField(null=True)
-    starting_capital = models.IntegerField(default=10, blank=False, null=False)
-    max_claims = models.IntegerField(default=5)
+    allow_minting = models.BooleanField(verbose_name=_('Allow minting'), default=True)
+    campaign_end = models.DateField(verbose_name=_('Campaign end'), null=True)
+    claim_deadline = models.DateField(verbose_name=_('Claim deadline'),null=True)
+    starting_capital = models.IntegerField(verbose_name=_('Starting capital'), default=10, blank=False, null=False)
+    max_claims = models.IntegerField(verbose_name=_('Max claims'), default=5)
 
-    owner_wallet = models.ForeignKey(
-        "wallet.OwnerWallet", null=True, editable=False, on_delete=models.DO_NOTHING, related_name="currencies")
+    owner_wallet = models.ForeignKey("wallet.OwnerWallet", null=True, editable=False, on_delete=models.DO_NOTHING, related_name="currencies")
 
     class Meta:
-        verbose_name_plural = 'Currencies'
+        verbose_name = _('Currency') 
+        verbose_name_plural = _('Currencies') 
 
     # TODO: additional fields?
     def __str__(self):
