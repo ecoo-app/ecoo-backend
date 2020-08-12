@@ -35,12 +35,9 @@ def verify_user_profile_pin(request, user_profile_uuid=None):
         user_profile.sms_pin_verification.save()
         user_profile.user_verification.state = VERIFICATION_STATES.CLAIMED.value
         user_profile.user_verification.save()
-
-        wallet = request.user.wallets.filter(
-            category=WALLET_CATEGORIES.CONSUMER.value).first()
-        wallet.state = WALLET_STATES.VERIFIED.value
-        wallet.save()
-        create_claim_transaction(wallet)
+        user_profile.wallet.state = WALLET_STATES.VERIFIED.value
+        user_profile.wallet.save()
+        create_claim_transaction(user_profile.wallet)
         return Response(status=status.HTTP_204_NO_CONTENT)
     else:
         user_profile.sms_pin_verification.delete()
@@ -61,12 +58,8 @@ def verify_company_profile_pin(request, company_profile_uuid=None):
         company_profile.address_pin_verification.save()
         company_profile.company_verification.state = VERIFICATION_STATES.CLAIMED.value
         company_profile.company_verification.save()
-
-        wallet = request.user.wallets.filter(
-            category=WALLET_CATEGORIES.COMPANY.value).first()
-        wallet.state = WALLET_STATES.VERIFIED.value
-        wallet.save()
-        create_claim_transaction(wallet)
+        company_profile.wallet.state = WALLET_STATES.VERIFIED.value
+        company_profile.wallet.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
     else:
         raise_api_exception(
