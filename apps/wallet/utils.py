@@ -166,7 +166,7 @@ def publish_open_meta_transactions_to_chain():
                     state=TRANSACTION_STATES.FAILED.value, submitted_to_chain_at=now(), notes='Error during sync: {}'.format(json.dumps(operation_result)))
         except Exception as error:
             selected_transactions.update(
-                state=TRANSACTION_STATES.FAILED.value, submitted_to_chain_at=now(), notes='Error during sync: {}'.format(error))
+                state=TRANSACTION_STATES.FAILED.value, submitted_to_chain_at=now(), notes='Exception during sync: {}'.format(error))
 
 
 def publish_open_mint_transactions_to_chain():
@@ -196,7 +196,7 @@ def publish_open_mint_transactions_to_chain():
                         state=TRANSACTION_STATES.FAILED.value, submitted_to_chain_at=now(), notes='Error during sync: {}'.format(json.dumps(operation_result)))
         except Exception as error:
             selected_transactions.update(
-                state=TRANSACTION_STATES.FAILED.value, submitted_to_chain_at=now(), notes='Error during sync: {}'.format(error))
+                state=TRANSACTION_STATES.FAILED.value, submitted_to_chain_at=now(), notes='Exception during sync: {}'.format(error))
 
 
 def publish_open_transfer_transactions_to_chain():
@@ -240,7 +240,7 @@ def publish_open_transfer_transactions_to_chain():
                     state=TRANSACTION_STATES.FAILED.value, submitted_to_chain_at=now(), notes='Error during sync: {}'.format(json.dumps(operation_result)))
         except Exception as error:
             selected_transactions.update(
-                state=TRANSACTION_STATES.FAILED.value, submitted_to_chain_at=now(), notes='Error during sync: {}'.format(error))
+                state=TRANSACTION_STATES.FAILED.value, submitted_to_chain_at=now(), notes='Exception during sync: {}'.format(error))
 
 
 def publish_wallet_recovery_transfer_balance():
@@ -305,7 +305,7 @@ def publish_wallet_recovery_transfer_balance():
         except Exception as error:
             for allowed_wallet_public_key_transfer_request in allowed_wallet_public_key_transfer_requests:
                 allowed_wallet_public_key_transfer_request.state = TRANSACTION_STATES.FAILED.value
-                allowed_wallet_public_key_transfer_request.notes = 'Error during sync: {}'.format(
+                allowed_wallet_public_key_transfer_request.notes = 'Exception during sync: {}'.format(
                     error)
                 allowed_wallet_public_key_transfer_request.save()
 
