@@ -137,6 +137,8 @@ def read_nonce_from_chain(address):
 
 
 def publish_open_meta_transactions_to_chain():
+    from apps.wallet.models import Wallet, MetaTransaction, Transaction, WalletPublicKeyTransferRequest, TRANSACTION_STATES
+
     open_transactions = MetaTransaction.objects.filter(
         state=TRANSACTION_STATES.OPEN.value)
     selected_transaction_ids = set(
@@ -168,6 +170,7 @@ def publish_open_meta_transactions_to_chain():
 
 
 def publish_open_mint_transactions_to_chain():
+    from apps.wallet.models import Wallet, MetaTransaction, Transaction, WalletPublicKeyTransferRequest, TRANSACTION_STATES
     open_transactions = Transaction.objects.filter(
         state=TRANSACTION_STATES.OPEN.value, from_wallet=None)
     selected_transaction_ids = set(
@@ -197,6 +200,7 @@ def publish_open_mint_transactions_to_chain():
 
 
 def publish_open_transfer_transactions_to_chain():
+    from apps.wallet.models import Wallet, MetaTransaction, Transaction, WalletPublicKeyTransferRequest, TRANSACTION_STATES
     open_transfer_transactions = Transaction.objects.filter(
         state=TRANSACTION_STATES.OPEN.value).exclude(from_wallet=None).exclude(uuid__in=MetaTransaction.objects.all())
     selected_transaction_ids = set(
@@ -240,6 +244,7 @@ def publish_open_transfer_transactions_to_chain():
 
 
 def publish_wallet_recovery_transfer_balance():
+    from apps.wallet.models import Wallet, MetaTransaction, Transaction, WalletPublicKeyTransferRequest, TRANSACTION_STATES
     open_wallet_public_key_transfer_requests = WalletPublicKeyTransferRequest.objects.filter(
         state=TRANSACTION_STATES.OPEN.value)
     selected_wallet_public_key_transfer_request_ids = set(

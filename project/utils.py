@@ -22,7 +22,7 @@ def custom_exception_handler(exc, context):
     if response is not None:
         return response
     elif isinstance(exc, ValidationError):
-        return Response({'detail': str(exc)}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+        return Response({'detail': exc.messages}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
     else:
         return Response({'detail': str(exc)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
