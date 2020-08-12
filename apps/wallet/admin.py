@@ -124,6 +124,7 @@ class TransactionAdmin(admin.ModelAdmin):
     list_display = ['from_wallet', 'to_wallet', 'amount', 'state']
     list_filter = ['from_wallet__currency', 'state']
     search_fields = ['from_wallet__wallet_id', 'to_wallet__wallet_id']
+    actions = ['retry_failed']
 
     def retry_failed(modeladmin, request, queryset):
         queryset.filter(state=TRANSACTION_STATES.FAILED.value).update(
