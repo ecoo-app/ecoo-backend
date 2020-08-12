@@ -7,6 +7,21 @@ from apps.verification.models import SMSPinVerification, VERIFICATION_STATES
 from apps.wallet.models import WALLET_CATEGORIES, WALLET_STATES
 from apps.wallet.utils import create_claim_transaction
 from project.utils import raise_api_exception
+from apps.verification.utils import send_sms
+
+
+@api_view(['POST'])
+def resend_user_profile_pin(request, user_profile_uuid=None):
+    user_profile = UserProfile.objects.get(uuid=user_profile_uuid)
+    if user_profile.owner != request.user:
+        raise PermissionDenied("The profile does not belong to you")
+    if user_profile.sms_pin_verification.state == VERIFICATION_STATES.PENDING.value:
+        send_sms(user_profile.telephone_number,
+                 user_profile.sms_pin_verification.pin)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    else:
+        raise_api_exception(
+            422, 'no pin verification open for given user profile at this time')
 
 
 @api_view(['POST'])

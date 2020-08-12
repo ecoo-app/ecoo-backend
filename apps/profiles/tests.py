@@ -7,6 +7,7 @@ from apps.verification.models import VERIFICATION_STATES, UserVerification, Comp
 from apps.wallet.models import (WALLET_CATEGORIES, WALLET_STATES,
                                 MetaTransaction, Transaction, Wallet)
 from apps.profiles.models import UserProfile, CompanyProfile
+from django.conf import settings
 
 
 class ProfileApiTest(APITestCase):
@@ -14,6 +15,7 @@ class ProfileApiTest(APITestCase):
     pubkey_2 = 'edpkuvNy6TuQ2z8o9wnoaTtTXkzQk7nhegCHfxBc4ecsd4qG71KYNg'
 
     def setUp(self):
+        settings.DEBUG = True
         self.user = get_user_model().objects.create(
             username="testuser", password="abcd")
         self.user_2 = get_user_model().objects.create(
@@ -39,6 +41,9 @@ class ProfileApiTest(APITestCase):
             to_wallet=self.currency.owner_wallet, amount=2000)
         Transaction.objects.create(
             to_wallet=self.currency_2.owner_wallet, amount=2000)
+
+    def tearDown(self):
+        settings.DEBUG = False
 
     def test_user_profile_verification_flow(self):
         user_verification = UserVerification.objects.create(
@@ -99,10 +104,14 @@ class ProfileApiTest(APITestCase):
         self.client.force_authenticate(user=self.user_2)
 
         response = self.client.post(
-            '/api/verification/verify_user_profile_pin/{}'.format(user_profile.pk), data, format='json')
+            '/api/verification/resend_user_profile_pin/{}'.format(user_profile.pk), data, format='json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
         self.client.force_authenticate(user=self.user)
+
+        response = self.client.post(
+            '/api/verification/resend_user_profile_pin/{}'.format(user_profile.pk), data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
         response = self.client.post(
             '/api/verification/verify_user_profile_pin/{}'.format(user_profile.pk), {'pin': 'WRONG'}, format='json')
@@ -114,6 +123,11 @@ class ProfileApiTest(APITestCase):
         response = self.client.post(
             '/api/verification/verify_user_profile_pin/{}'.format(user_profile.pk), {'pin': pin}, format='json')
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        response = self.client.post(
+            '/api/verification/resend_user_profile_pin/{}'.format(user_profile.pk), data, format='json')
+        self.assertEqual(response.status_code,
+                         status.HTTP_422_UNPROCESSABLE_ENTITY)
 
         user_verification = UserVerification.objects.get(
             pk=user_verification.pk)
