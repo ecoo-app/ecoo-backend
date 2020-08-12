@@ -1,7 +1,6 @@
 from rest_framework.pagination import CursorPagination
 from pytezos import pytezos, michelson
 from django.utils.timezone import now
-from apps.wallet.models import Wallet, MetaTransaction, Transaction, WalletPublicKeyTransferRequest, TRANSACTION_STATES
 from django.conf import settings
 from django.utils.timezone import now
 from pytezos import michelson, pytezos
@@ -315,6 +314,8 @@ def publish_wallet_recovery_transfer_balance():
 
 
 def create_claim_transaction(wallet):
+    from apps.wallet.models import Wallet, MetaTransaction, Transaction, WalletPublicKeyTransferRequest, TRANSACTION_STATES
+
     Transaction.objects.create(from_wallet=wallet.currency.owner_wallet,
                                to_wallet=wallet, amount=wallet.currency.starting_capital)
     wallet.notify_owner_receiving_money(

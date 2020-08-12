@@ -1,25 +1,15 @@
-from django.db.models import Max
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
-from apps.wallet.models import CashOutRequest, MetaTransaction, Transaction, WalletPublicKeyTransferRequest, TRANSACTION_STATES, WALLET_CATEGORIES, WALLET_STATES, Wallet
-from apps.wallet.utils import create_message
-import pytezos
-from pytezos import Key
-from schwifty import IBAN
-
+from apps.wallet.models import Wallet, CashOutRequest, MetaTransaction, Transaction, WALLET_CATEGORIES, WALLET_STATES
 
 @receiver(pre_save, sender=Transaction, dispatch_uid='custom_transaction_validation')
 def custom_transaction_validation(sender, instance, **kwargs):
-    # Wiring for custom validation
-    if 'raw' in kwargs and not kwargs['raw']:
-        kwargs['instance'].full_clean()
+    instance.full_clean()
 
 
 @receiver(pre_save, sender=MetaTransaction, dispatch_uid='custom_meta_transaction_validation')
 def custom_meta_transaction_validation(sender, instance, **kwargs):
-    # Wiring for custom validation
-    if 'raw' in kwargs and not kwargs['raw']:
-        kwargs['instance'].full_clean()
+    instance.full_clean()
 
     instance.to_wallet.notify_owner_receiving_money(
         instance.from_wallet, instance.amount)
@@ -29,9 +19,7 @@ def custom_meta_transaction_validation(sender, instance, **kwargs):
 
 @receiver(pre_save, sender=Wallet, dispatch_uid='pre_save_signal_wallet')
 def pre_save_signal_wallet(sender, instance, **kwargs):
-    # Wiring for custom validation
-    if 'raw' in kwargs and not kwargs['raw']:
-        kwargs['instance'].full_clean()
+    instance.full_clean()
 
     if instance.company is not None:
         instance.category = WALLET_CATEGORIES.COMPANY.value
@@ -52,6 +40,4 @@ def pre_save_signal_wallet(sender, instance, **kwargs):
 
 @receiver(pre_save, sender=CashOutRequest, dispatch_uid='custom_cash_out_request_validation')
 def custom_cash_out_request_validation(sender, instance, **kwargs):
-    # Wiring for custom validation
-    if 'raw' in kwargs and not kwargs['raw']:
-        kwargs['instance'].full_clean()
+    instance.full_clean()

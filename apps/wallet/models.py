@@ -16,6 +16,8 @@ import pytezos
 from apps.currency.mixins import CurrencyOwnedMixin
 from project.mixins import UUIDModel
 from django.utils.translation import ugettext_lazy as _
+from apps.wallet.utils import create_message
+from schwifty import IBAN
 
 
 class Company(UUIDModel):
@@ -251,7 +253,7 @@ class MetaTransaction(Transaction):
             raise ValidationError("Nonce must be > 0")
         if self.nonce <= (MetaTransaction.objects.filter(from_wallet=self.from_wallet).aggregate(Max('nonce'))['nonce__max'] or 0):
             raise ValidationError("Nonce must be higher than from_wallet's last meta transaction")
-        if self.from_wallet.currency != instance.to_wallet.currency:
+        if self.from_wallet.currency != self.to_wallet.currency:
             raise ValidationError("'From wallet' and 'to wallet' need to use same currency")
 
         message = create_message(self.from_wallet, self.to_wallet,
@@ -303,7 +305,7 @@ class CashOutRequest(UUIDModel):
             IBAN(self.beneficiary_iban)
         except:
             raise ValidationError('the iban is incorrect')
-        if instance.transaction.to_wallet.uuid != instance.transaction.to_wallet.currency.owner_wallet.uuid:
+        if self.transaction.to_wallet.uuid != self.transaction.to_wallet.currency.owner_wallet.uuid:
             raise ValidationError('cash out only possible with transactions going to the owner wallet of the currency')
 
         super(CashOutRequest, self).clean(*args, **kwargs)   
