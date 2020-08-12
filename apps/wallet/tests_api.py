@@ -11,6 +11,7 @@ from apps.wallet.utils import (pack_meta_transaction,
                                publish_open_meta_transactions_to_chain,
                                read_nonce_from_chain)
 from django.db.utils import IntegrityError
+from django.core.exceptions import ValidationError
 
 
 class WalletApiTest(APITestCase):
@@ -287,7 +288,7 @@ class CashOutRequestApiTest(APITestCase):
                          1, CashOutRequest.objects.all().count())
 
         self.client.force_authenticate(user=self.user)
-        with self.assertRaises(IntegrityError):
+        with self.assertRaises(ValidationError):
             response = self.client.post('/api/wallet/cash_out_request/', {
                 "transaction": self.token_transaction.uuid,
                 "beneficiary_name": "Papers AG",

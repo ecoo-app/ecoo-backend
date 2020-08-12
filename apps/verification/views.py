@@ -1,14 +1,10 @@
-from django.core.exceptions import FieldError, PermissionDenied, MultipleObjectsReturned
-from django.shortcuts import render
-from rest_framework import generics, status
+from django.core.exceptions import PermissionDenied
+from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from apps.profiles.models import UserProfile, CompanyProfile
-from apps.verification.models import (VERIFICATION_STATES, CompanyVerification,
-                                      UserVerification, SMSPinVerification)
-from apps.wallet.models import (WALLET_CATEGORIES, WALLET_STATES,
-                                MetaTransaction, Wallet)
-from apps.wallet.serializers import WalletSerializer
+from apps.verification.models import SMSPinVerification, VERIFICATION_STATES
+from apps.wallet.models import WALLET_CATEGORIES, WALLET_STATES
 from apps.wallet.utils import create_claim_transaction
 from project.utils import raise_api_exception
 
