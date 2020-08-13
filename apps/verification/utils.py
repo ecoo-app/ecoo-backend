@@ -58,4 +58,5 @@ def send_postcard(text='', title='', firstname='', lastname='', company='', stre
                                  'senderText': text,
                                  'branding': POST_API_CONFIG['branding']
                              })
-
+    print(response.text)
+    return (response.ok, response.text)

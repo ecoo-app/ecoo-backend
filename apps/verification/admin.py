@@ -11,6 +11,7 @@ from django.contrib import messages
 from django.http import HttpResponseRedirect
 from apps.currency.models import Currency
 from apps.verification.filters import VerificaitonFilter
+from django.utils.translation import gettext as _
 import csv
 
 
@@ -35,19 +36,19 @@ def approve_verification(modeladmin, request, queryset):
         updated += 1
 
     self.message_user(request, ngettext(
-        '%d entry updated.',
-        '%d entries updated.',
+        _('%d entry updated.'),
+        _('%d entries updated.'),
         updated,
     ) % updated, messages.SUCCESS)
 
     self.message_user(request, ngettext(
-        '%d entry updated.',
-        '%d entries updated.',
+        _('%d entry updated.'),
+        _('%d entries updated.'),
         transactions_created,
     ) % transactions_created, messages.SUCCESS)
 
 
-approve_verification.short_description = 'Approve selected verification entries and transfer money'
+approve_verification.short_description = _('Approve selected verification entries and transfer money')
 
 
 class ImportMixin:
@@ -69,8 +70,7 @@ class ImportMixin:
                     for row in csv_reader:
                         line_number += 1
                         if not is_row_valid(row):
-                            form.add_error('csv_file', 'Line Nr {} is invalid:{}'.format(
-                                str(line_number), row))
+                            form.add_error('csv_file', _('Line Nr {line_number} is invalid:{row}') % {'line_number': str(line_number), 'row': row})
                             transaction.set_rollback(True)
                             break
 
