@@ -16,6 +16,20 @@ from django.utils.translation import ugettext_lazy as _
 from apps.wallet.models import Wallet, WALLET_CATEGORIES
 
 
+class PROFILE_VERIFICATION_STAGES(Enum):
+    UNVERIFIED = 0
+    PARTIALLY_VERIFIED = 1
+    VERIFIED = 2
+
+
+PROFILE_VERIFICATION_STAGES_CHOICES = (
+    (PROFILE_VERIFICATION_STAGES.UNVERIFIED.value, _('Unverified')),
+    (PROFILE_VERIFICATION_STAGES.PARTIALLY_VERIFIED.value,
+     _('Verified (PIN verification pending)')),
+    (PROFILE_VERIFICATION_STAGES.VERIFIED.value, _('Verified')),
+)
+
+
 class CompanyProfile(UUIDModel):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL,
                               on_delete=models.CASCADE, related_name='company_profiles')
@@ -42,6 +56,10 @@ class CompanyProfile(UUIDModel):
                 return 1
         else:
             return 0
+
+    @property
+    def verification_stage_display(self):
+        return dict(PROFILE_VERIFICATION_STAGES_CHOICES).get(self.verification_stage)
 
     def clean(self, *args, **kwargs):
         if self.wallet.category != WALLET_CATEGORIES.COMPANY.value:
@@ -86,6 +104,10 @@ class UserProfile(UUIDModel):
                 return 1
         else:
             return 0
+
+    @property
+    def verification_stage_display(self):
+        return dict(PROFILE_VERIFICATION_STAGES_CHOICES).get(self.verification_stage)
 
     def clean(self, *args, **kwargs):
         if self.wallet.category != WALLET_CATEGORIES.CONSUMER.value:
