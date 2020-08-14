@@ -11,7 +11,10 @@ from apps.verification.utils import send_sms, send_postcard
 def custom_sms_pin_verification_validation(sender, instance, **kwargs):
     if not instance.pin:
         instance.pin = token_hex(4)
-        send_sms(instance.user_profile.telephone_number, instance.pin)
+        send_sms(
+            to_number=instance.user_profile.telephone_number, 
+            message=instance.pin
+        )
 
 
 @receiver(pre_save, sender=AddressPinVerification, dispatch_uid='custom_address_pin_verification_validation')
@@ -19,9 +22,9 @@ def custom_address_pin_verification_validation(sender, instance, **kwargs):
     if not instance.pin:
         instance.pin = token_hex(4)
         send_postcard(
-            text=instance.pin, 
+            message=instance.pin, 
             company=instance.company_profile.name, 
             street=instance.company_profile.address_street,
-             zip=instance.company_profile.address_postal_code,
-             city=instance.company_profile.address_town,
+            zip=instance.company_profile.address_postal_code,
+            city=instance.company_profile.address_town,
         )

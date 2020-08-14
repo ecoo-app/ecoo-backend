@@ -58,7 +58,6 @@ def send_postcard(message='', title='', firstname='', lastname='', company='', s
                                     'senderText': message,
                                     'branding': POST_API_CONFIG['branding']
                                 })
-        print(response.text)
         return (response.ok, response.text)
     else:
         print('sending immaginary POSTCARD to {}:"{}"'.format(company, message))
