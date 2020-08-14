@@ -15,8 +15,7 @@ def custom_company_profile_validation(sender, instance, **kwargs):
         company_verification.state = VERIFICATION_STATES.PENDING.value
         company_verification.save()
 
-        address_pin_verification = AddressPinVerification.objects.create(company_profile=instance,
-                                                                         state=VERIFICATION_STATES.PENDING.value)
+        address_pin_verification = AddressPinVerification.objects.create(company_profile=instance, state=VERIFICATION_STATES.PENDING.value)
 
 
 @receiver(post_save, sender=UserProfile, dispatch_uid='custom_user_profile_validation')
@@ -33,5 +32,4 @@ def custom_user_profile_validation(sender, instance, **kwargs):
         user_verification.state = VERIFICATION_STATES.PENDING.value
         user_verification.save()
 
-        SMSPinVerification.objects.create(
-            user_profile=instance, state=VERIFICATION_STATES.PENDING.value)
+        SMSPinVerification.objects.create(user_profile=instance, state=VERIFICATION_STATES.PENDING.value)

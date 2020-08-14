@@ -20,16 +20,6 @@ from apps.wallet.utils import create_message
 from schwifty import IBAN
 
 
-class Company(UUIDModel):
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL,
-                              on_delete=models.DO_NOTHING)
-    name = models.CharField(max_length=32)
-
-    class Meta:
-        ordering = ['created_at']
-        verbose_name_plural = "Companies"
-
-
 class WALLET_STATES(Enum):
     UNVERIFIED = 0
     PENDING = 1
@@ -56,14 +46,9 @@ WALLET_CATEGORY_CHOICES = (
 
 
 class Wallet(CurrencyOwnedMixin):
-    owner = models.ForeignKey(
-        settings.AUTH_USER_MODEL, blank=True, null=True, on_delete=models.DO_NOTHING, related_name='wallets')
-    company = models.ForeignKey(
-        Company, blank=True, null=True, on_delete=models.SET_NULL, related_name='wallets')
-
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True, on_delete=models.DO_NOTHING, related_name='wallets')
     wallet_id = models.CharField(_('Wallet Id'), unique=True, blank=True, editable=False, max_length=128)
     public_key = models.CharField(_('Publickey'), unique=True, max_length=60)  # encoded public_key
-
     category = models.IntegerField(_('Category'), default=WALLET_CATEGORIES.CONSUMER.value, choices=WALLET_CATEGORY_CHOICES)
     state = models.IntegerField(_('State'), default=WALLET_STATES.UNVERIFIED.value, choices=WALLET_STATE_CHOICES)
 
@@ -83,13 +68,8 @@ class Wallet(CurrencyOwnedMixin):
     def is_in_public_key_transfer(self):
         return self.transfer_requests.filter(state=2).exists()
 
-    @property
-    def claim_count(self):
-        from apps.verification.models import VERIFICATION_STATES
-        return self.company_claims.filter(state=VERIFICATION_STATES.CLAIMED.value).count() + self.user_claims.filter(state=VERIFICATION_STATES.CLAIMED.value).count()
-
     def __str__(self):
-        return self.wallet_id
+        return '{} - {}'.format(self.wallet_id, self.currency)
 
     @staticmethod
     def generate_wallet_id():
@@ -100,35 +80,29 @@ class Wallet(CurrencyOwnedMixin):
     def notify_owner_receiving_money(self, from_wallet_id, amount):
         # TODO: multi language support?
         self.__notify_owner_devices(
-            f'You have received {amount/pow(10,self.currency.decimals)} CHF from {from_wallet_id}')
+            f'Sie haben {amount/pow(10,self.currency.decimals)} CHF von {from_wallet_id} erhalten')
 
     def notify_transfer_successful(self, to_wallet_id, amount):
         self.__notify_owner_devices(
-            f'You have sent {amount/pow(10,self.currency.decimals)} CHF to {to_wallet_id}')
+            f'Sie haben {amount/pow(10,self.currency.decimals)} CHF an {to_wallet_id} gesendet')
 
     def notify_owner_verified(self):
-        self.__notify_owner_devices(f'Wallet {self.wallet_id} is now verified')
+        self.__notify_owner_devices(f'Wallet {self.wallet_id} wurde verifiziert')
 
     def __notify_owner_devices(self, message):
         devices = FCMDevice.objects.filter(user=self.owner)
-        devices.send_message(title="eCoupon", body=message)
+        devices.send_message(title=settings.PUSH_NOTIFICATION_TITLE, body=message)
 
     def clean(self, *args, **kwargs):
-
-        if self.company is not None:
-            if self.company.owner != self.owner:
-                raise ValidationError("You are not the owner of the company")
-        
-        super(Wallet, self).clean(*args, **kwargs)            
-
-
+        super(Wallet, self).clean(*args, **kwargs)
 
     class Meta:
         ordering = ['created_at']
 
 
 class OwnerWallet(Wallet):
-    private_key = models.CharField(_('Privatekey'),unique=True, max_length=128)
+    private_key = models.CharField(
+        _('Privatekey'), unique=True, max_length=128)
 
     def save(self, *args, **kwargs):
         self.state = WALLET_CATEGORIES.OWNER.value
@@ -136,12 +110,14 @@ class OwnerWallet(Wallet):
 
 
 class PaperWallet(Wallet):
-    user_verification = models.ForeignKey('verification.UserVerification', null=True,on_delete=models.DO_NOTHING, )
+    user_verification = models.ForeignKey(
+        'verification.UserVerification', null=True, on_delete=models.DO_NOTHING, )
     private_key = models.CharField(unique=True, max_length=128)
 
     def save(self, *args, **kwargs):
         self.state = WALLET_CATEGORIES.OWNER.value
         super(PaperWallet, self).save(*args, **kwargs)
+
 
 class TRANSACTION_STATES(Enum):
     OPEN = 1
@@ -159,22 +135,17 @@ TRANSACTION_STATE_CHOICES = (
 
 
 class Transaction(UUIDModel):
-    from_wallet = models.ForeignKey(
-        Wallet, on_delete=models.DO_NOTHING, related_name='from_transactions', blank=True, null=True)
-    to_wallet = models.ForeignKey(
-        Wallet, on_delete=models.DO_NOTHING, related_name='to_transactions')
-    amount = models.IntegerField()
+    from_wallet = models.ForeignKey(Wallet, verbose_name=_('From Wallet'), on_delete=models.DO_NOTHING, related_name='from_transactions', blank=True, null=True)
+    to_wallet = models.ForeignKey(Wallet, verbose_name=_('To Wallet'), on_delete=models.DO_NOTHING, related_name='to_transactions')
+    amount = models.IntegerField(verbose_name=_('Amount'),)
 
-    state = models.IntegerField(
-        choices=TRANSACTION_STATE_CHOICES, default=TRANSACTION_STATES.OPEN.value)
+    state = models.IntegerField(verbose_name=_('State'), choices=TRANSACTION_STATE_CHOICES, default=TRANSACTION_STATES.OPEN.value)
 
-    submitted_to_chain_at = models.DateTimeField(
-        null=True, blank=True, editable=False)
+    submitted_to_chain_at = models.DateTimeField(verbose_name=_('Submitted to chain'), null=True, blank=True, editable=False)
 
-    operation_hash = models.CharField(
-        max_length=128, blank=True, editable=False)
+    operation_hash = models.CharField(verbose_name=_('Operation hash'), max_length=128, blank=True, editable=False)
 
-    notes = models.TextField(blank=True, editable=False)
+    notes = models.TextField(verbose_name=_('Notes'), blank=True, editable=False)
 
     def __str__(self):
         if self.from_wallet:
@@ -204,29 +175,34 @@ class Transaction(UUIDModel):
     def clean(self, *args, **kwargs):
 
         if self.to_wallet.transfer_requests.exclude(state=TRANSACTION_STATES.DONE.value).exists():
-            raise ValidationError(_('Wallet transfer ongoing for destination wallet, cannot send funds to this wallet at the moment.'))
+            raise ValidationError(
+                _('Wallet transfer ongoing for destination wallet, cannot send funds to this wallet at the moment.'))
         if self.amount <= 0:
             raise ValidationError(_('Amount must be > 0'))
         if self.is_mint_transaction and not self.to_wallet.currency.allow_minting:
-            raise ValidationError(_('Currency must allow minting if you want to mint'))
-        
+            raise ValidationError(
+                _('Currency must allow minting if you want to mint'))
+
         if not self.is_mint_transaction:
             if self.from_wallet.balance < self.amount:
-                raise ValidationError(_('Balance of from_wallet must be greater than amount'))
+                raise ValidationError(
+                    _('Balance of from_wallet must be greater than amount'))
             if self.from_wallet.currency != self.to_wallet.currency:
-                raise ValidationError(_('"From wallet" and "to wallet" need to use same currency'))
+                raise ValidationError(
+                    _('"From wallet" and "to wallet" need to use same currency'))
             if self.from_wallet.transfer_requests.exclude(state=TRANSACTION_STATES.DONE.value).exists():
-                raise ValidationError(_('Wallet transfer ongoing for source wallet, cannot send funds from this wallet at the moment.'))
+                raise ValidationError(
+                    _('Wallet transfer ongoing for source wallet, cannot send funds from this wallet at the moment.'))
             if self.from_wallet.state != WALLET_STATES.VERIFIED.value:
-                raise ValidationError(_('Only verified addresses can send money'))
+                raise ValidationError(
+                    _('Only verified addresses can send money'))
 
-        super(Transaction, self).clean(*args, **kwargs)            
-
+        super(Transaction, self).clean(*args, **kwargs)
 
     class Meta:
         ordering = ['created_at']
-        verbose_name=_('Transaction')
-        verbose_name_plural=_('Transactions')
+        verbose_name = _('Transaction')
+        verbose_name_plural = _('Transactions')
 
 
 class MetaTransaction(Transaction):
@@ -250,25 +226,26 @@ class MetaTransaction(Transaction):
         if not self.nonce or self.nonce <= 0:
             raise ValidationError(_('Nonce must be > 0'))
         if self.nonce <= (MetaTransaction.objects.filter(from_wallet=self.from_wallet).aggregate(Max('nonce'))['nonce__max'] or 0):
-            raise ValidationError(_('Nonce must be higher than from_wallet\'s last meta transaction'))
+            raise ValidationError(
+                _('Nonce must be higher than from_wallet\'s last meta transaction'))
         if self.from_wallet.currency != self.to_wallet.currency:
-            raise ValidationError(_('"From wallet" and "to wallet" need to use same currency'))
+            raise ValidationError(
+                _('"From wallet" and "to wallet" need to use same currency'))
 
         message = create_message(self.from_wallet, self.to_wallet,
-                                self.nonce, self.from_wallet.currency.token_id, self.amount)
+                                 self.nonce, self.from_wallet.currency.token_id, self.amount)
         key = pytezos.Key.from_encoded_key(self.from_wallet.public_key)
         try:
             key.verify(self.signature, message)
         except ValueError:
             raise ValidationError(_('Signature is invalid'))
 
-
-        super(MetaTransaction, self).clean(*args, **kwargs)   
+        super(MetaTransaction, self).clean(*args, **kwargs)
 
     class Meta:
         ordering = ['created_at']
-        verbose_name=_('Meta transaction')
-        verbose_name_plural=_('Meta transactions')
+        verbose_name = _('Meta transaction')
+        verbose_name_plural = _('Meta transactions')
 
 
 class WalletPublicKeyTransferRequest(UUIDModel):
@@ -278,7 +255,6 @@ class WalletPublicKeyTransferRequest(UUIDModel):
     new_public_key = models.CharField(max_length=60)
     state = models.IntegerField(
         choices=TRANSACTION_STATE_CHOICES, default=TRANSACTION_STATES.OPEN.value)
-
 
     submitted_to_chain_at = models.DateTimeField(null=True, blank=True)
     operation_hash = models.CharField(max_length=128, blank=True)
@@ -290,11 +266,14 @@ class WalletPublicKeyTransferRequest(UUIDModel):
 
 
 class CashOutRequest(UUIDModel):
-    transaction = models.OneToOneField(Transaction, verbose_name=_('Transaction'), on_delete=models.DO_NOTHING, related_name='cash_out_requests', unique=True)
-    state = models.IntegerField(verbose_name=_('State'), choices=TRANSACTION_STATE_CHOICES, default=TRANSACTION_STATES.OPEN.value)
-    beneficiary_name = models.CharField(verbose_name=_('Beneficiary name'), max_length=255,)
-    beneficiary_iban = models.CharField(verbose_name=_('IBAN'), max_length=255,)
-
+    transaction = models.OneToOneField(Transaction, verbose_name=_(
+        'Transaction'), on_delete=models.DO_NOTHING, related_name='cash_out_requests', unique=True)
+    state = models.IntegerField(verbose_name=_(
+        'State'), choices=TRANSACTION_STATE_CHOICES, default=TRANSACTION_STATES.OPEN.value)
+    beneficiary_name = models.CharField(
+        verbose_name=_('Beneficiary name'), max_length=255,)
+    beneficiary_iban = models.CharField(
+        verbose_name=_('IBAN'), max_length=255,)
 
     def clean(self, *args, **kwargs):
         try:
@@ -302,12 +281,12 @@ class CashOutRequest(UUIDModel):
         except:
             raise ValidationError(_('Iban is incorrect'))
         if self.transaction.to_wallet.uuid != self.transaction.to_wallet.currency.owner_wallet.uuid:
-            raise ValidationError(_('Cash out only possible with transactions going to the owner wallet of the currency'))
+            raise ValidationError(
+                _('Cash out only possible with transactions going to the owner wallet of the currency'))
 
-        super(CashOutRequest, self).clean(*args, **kwargs)   
+        super(CashOutRequest, self).clean(*args, **kwargs)
 
     class Meta:
         ordering = ['created_at']
-        verbose_name=_('Cash out request')
-        verbose_name_plural=_('Cash out requests')
-
+        verbose_name = _('Cash out request')
+        verbose_name_plural = _('Cash out requests')

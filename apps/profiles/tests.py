@@ -327,9 +327,9 @@ class ProfileApiTest(APITestCase):
         }
 
         self.client.force_authenticate(user=self.user)
-        response = self.client.post(
-            '/api/profiles/company_profiles/', data, format='json')
+        response = self.client.post('/api/profiles/company_profiles/', data, format='json')
         # the second create overrides user 2
+
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         user_1_profile_uuid = response.data['uuid']
 

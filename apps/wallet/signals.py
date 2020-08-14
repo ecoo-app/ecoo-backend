@@ -2,6 +2,7 @@ from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from apps.wallet.models import Wallet, CashOutRequest, MetaTransaction, Transaction, WALLET_CATEGORIES, WALLET_STATES
 
+
 @receiver(pre_save, sender=Transaction, dispatch_uid='custom_transaction_validation')
 def custom_transaction_validation(sender, instance, **kwargs):
     instance.full_clean()
@@ -21,9 +22,6 @@ def custom_meta_transaction_validation(sender, instance, **kwargs):
 def pre_save_signal_wallet(sender, instance, **kwargs):
     instance.full_clean()
 
-    if instance.company is not None:
-        instance.category = WALLET_CATEGORIES.COMPANY.value
-
     if instance.wallet_id is None or len(instance.wallet_id) <= 0:
         instance.wallet_id = Wallet.generate_wallet_id()
         while Wallet.objects.filter(wallet_id=instance.wallet_id).exists():
@@ -31,7 +29,6 @@ def pre_save_signal_wallet(sender, instance, **kwargs):
     if instance.uuid is not None:
         try:
             previous = Wallet.objects.get(uuid=instance.uuid)
-
             if instance.state != previous.state and instance.state == WALLET_STATES.VERIFIED:
                 instance.notify_owner_verified()
         except Wallet.DoesNotExist:

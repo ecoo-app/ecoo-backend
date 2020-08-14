@@ -48,7 +48,8 @@ def approve_verification(modeladmin, request, queryset):
     ) % transactions_created, messages.SUCCESS)
 
 
-approve_verification.short_description = _('Approve selected verification entries and transfer money')
+approve_verification.short_description = _(
+    'Approve selected verification entries and transfer money')
 
 
 class ImportMixin:
@@ -70,7 +71,8 @@ class ImportMixin:
                     for row in csv_reader:
                         line_number += 1
                         if not is_row_valid(row):
-                            form.add_error('csv_file', _('Line Nr {line_number} is invalid:{row}') % {'line_number': str(line_number), 'row': row})
+                            form.add_error('csv_file', _('Line Nr {line_number} is invalid:{row}') % {
+                                           'line_number': str(line_number), 'row': row})
                             transaction.set_rollback(True)
                             break
 
@@ -95,8 +97,8 @@ class ImportMixin:
 @admin.register(UserVerification)
 class UserVerificationAdmin(ImportMixin, admin.ModelAdmin):
     list_display = ['first_name', 'last_name', 'address_street',
-                    'address_town', 'address_postal_code', 'date_of_birth',]
-    list_filter = ['state', VerificaitonFilter]
+                    'address_town', 'address_postal_code', 'date_of_birth', 'state']
+    list_filter = ['state']
     search_fields = ['first_name', 'last_name', 'address_street',
                      'address_town', 'address_postal_code', 'date_of_birth']
 
@@ -114,7 +116,7 @@ class UserVerificationAdmin(ImportMixin, admin.ModelAdmin):
 @admin.register(CompanyVerification)
 class CompanyVerificationAdmin(ImportMixin, admin.ModelAdmin):
     list_display = ['name', 'uid', 'state']
-    list_filter = ['state', VerificaitonFilter]
+    list_filter = ['state']
     search_fields = ['name', 'uid']
 
     import_name = 'company_import'
@@ -126,12 +128,14 @@ class CompanyVerificationAdmin(ImportMixin, admin.ModelAdmin):
     def get_urls(self):
         return self.get_extra_urls() + super(CompanyVerificationAdmin, self).get_urls()
 
+
 @admin.register(SMSPinVerification)
 class SMSPinVerificationAdmin(admin.ModelAdmin):
     readonly_fields = ['user_profile', 'pin']
-    list_display = ['user_profile', 'pin']
+    list_display = ['user_profile', 'pin', 'state']
+
 
 @admin.register(AddressPinVerification)
 class AddressPinVerificationAdmin(admin.ModelAdmin):
     readonly_fields = ['company_profile', 'pin']
-    list_display = ['company_profile', 'pin']
+    list_display = ['company_profile', 'pin', 'state']

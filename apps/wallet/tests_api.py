@@ -41,11 +41,25 @@ class WalletApiTest(APITestCase):
         wallet_count = Wallet.objects.all().count()
         response = self.client.post('/api/wallet/wallet/', {
             "public_key": self.pubkey_1,
-            "currency": self.currency.uuid,
-            "is_company_wallet": False
+            "currency": self.currency.uuid
         }, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(wallet_count, Wallet.objects.all().count())
+
+    def test_create_wallet_owner_category(self):
+        # correct request
+        self.client.force_authenticate(user=self.user)
+
+        wallet_count = Wallet.objects.all().count()
+
+        response = self.client.post('/api/wallet/wallet/', {
+            "public_key": self.pubkey_1,
+            "currency": self.currency.uuid,
+            "category": 2
+        }, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(wallet_count, Wallet.objects.all().count())
 
     def test_create_wallet_authorized_bad_request(self):
@@ -55,16 +69,14 @@ class WalletApiTest(APITestCase):
 
         # bad requests
         response = self.client.post('/api/wallet/wallet/', {
-            "currency": self.currency.uuid,
-            "is_company_wallet": False
+            "currency": self.currency.uuid
         }, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(wallet_count, Wallet.objects.all().count())
 
         response = self.client.post('/api/wallet/wallet/', {
-            "public_key": self.pubkey_1,
-            "is_company_wallet": False
+            "public_key": self.pubkey_1
         }, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -78,8 +90,7 @@ class WalletApiTest(APITestCase):
 
         response = self.client.post('/api/wallet/wallet/', {
             "public_key": self.pubkey_1,
-            "currency": self.currency.uuid,
-            "is_company_wallet": False
+            "currency": self.currency.uuid
         }, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -90,8 +101,7 @@ class WalletApiTest(APITestCase):
 
         response = self.client.post('/api/wallet/wallet/', {
             "public_key": self.pubkey_1,
-            "currency": self.currency.uuid,
-            "is_company_wallet": False
+            "currency": self.currency.uuid
         }, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

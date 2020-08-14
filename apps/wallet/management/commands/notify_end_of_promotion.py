@@ -4,6 +4,7 @@ from django.core.management.base import BaseCommand, CommandError
 from fcm_django.models import FCMDevice
 
 from apps.wallet.models import WALLET_STATES, Wallet, WALLET_CATEGORIES
+from django.conf import settings 
 
 class Command(BaseCommand):
     help = 'Notifies all wallet users which have not verified yet'
@@ -31,4 +32,4 @@ class Command(BaseCommand):
                     users_to_notify = Wallets.objects.filter(currency=currency, balance__gt=0,category=category ).values_list('owner').distinct()
                     devices = FCMDevice.objects.filter(user__in=user_uuids_to_notify)
                     self.stdout.write(f'Currency: {currency.name} Notifying {len(devices)} potential devices')
-                    devices.send_message(title="eCoupon", body= msg + f' in {days}')
+                    devices.send_message(title=settings.PUSH_NOTIFICATION_TITLE, body= msg + f' in {days}')
