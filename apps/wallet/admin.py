@@ -97,8 +97,7 @@ class PaperWalletAdmin(WalletAdmin):
                     print(str(i) + ' wallet generated')
 
                 if form.is_valid():
-                    messages.add_message(request, messages.SUCCESS, _(
-                        '{amount} Wallets generated') % {amount: amount})
+                    messages.add_message(request, messages.SUCCESS, _('{} Wallets generated').format(amount))
                     return HttpResponseRedirect(request.META['HTTP_REFERER'])
 
         return TemplateResponse(request, 'admin/generate_wallets.html', {'form': form, 'opts': self.opts, 'media': self.media, })

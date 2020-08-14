@@ -46,18 +46,11 @@ WALLET_CATEGORY_CHOICES = (
 
 
 class Wallet(CurrencyOwnedMixin):
-    owner = models.ForeignKey(
-        settings.AUTH_USER_MODEL, blank=True, null=True, on_delete=models.DO_NOTHING, related_name='wallets')
-
-    wallet_id = models.CharField(
-        _('Wallet Id'), unique=True, blank=True, editable=False, max_length=128)
-    public_key = models.CharField(
-        _('Publickey'), unique=True, max_length=60)  # encoded public_key
-
-    category = models.IntegerField(
-        _('Category'), default=WALLET_CATEGORIES.CONSUMER.value, choices=WALLET_CATEGORY_CHOICES)
-    state = models.IntegerField(
-        _('State'), default=WALLET_STATES.UNVERIFIED.value, choices=WALLET_STATE_CHOICES)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True, on_delete=models.DO_NOTHING, related_name='wallets')
+    wallet_id = models.CharField(_('Wallet Id'), unique=True, blank=True, editable=False, max_length=128)
+    public_key = models.CharField(_('Publickey'), unique=True, max_length=60)  # encoded public_key
+    category = models.IntegerField(_('Category'), default=WALLET_CATEGORIES.CONSUMER.value, choices=WALLET_CATEGORY_CHOICES)
+    state = models.IntegerField(_('State'), default=WALLET_STATES.UNVERIFIED.value, choices=WALLET_STATE_CHOICES)
 
     @property
     def address(self):
@@ -76,7 +69,7 @@ class Wallet(CurrencyOwnedMixin):
         return self.transfer_requests.filter(state=2).exists()
 
     def __str__(self):
-        return self.wallet_id
+        return '{} - {}'.format(self.wallet_id, self.currency)
 
     @staticmethod
     def generate_wallet_id():
@@ -142,22 +135,17 @@ TRANSACTION_STATE_CHOICES = (
 
 
 class Transaction(UUIDModel):
-    from_wallet = models.ForeignKey(
-        Wallet, on_delete=models.DO_NOTHING, related_name='from_transactions', blank=True, null=True)
-    to_wallet = models.ForeignKey(
-        Wallet, on_delete=models.DO_NOTHING, related_name='to_transactions')
-    amount = models.IntegerField()
+    from_wallet = models.ForeignKey(Wallet, verbose_name=_('From Wallet'), on_delete=models.DO_NOTHING, related_name='from_transactions', blank=True, null=True)
+    to_wallet = models.ForeignKey(Wallet, verbose_name=_('To Wallet'), on_delete=models.DO_NOTHING, related_name='to_transactions')
+    amount = models.IntegerField(verbose_name=_('Amount'),)
 
-    state = models.IntegerField(
-        choices=TRANSACTION_STATE_CHOICES, default=TRANSACTION_STATES.OPEN.value)
+    state = models.IntegerField(verbose_name=_('State'), choices=TRANSACTION_STATE_CHOICES, default=TRANSACTION_STATES.OPEN.value)
 
-    submitted_to_chain_at = models.DateTimeField(
-        null=True, blank=True, editable=False)
+    submitted_to_chain_at = models.DateTimeField(verbose_name=_('Submitted to chain'), null=True, blank=True, editable=False)
 
-    operation_hash = models.CharField(
-        max_length=128, blank=True, editable=False)
+    operation_hash = models.CharField(verbose_name=_('Operation hash'), max_length=128, blank=True, editable=False)
 
-    notes = models.TextField(blank=True, editable=False)
+    notes = models.TextField(verbose_name=_('Notes'), blank=True, editable=False)
 
     def __str__(self):
         if self.from_wallet:
