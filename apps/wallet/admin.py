@@ -125,11 +125,14 @@ class TransactionAdmin(admin.ModelAdmin):
     search_fields = ['from_wallet__wallet_id', 'to_wallet__wallet_id']
     actions = ['retry_failed']
 
+    def has_delete_permission(self, request, obj=None):
+        return False
+
     def retry_failed(modeladmin, request, queryset):
         queryset.filter(state=TRANSACTION_STATES.FAILED.value).update(
             state=TRANSACTION_STATES.OPEN.value)
 
-    retry_failed.short_description = _('retry failed transactions')
+    retry_failed.short_description = _('Retry failed transactions')
 
 
 @admin.register(MetaTransaction)

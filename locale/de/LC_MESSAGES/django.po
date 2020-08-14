@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-08-14 14:55+0000\n"
+"POT-Creation-Date: 2020-08-14 14:58+0000\n"
 "PO-Revision-Date: 2020-08-14 16:48+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -293,23 +293,23 @@ msgstr "QR-Codes Herunterladen"
 msgid "{} Wallets generated"
 msgstr "{} Wallets generiert"
 
-#: apps/wallet/admin.py:132
-msgid "retry failed transactions"
+#: apps/wallet/admin.py:135
+msgid "Retry failed transactions"
 msgstr ""
 
-#: apps/wallet/admin.py:170
+#: apps/wallet/admin.py:173
 msgid "Only open cashout out requests can be used in this action"
 msgstr "Nur offene Auszahlungsanfragen können diese Aktion durchführen"
 
-#: apps/wallet/admin.py:173
+#: apps/wallet/admin.py:176
 msgid "Only settled (done) transactions can be used in this action"
 msgstr "Nur abgeschlossene Transaktionen können diese Aktion durchführen"
 
-#: apps/wallet/admin.py:196
+#: apps/wallet/admin.py:199
 msgid "Please enter a correct payment date"
 msgstr "Bitte korrektes Zahlungsdatum angeben"
 
-#: apps/wallet/admin.py:203
+#: apps/wallet/admin.py:206
 #: apps/wallet/templates/admin/generate_payout_file.html:16
 #: apps/wallet/templates/admin/generate_payout_file.html:41
 msgid "Generate Payout XML"
@@ -378,6 +378,11 @@ msgstr "Anzahl muss grösser als 0 sein"
 #: apps/wallet/models.py:184
 msgid "Currency must allow minting if you want to mint"
 msgstr "Währung erlaubt kein minting"
+
+#: apps/wallet/models.py:189
+msgid "Balance of from_wallet must be greater than amount"
+msgstr ""
+"Kontostand vom Sender Wallet muss grösser als der zu sendende Betrag sein"
 
 #: apps/wallet/models.py:192 apps/wallet/models.py:233
 msgid "\"From wallet\" and \"to wallet\" need to use same currency"
@@ -503,10 +508,6 @@ msgstr "Passwort ändern"
 #: templates/admin/base.html:14
 msgid "Log out"
 msgstr "Ausloggen"
-
-#~ msgid "Balance of from_wallet must be greater than amount"
-#~ msgstr ""
-#~ "Kontostand vom Sender Wallet muss grösser als der zu sendende Betrag sein"
 
 #~ msgid "Requested"
 #~ msgstr "Angefordert"

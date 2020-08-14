@@ -30,17 +30,16 @@ PROFILE_VERIFICATION_STAGES_CHOICES = (
 
 
 class CompanyProfile(UUIDModel):
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='company_profiles')
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('Owner'), on_delete=models.CASCADE, related_name='company_profiles')
 
-    name = models.CharField(max_length=128)
-    uid = models.CharField(max_length=15, blank=True)
+    name = models.CharField(max_length=128, verbose_name=_('Name'),)
+    uid = models.CharField(max_length=15, blank=True, verbose_name=_('uid'),)
 
-    address_street = models.CharField(max_length=128, blank=True)
-    address_town = models.CharField(max_length=128, blank=True)
-    address_postal_code = models.CharField(max_length=128, blank=True)
+    address_street = models.CharField(max_length=128, blank=True, verbose_name=_('Street'),)
+    address_town = models.CharField(max_length=128, blank=True, verbose_name=_('Town'),)
+    address_postal_code = models.CharField(max_length=128, blank=True, verbose_name=_('Postal code'),)
 
-    wallet = models.ForeignKey(
-        Wallet, on_delete=models.CASCADE, related_name='company_profiles')
+    wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name='company_profiles', verbose_name=_('Wallet'),)
     # 0 -> no match with the verifications entries
     # 1 -> there has been a match but pin is pending
     # 2 -> match and pin fully verified
@@ -73,6 +72,8 @@ class CompanyProfile(UUIDModel):
         verbose_name = _('Company Profile')
         verbose_name_plural = _('Company Profiles')
 
+    def __str__(self):
+        return '{}'.format(self.name,)
 
 class UserProfile(UUIDModel):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('Owner'),
