@@ -57,8 +57,15 @@ def verify_companies(modeladmin, request, queryset):
 
 verify_companies.short_description = _('Verify companies')
 
+class PreventDeleteWhenVerifiedMixin:
+    def has_delete_permission(self, request, obj=None):
+        if obj is not None:
+            # disallow delete if state != unverified
+            return obj.verification_stage() == 0
+        return True
+
 @admin.register(UserProfile)
-class UserProfile(admin.ModelAdmin):
+class UserProfile(PreventDeleteWhenVerifiedMixin, admin.ModelAdmin):
     list_display = ['first_name', 'last_name',
                     'address_street', 'telephone_number', 'date_of_birth', 'verification_stage_display']
     search_fields = ['first_name', 'last_name',
@@ -71,7 +78,7 @@ class UserProfile(admin.ModelAdmin):
         return super(UserProfile, self).render_change_form(request, context, *args, **kwargs)
 
 @admin.register(CompanyProfile)
-class CompanyProfile(admin.ModelAdmin):
+class CompanyProfile(PreventDeleteWhenVerifiedMixin, admin.ModelAdmin):
     list_display = ['name', 'uid',
                     'address_street', 'verification_stage_display']
     search_fields = ['name', 'uid',
