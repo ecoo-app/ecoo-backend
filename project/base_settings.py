@@ -303,6 +303,8 @@ ENCRYPTION_KEY = '63298563e90a5d9cd751136c91cc5c7d471c362148480fe4dac2943e6e3605
 ENABLE_SMS = os.environ.get('ENABLE_SMS', 'true').lower() in ('true', 'yes', '1')
 ENABLE_POSTCARD = os.environ.get('ENABLE_POSTCARD', 'true').lower() in ('true', 'yes', '1')
 
+PUSH_NOTIFICATION_TITLE='ecoo'
+
 POST_API_CONFIG = {
     'client_id': 'aab50d904093a2c9792a6bc7ba4f54d3',
     'client_secret': '36eb8194fa891e4c1b9a03e929977d31',
