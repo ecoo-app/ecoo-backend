@@ -87,18 +87,18 @@ class Wallet(CurrencyOwnedMixin):
     def notify_owner_receiving_money(self, from_wallet_id, amount):
         # TODO: multi language support?
         self.__notify_owner_devices(
-            f'You have received {amount/pow(10,self.currency.decimals)} CHF from {from_wallet_id}')
+            f'Sie haben {amount/pow(10,self.currency.decimals)} CHF von {from_wallet_id} erhalten')
 
     def notify_transfer_successful(self, to_wallet_id, amount):
         self.__notify_owner_devices(
-            f'You have sent {amount/pow(10,self.currency.decimals)} CHF to {to_wallet_id}')
+            f'Sie haben {amount/pow(10,self.currency.decimals)} CHF an {to_wallet_id} gesendet')
 
     def notify_owner_verified(self):
-        self.__notify_owner_devices(f'Wallet {self.wallet_id} is now verified')
+        self.__notify_owner_devices(f'Wallet {self.wallet_id} wurde verifiziert')
 
     def __notify_owner_devices(self, message):
         devices = FCMDevice.objects.filter(user=self.owner)
-        devices.send_message(title="eCoupon", body=message)
+        devices.send_message(title=settings.PUSH_NOTIFICATION_TITLE, body=message)
 
     def clean(self, *args, **kwargs):
         super(Wallet, self).clean(*args, **kwargs)
