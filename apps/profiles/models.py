@@ -60,7 +60,7 @@ class CompanyProfile(UUIDModel):
 
     def clean(self, *args, **kwargs):
         if self.wallet.category != WALLET_CATEGORIES.COMPANY.value:
-            raise ValidationError(_('Only company wallets can be attached to user profiles'))
+            raise ValidationError(_('Only company wallets can be attached to company profiles'))
         if self.wallet.owner is not None and self.owner.pk != self.wallet.owner.pk:
             raise ValidationError(_('You can only attach a wallet you own to this profile'))
         if not self.uid:

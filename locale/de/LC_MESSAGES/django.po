@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-08-14 14:58+0000\n"
-"PO-Revision-Date: 2020-08-14 16:48+0200\n"
+"POT-Creation-Date: 2020-08-14 14:43+0000\n"
+"PO-Revision-Date: 2020-08-14 17:28+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: de\n"
@@ -219,8 +219,8 @@ msgstr "Eingelöst"
 msgid "Failes"
 msgstr "Fehler"
 
-#: apps/verification/models.py:29 apps/wallet/models.py:53
-#: apps/wallet/models.py:142 apps/wallet/models.py:272
+#: apps/verification/models.py:29 apps/wallet/models.py:60
+#: apps/wallet/models.py:149 apps/wallet/models.py:279
 msgid "State"
 msgstr "Status"
 
@@ -289,33 +289,34 @@ msgstr "Vorlage"
 msgid "Download QR-Code Zip"
 msgstr "QR-Codes Herunterladen"
 
-#: apps/wallet/admin.py:100
-msgid "{} Wallets generated"
-msgstr "{} Wallets generiert"
+#: apps/wallet/admin.py:101
+#, python-brace-format
+msgid "{amount} Wallets generated"
+msgstr "{amount} Wallets generiert"
 
-#: apps/wallet/admin.py:135
-msgid "Retry failed transactions"
+#: apps/wallet/admin.py:133
+msgid "retry failed transactions"
 msgstr ""
 
-#: apps/wallet/admin.py:173
+#: apps/wallet/admin.py:171
 msgid "Only open cashout out requests can be used in this action"
 msgstr "Nur offene Auszahlungsanfragen können diese Aktion durchführen"
 
-#: apps/wallet/admin.py:176
+#: apps/wallet/admin.py:174
 msgid "Only settled (done) transactions can be used in this action"
 msgstr "Nur abgeschlossene Transaktionen können diese Aktion durchführen"
 
-#: apps/wallet/admin.py:199
+#: apps/wallet/admin.py:197
 msgid "Please enter a correct payment date"
 msgstr "Bitte korrektes Zahlungsdatum angeben"
 
-#: apps/wallet/admin.py:206
+#: apps/wallet/admin.py:204
 #: apps/wallet/templates/admin/generate_payout_file.html:16
 #: apps/wallet/templates/admin/generate_payout_file.html:41
 msgid "Generate Payout XML"
 msgstr "Auszahlungsdatei (XML) generieren"
 
-#: apps/wallet/forms.py:8 apps/wallet/models.py:140
+#: apps/wallet/forms.py:8 apps/wallet/models.py:147
 msgid "Amount"
 msgstr "Anzahl"
 
@@ -327,43 +328,43 @@ msgstr "Konsument"
 msgid "Company"
 msgstr "Firma"
 
-#: apps/wallet/models.py:50
+#: apps/wallet/models.py:53
 msgid "Wallet Id"
 msgstr "Wallet Id"
 
-#: apps/wallet/models.py:51
+#: apps/wallet/models.py:55
 msgid "Publickey"
 msgstr "Publickey"
 
-#: apps/wallet/models.py:52
+#: apps/wallet/models.py:58
 msgid "Category"
 msgstr "Kategorie"
 
-#: apps/wallet/models.py:105
+#: apps/wallet/models.py:112
 msgid "Privatekey"
 msgstr "Privatekey"
 
-#: apps/wallet/models.py:138
+#: apps/wallet/models.py:145
 msgid "From Wallet"
 msgstr "Sender Wallet"
 
-#: apps/wallet/models.py:139
+#: apps/wallet/models.py:146
 msgid "To Wallet"
 msgstr "Empfänger Wallet"
 
-#: apps/wallet/models.py:144
+#: apps/wallet/models.py:151
 msgid "Submitted to chain"
 msgstr "An Blockchain gesendet"
 
-#: apps/wallet/models.py:146
+#: apps/wallet/models.py:153
 msgid "Operation hash"
 msgstr "Blockchain Transaktionshash"
 
-#: apps/wallet/models.py:148
+#: apps/wallet/models.py:155
 msgid "Notes"
 msgstr "Notizen"
 
-#: apps/wallet/models.py:179
+#: apps/wallet/models.py:186
 msgid ""
 "Wallet transfer ongoing for destination wallet, cannot send funds to this "
 "wallet at the moment."
@@ -371,24 +372,24 @@ msgstr ""
 "Es gibt nicht abgeschlossene Transaktionen zum Ziel Wallet, bitte später "
 "nochmals versuchen."
 
-#: apps/wallet/models.py:181
+#: apps/wallet/models.py:188
 msgid "Amount must be > 0"
 msgstr "Anzahl muss grösser als 0 sein"
 
-#: apps/wallet/models.py:184
+#: apps/wallet/models.py:191
 msgid "Currency must allow minting if you want to mint"
 msgstr "Währung erlaubt kein minting"
 
-#: apps/wallet/models.py:189
+#: apps/wallet/models.py:196
 msgid "Balance of from_wallet must be greater than amount"
 msgstr ""
 "Kontostand vom Sender Wallet muss grösser als der zu sendende Betrag sein"
 
-#: apps/wallet/models.py:192 apps/wallet/models.py:233
+#: apps/wallet/models.py:199 apps/wallet/models.py:240
 msgid "\"From wallet\" and \"to wallet\" need to use same currency"
 msgstr "Sender und Empfänger Wallet müssen die gleiche Währung haben"
 
-#: apps/wallet/models.py:195
+#: apps/wallet/models.py:202
 msgid ""
 "Wallet transfer ongoing for source wallet, cannot send funds from this "
 "wallet at the moment."
@@ -396,65 +397,65 @@ msgstr ""
 "Das Sender Wallet hat offene Transaktionen, bitte versuchen Sie es später "
 "nochmals."
 
-#: apps/wallet/models.py:198
+#: apps/wallet/models.py:205
 msgid "Only verified addresses can send money"
 msgstr ""
 
-#: apps/wallet/models.py:204 apps/wallet/models.py:270
+#: apps/wallet/models.py:211 apps/wallet/models.py:277
 msgid "Transaction"
 msgstr "Transaktion"
 
-#: apps/wallet/models.py:205
+#: apps/wallet/models.py:212
 msgid "Transactions"
 msgstr "Transaktionen"
 
-#: apps/wallet/models.py:225
+#: apps/wallet/models.py:232
 msgid "Metatransaction always must have from"
 msgstr "Transaktion muss ein Sender haben"
 
-#: apps/wallet/models.py:227
+#: apps/wallet/models.py:234
 msgid "Nonce must be > 0"
 msgstr "Nonce muss grösser als 0 sein"
 
-#: apps/wallet/models.py:230
+#: apps/wallet/models.py:237
 msgid "Nonce must be higher than from_wallet's last meta transaction"
 msgstr "Nonce muss grösser als die letzte Nonce des Sender Wallets sein"
 
-#: apps/wallet/models.py:241
+#: apps/wallet/models.py:248
 msgid "Signature is invalid"
 msgstr "Signatur ist invalid"
 
-#: apps/wallet/models.py:247
+#: apps/wallet/models.py:254
 msgid "Meta transaction"
 msgstr ""
 
-#: apps/wallet/models.py:248
+#: apps/wallet/models.py:255
 msgid "Meta transactions"
 msgstr ""
 
-#: apps/wallet/models.py:274
+#: apps/wallet/models.py:281
 msgid "Beneficiary name"
 msgstr "Name des Begünstigten"
 
-#: apps/wallet/models.py:276
+#: apps/wallet/models.py:283
 msgid "IBAN"
 msgstr "IBAN"
 
-#: apps/wallet/models.py:282
+#: apps/wallet/models.py:289
 msgid "Iban is incorrect"
 msgstr "IBAN ist inkorrekt"
 
-#: apps/wallet/models.py:285
+#: apps/wallet/models.py:292
 msgid ""
 "Cash out only possible with transactions going to the owner wallet of the "
 "currency"
 msgstr ""
 
-#: apps/wallet/models.py:291
+#: apps/wallet/models.py:298
 msgid "Cash out request"
 msgstr "Auszahlungsanfrage"
 
-#: apps/wallet/models.py:292
+#: apps/wallet/models.py:299
 msgid "Cash out requests"
 msgstr "Auszahlungsanfragen"
 
