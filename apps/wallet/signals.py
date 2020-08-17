@@ -1,6 +1,7 @@
-from django.db.models.signals import pre_save
+from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
-from apps.wallet.models import Wallet, CashOutRequest, MetaTransaction, Transaction, WALLET_CATEGORIES, WALLET_STATES
+from apps.wallet.models import WalletPublicKeyTransferRequest, OwnerWallet, Wallet, CashOutRequest, MetaTransaction, Transaction, WALLET_CATEGORIES, WALLET_STATES
+from apps.wallet.utils import sync_to_blockchain
 
 
 @receiver(pre_save, sender=Transaction, dispatch_uid='custom_transaction_validation')
@@ -19,6 +20,7 @@ def custom_meta_transaction_validation(sender, instance, **kwargs):
 
 
 @receiver(pre_save, sender=Wallet, dispatch_uid='pre_save_signal_wallet')
+@receiver(pre_save, sender=OwnerWallet, dispatch_uid='pre_save_signal_owner_wallet')
 def pre_save_signal_wallet(sender, instance, **kwargs):
     instance.full_clean()
 
@@ -38,3 +40,11 @@ def pre_save_signal_wallet(sender, instance, **kwargs):
 @receiver(pre_save, sender=CashOutRequest, dispatch_uid='custom_cash_out_request_validation')
 def custom_cash_out_request_validation(sender, instance, **kwargs):
     instance.full_clean()
+
+
+@receiver(post_save, sender=WalletPublicKeyTransferRequest, dispatch_uid='async_sync_to_blockchain_after_wallet_public_key_transfer')
+def async_sync_to_blockchain_after_wallet_public_key_transfer(sender, instance, created, **kwargs):
+    if False and created:
+        from django_simple_task import defer
+        print('starting to defer')
+        defer(sync_to_blockchain)

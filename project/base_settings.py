@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'django_filters',
 
     "fcm_django",
+    'django_simple_task',
 
     'apps.wallet',
     'apps.currency',
@@ -273,8 +274,8 @@ SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.user.user_details',
 )
 
-TEZOS_ADMIN_ACCOUNT_PRIVATE_KEY = "edsk4MiGLMTj3qkYBiSXBeMghxz6iXzLppusAUVJZNjtVmMVqmkiFN"
-TEZOS_TOKEN_CONTRACT_ADDRESS = "KT1P4cKoPtLERkWcibpGgAi1uifRyi9N8hSi"
+TEZOS_ADMIN_ACCOUNT_PRIVATE_KEY = "edskRqFp3Z9AqoKrMNFb9bnWNwEsRzbjqjBhzmFMLF9UqB6VBmw7F8ppTiXaAnHtysmi6xFxoHf6rMUz6Y1ipiDz2EgwZQv3pa"
+TEZOS_TOKEN_CONTRACT_ADDRESS = "KT1NX1CTMYi7cttUom5KfRX2HKfRDPMygKc6"
 TEZOS_CALLBACK_CONTRACT_ADDRESS = "KT1FM1yaa8sfADNojRBGnt9QGXssCicVbeTY"
 TEZOS_BLOCK_WAIT_TIME = 5
 TEZOS_NODE = "https://rpc.tzkt.io/carthagenet/"
