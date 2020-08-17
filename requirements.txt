@@ -19,7 +19,6 @@ django-otp==0.9.4
 django-phonenumber-field==3.0.1
 django-qr-code==1.2.0
 django-rest-framework-social-oauth2==1.1.0
-django-simple-task==0.1.2
 django-two-factor-auth==1.12.1
 djangorestframework==3.11.1
 djangorestframework-simplejwt==4.4.0

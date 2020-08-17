@@ -45,6 +45,4 @@ def custom_cash_out_request_validation(sender, instance, **kwargs):
 @receiver(post_save, sender=WalletPublicKeyTransferRequest, dispatch_uid='async_sync_to_blockchain_after_wallet_public_key_transfer')
 def async_sync_to_blockchain_after_wallet_public_key_transfer(sender, instance, created, **kwargs):
     if False and created:
-        from django_simple_task import defer
         print('starting to defer')
-        defer(sync_to_blockchain)
