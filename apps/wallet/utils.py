@@ -3,7 +3,8 @@ from pytezos import pytezos, michelson
 from django.utils.timezone import now
 from django.conf import settings
 from django.utils.timezone import now
-
+from pytezos.operation.result import OperationResult
+import json
 
 MESSAGE_STRUCTURE = {
     "prim": "pair",
@@ -76,7 +77,7 @@ def create_message(from_wallet, to_wallet, nonce, token_id, amount):
                             }
                         ]
                     ]
-            }
+                    }
         ]
     }
     return michelson.pack.pack(message_to_encode, MESSAGE_STRUCTURE)
@@ -145,8 +146,6 @@ def publish_open_meta_transactions_to_chain():
         open_transactions.values_list('uuid', flat=True))
     selected_transactions = MetaTransaction.objects.filter(
         uuid__in=selected_transaction_ids)
-    open_meta_transactions = list(map(
-        lambda selected_transaction: selected_transaction.to_meta_transaction_dictionary(), selected_transactions))
 
     if selected_transactions.exists():
         selected_transactions.update(state=TRANSACTION_STATES.PENDING.value)
@@ -155,6 +154,8 @@ def publish_open_meta_transactions_to_chain():
                 key=settings.TEZOS_ADMIN_ACCOUNT_PRIVATE_KEY, shell=settings.TEZOS_NODE)
             token_contract = pytezos_client.contract(
                 settings.TEZOS_TOKEN_CONTRACT_ADDRESS)
+            operation_group = token_contract.meta_transfer(
+                open_meta_transactions).operation_group
             operation_result = token_contract.meta_transfer(open_meta_transactions).operation_group.sign().inject(
                 _async=False, preapply=True, check_result=True, num_blocks_wait=settings.TEZOS_BLOCK_WAIT_TIME)
 
@@ -308,6 +309,122 @@ def publish_wallet_recovery_transfer_balance():
                 allowed_wallet_public_key_transfer_request.notes = 'Exception during sync: {}'.format(
                     repr(error))
                 allowed_wallet_public_key_transfer_request.save()
+
+
+def sync_to_blockchain(is_dry_run=False, _async=False):
+    from apps.wallet.models import Wallet, MetaTransaction, Transaction, WalletPublicKeyTransferRequest, TRANSACTION_STATES
+
+    pytezos_client = pytezos.using(
+        key=settings.TEZOS_ADMIN_ACCOUNT_PRIVATE_KEY, shell=settings.TEZOS_NODE)
+    token_contract = pytezos_client.contract(
+        settings.TEZOS_TOKEN_CONTRACT_ADDRESS)
+
+    funding_transactions = {}
+    meta_transactions = []
+    operation_groups = []
+
+    state_update_items = []
+
+    for transaction in Transaction.objects.filter(state=TRANSACTION_STATES.OPEN.value):
+        state_update_items.append(transaction)
+        if not transaction.from_wallet:
+            operation_groups.append(token_contract.mint(address=transaction.to_wallet.address,
+                                                        decimals=transaction.to_wallet.currency.decimals,
+                                                        name=transaction.to_wallet.currency.name,
+                                                        token_id=transaction.to_wallet.currency.token_id,
+                                                        symbol=transaction.to_wallet.currency.symbol,
+                                                        amount=transaction.amount).operation_group.sign())
+        elif MetaTransaction.objects.filter(pk=transaction.pk).exists():
+            meta_transactions.append(
+                MetaTransaction.objects.get(pk=transaction))
+        else:
+            same_from_txs = funding_transactions.get(
+                transaction.from_wallet.address, [])
+            same_from_txs.append({
+                "to_": transaction.to_wallet.address,
+                "token_id": transaction.to_wallet.currency.token_id,
+                "amount": transaction.amount
+            })
+            funding_transactions[transaction.from_wallet.address] = same_from_txs
+
+    # preparing funding
+    if len(funding_transactions.items()) > 0:
+        funding_transaction_payloads = list(map(lambda item: {
+            "from_": item[0],
+            "txs": item[1]
+        }, funding_transactions.items()))
+        operation_groups.append(token_contract.transfer(
+            funding_transaction_payloads).operation_group.sign())
+
+    # preparing meta
+    if len(meta_transactions) > 0:
+        meta_transaction_payloads = list(map(
+            lambda meta_transaction: meta_transaction.to_meta_transaction_dictionary(), meta_transactions))
+        operation_groups.append(token_contract.meta_transfer(
+            meta_transaction_payloads).operation_group.sign())
+
+    # wallet public key transfers
+    wallet_public_key_transfer_payloads = []
+    print('doing pubkey transfer')
+    for wallet_public_key_transfer_request in WalletPublicKeyTransferRequest.objects.filter(state=TRANSACTION_STATES.OPEN.value):
+        state_update_items.append(wallet_public_key_transfer_request)
+        new_address = Wallet(
+            public_key=wallet_public_key_transfer_request.new_public_key).address
+        wallet_public_key_transfer_payloads.append({
+            "from_": wallet_public_key_transfer_request.wallet.address,
+            "txs": [{
+                    "to_": new_address,
+                    "token_id": wallet_public_key_transfer_request.wallet.currency.token_id,
+                    "amount": wallet_public_key_transfer_request.wallet.balance
+                    }]
+        })
+    operation_groups.append(token_contract.transfer(
+        wallet_public_key_transfer_payloads).operation_group.sign())
+
+    # merging all operations into one single group
+    final_operation_group = None
+    operation_counter = 0
+    for operation_group in operation_groups:
+        if final_operation_group == None:
+            final_operation_group = operation_group
+            operation_counter = int(operation_group.contents[0]['counter'])
+        else:
+            operation_counter += 1
+            operation = operation_group.contents[0]
+            operation['counter'] = str(operation_counter)
+            final_operation_group = final_operation_group.operation(
+                operation_group.contents[0])
+
+    if is_dry_run:
+        operation_result = final_operation_group.sign().preapply()
+        return OperationResult.is_applied(operation_result)
+    else:
+        print('not a dry run', state_update_items)
+
+        def get_state_update_def(item, state=TRANSACTION_STATES.PENDING.value, notes='', operation_hash=''):
+            print('updating item')
+        try:
+            map(get_state_update_def, state_update_items)
+        except Exception as error:
+            print('error', repr(error))
+        try:
+            print('after map')
+            operation_inject_result = final_operation_group.sign().inject(
+                _async=_async, preapply=True, check_result=True, num_blocks_wait=settings.TEZOS_BLOCK_WAIT_TIME)
+            is_operation_applied = OperationResult.is_applied(
+                operation_inject_result)
+            if is_operation_applied:
+                map(lambda item: get_state_update_def(item, TRANSACTION_STATES.DONE.value, json.dumps(
+                    operation_inject_result), operation_inject_result['hash']), state_update_items)
+            else:
+                map(lambda item: get_state_update_def(item, TRANSACTION_STATES.FAILED.value, 'Error during sync: {}'.format(
+                    json.dumps(operation_inject_result))), state_update_items)
+
+            return is_operation_applied
+        except Exception as error:
+            map(lambda item: get_state_update_def(item, TRANSACTION_STATES.FAILED.value,
+                                                  'Exception during sync: {}'.format(repr(error))), state_update_items)
+            return False
 
 
 def create_claim_transaction(wallet):
