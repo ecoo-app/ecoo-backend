@@ -151,7 +151,7 @@ def sync_to_blockchain(is_dry_run=True, _async=False):
 
     state_update_items = []
 
-    for transaction in Transaction.objects.filter(state=TRANSACTION_STATES.OPEN.value):
+    for transaction in Transaction.objects.exclude(state=TRANSACTION_STATES.DONE.value):
         state_update_items.append(transaction)
         if not transaction.from_wallet:
             operation_groups.append(token_contract.mint(address=transaction.to_wallet.address,
@@ -191,7 +191,7 @@ def sync_to_blockchain(is_dry_run=True, _async=False):
 
     # wallet public key transfers
     wallet_public_key_transfer_payloads = []
-    for wallet_public_key_transfer_request in WalletPublicKeyTransferRequest.objects.filter(state=TRANSACTION_STATES.OPEN.value):
+    for wallet_public_key_transfer_request in WalletPublicKeyTransferRequest.objects.exclude(state=TRANSACTION_STATES.DONE.value):
         state_update_items.append(wallet_public_key_transfer_request)
         new_address = Wallet(
             public_key=wallet_public_key_transfer_request.new_public_key).address
