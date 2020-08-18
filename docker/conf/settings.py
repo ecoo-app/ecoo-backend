@@ -37,6 +37,10 @@ EMAIL_USE_TLS = os.environ.get(
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', '?')
 
 DEBUG = os.environ.get('DJANGO_DEBUG', 'false').lower() in ('true', 'yes', '1')
+ENABLE_POSTCARD = os.environ.get(
+    'ENABLE_POSTCARD', 'false').lower() in ('true', 'yes', '1')
+ENABLE_SMS = os.environ.get(
+    'ENABLE_SMS', 'false').lower() in ('true', 'yes', '1')
 
 ALLOWED_HOSTS = ['*']
 
