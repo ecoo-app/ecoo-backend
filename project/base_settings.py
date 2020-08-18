@@ -57,7 +57,6 @@ INSTALLED_APPS = [
     'django_filters',
 
     "fcm_django",
-
     'apps.wallet',
     'apps.currency',
     'apps.profiles',
@@ -68,6 +67,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -137,7 +137,16 @@ AUTH_USER_MODEL = 'custom_auth.User'
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'de-CH'
+
+LANGUAGE_CHOICES = (
+    ('en', _('English')),
+    ('de', _('German')),
+)
+
+LOCALE_PATHS = (
+    os.path.join(BASE_DIR, 'locale'),
+)
 
 TIME_ZONE = 'UTC'
 
@@ -263,8 +272,8 @@ SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.user.user_details',
 )
 
-TEZOS_ADMIN_ACCOUNT_PRIVATE_KEY = "edsk4MiGLMTj3qkYBiSXBeMghxz6iXzLppusAUVJZNjtVmMVqmkiFN"
-TEZOS_TOKEN_CONTRACT_ADDRESS = "KT1P4cKoPtLERkWcibpGgAi1uifRyi9N8hSi"
+TEZOS_ADMIN_ACCOUNT_PRIVATE_KEY = "edskRqFp3Z9AqoKrMNFb9bnWNwEsRzbjqjBhzmFMLF9UqB6VBmw7F8ppTiXaAnHtysmi6xFxoHf6rMUz6Y1ipiDz2EgwZQv3pa"
+TEZOS_TOKEN_CONTRACT_ADDRESS = "KT1NX1CTMYi7cttUom5KfRX2HKfRDPMygKc6"
 TEZOS_CALLBACK_CONTRACT_ADDRESS = "KT1FM1yaa8sfADNojRBGnt9QGXssCicVbeTY"
 TEZOS_BLOCK_WAIT_TIME = 5
 TEZOS_NODE = "https://rpc.tzkt.io/carthagenet/"
@@ -289,3 +298,45 @@ MAILJET_SENDER_ID = 'ECOO'
 
 # Test encryption key, override for prod
 ENCRYPTION_KEY = '63298563e90a5d9cd751136c91cc5c7d471c362148480fe4dac2943e6e36051b'
+
+ENABLE_SMS = os.environ.get(
+    'ENABLE_SMS', 'true').lower() in ('true', 'yes', '1')
+ENABLE_POSTCARD = os.environ.get(
+    'ENABLE_POSTCARD', 'true').lower() in ('true', 'yes', '1')
+
+PUSH_NOTIFICATION_TITLE = 'ecoo'
+
+POST_API_CONFIG = {
+    'client_id': 'aab50d904093a2c9792a6bc7ba4f54d3',
+    'client_secret': '36eb8194fa891e4c1b9a03e929977d31',
+    'base_url': 'https://apiint.post.ch/pcc/api/',
+    'token_url': 'https://apiint.post.ch/OAuth/token',
+    'scope': 'PCCAPI',
+
+    'campaign_key': 'ef11746b-29f7-4229-b0ab-bcefe51daaeb',
+
+    'sender': {
+        'firstname': '',
+        'lastname': '',
+        'company': 'Papers AG',
+        'street': 'Dammstrasse',
+        'houseNr': '16',
+        'zip': '6300',
+        'city': 'Zug'
+    },
+
+    'branding': {
+        'brandingText': {
+            'text': 'test',
+            'blockColor': '#FFFFFF',
+            'textColor': '#000000'
+        },
+        'brandingQRCode': {
+            'encodedText': 'test',
+            'accompanyingText': 'test',
+            'blockColor': '#FFFFFF',
+            'textColor': '#000000'
+        }
+    }
+
+}

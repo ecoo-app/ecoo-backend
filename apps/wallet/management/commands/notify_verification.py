@@ -4,6 +4,7 @@ from django.core.management.base import BaseCommand, CommandError
 from fcm_django.models import FCMDevice
 
 from apps.wallet.models import WALLET_STATES, Wallet
+from django.conf import settings
 
 
 class Command(BaseCommand):
@@ -30,4 +31,4 @@ class Command(BaseCommand):
         devices = FCMDevice.objects.filter(user__in=user_uuids_to_notify)
 
         self.stdout.write(f'Notifying {len(devices)} potential devices')
-        devices.send_message(title="eCoupon", body="Please verify your account")
+        devices.send_message(title=settings.PUSH_NOTIFICATION_TITLE, body="Bitte verifizieren Sie ihren Account")

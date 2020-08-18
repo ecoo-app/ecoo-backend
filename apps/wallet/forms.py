@@ -5,5 +5,5 @@ from apps.currency.models import Currency
 
 
 class GenerateWalletForm(forms.Form):
-    amount = forms.IntegerField()
-    currency = forms.ModelChoiceField(queryset=Currency.objects.all())
+    amount = forms.IntegerField(label=_('Amount'))
+    currency = forms.ModelChoiceField(label=_('Currency'),queryset=Currency.objects.all())

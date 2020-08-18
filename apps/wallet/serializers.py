@@ -18,6 +18,12 @@ class WalletSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Does not belong to user")
         return value
 
+    def validate_category(self, value):
+        if value not in [0, 1]:
+            raise serializers.ValidationError(
+                "Only wallet category 0 and 1 is allowed")
+        return value
+
     class Meta:
         model = Wallet
         fields = ['owner', 'wallet_id', 'balance', 'public_key',
