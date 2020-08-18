@@ -77,7 +77,7 @@ def create_message(from_wallet, to_wallet, nonce, token_id, amount):
                             }
                         ]
                     ]
-                    }
+            }
         ]
     }
     return michelson.pack.pack(message_to_encode, MESSAGE_STRUCTURE)
@@ -138,6 +138,7 @@ def read_nonce_from_chain(address):
 
 
 def sync_to_blockchain(is_dry_run=True, _async=False):
+    print('starting sync')
     from apps.wallet.models import Wallet, MetaTransaction, Transaction, WalletPublicKeyTransferRequest, TRANSACTION_STATES
 
     pytezos_client = pytezos.using(
@@ -226,9 +227,10 @@ def sync_to_blockchain(is_dry_run=True, _async=False):
         return OperationResult.is_applied(operation_result)
     elif OperationResult.is_applied(operation_result):
         def update_sync_state(items, state=TRANSACTION_STATES.PENDING.value, notes='', operation_hash=''):
+
             for item in items:
-                type(item).objects.update(state=state, notes=notes,
-                                          operation_hash=operation_hash, submitted_to_chain_at=now())
+                type(item).objects.filter(pk=item.pk).update(state=state, notes=notes,
+                                                             operation_hash=operation_hash, submitted_to_chain_at=now())
         update_sync_state(state_update_items)
         try:
             operation_inject_result = final_operation_group.sign().inject(
