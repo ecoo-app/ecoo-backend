@@ -191,7 +191,6 @@ def sync_to_blockchain(is_dry_run=True, _async=False):
 
     # wallet public key transfers
     wallet_public_key_transfer_payloads = []
-    print('doing pubkey transfer')
     for wallet_public_key_transfer_request in WalletPublicKeyTransferRequest.objects.filter(state=TRANSACTION_STATES.OPEN.value):
         state_update_items.append(wallet_public_key_transfer_request)
         new_address = Wallet(
