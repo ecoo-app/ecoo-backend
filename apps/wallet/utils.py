@@ -77,7 +77,7 @@ def create_message(from_wallet, to_wallet, nonce, token_id, amount):
                             }
                         ]
                     ]
-                    }
+            }
         ]
     }
     return michelson.pack.pack(message_to_encode, MESSAGE_STRUCTURE)
@@ -311,7 +311,7 @@ def publish_wallet_recovery_transfer_balance():
                 allowed_wallet_public_key_transfer_request.save()
 
 
-def sync_to_blockchain(is_dry_run=False, _async=False):
+def sync_to_blockchain(is_dry_run=True, _async=False):
     from apps.wallet.models import Wallet, MetaTransaction, Transaction, WalletPublicKeyTransferRequest, TRANSACTION_STATES
 
     pytezos_client = pytezos.using(
@@ -395,36 +395,34 @@ def sync_to_blockchain(is_dry_run=False, _async=False):
             final_operation_group = final_operation_group.operation(
                 operation_group.contents[0])
 
-    if is_dry_run:
-        operation_result = final_operation_group.sign().preapply()
-        return OperationResult.is_applied(operation_result)
-    else:
-        print('not a dry run', state_update_items)
+    operation_result = final_operation_group.sign().preapply()
 
-        def get_state_update_def(item, state=TRANSACTION_STATES.PENDING.value, notes='', operation_hash=''):
-            print('updating item')
+    if is_dry_run:
+        return OperationResult.is_applied(operation_result)
+    elif OperationResult.is_applied(operation_result):
+        def update_sync_state(items, state=TRANSACTION_STATES.PENDING.value, notes='', operation_hash=''):
+            for item in items:
+                type(item).objects.update(state=state, notes=notes,
+                                          operation_hash=operation_hash, submitted_to_chain_at=now())
+        update_sync_state(state_update_items)
         try:
-            map(get_state_update_def, state_update_items)
-        except Exception as error:
-            print('error', repr(error))
-        try:
-            print('after map')
             operation_inject_result = final_operation_group.sign().inject(
                 _async=_async, preapply=True, check_result=True, num_blocks_wait=settings.TEZOS_BLOCK_WAIT_TIME)
             is_operation_applied = OperationResult.is_applied(
                 operation_inject_result)
             if is_operation_applied:
-                map(lambda item: get_state_update_def(item, TRANSACTION_STATES.DONE.value, json.dumps(
-                    operation_inject_result), operation_inject_result['hash']), state_update_items)
+                update_sync_state(state_update_items, TRANSACTION_STATES.DONE.value, json.dumps(
+                    operation_inject_result), operation_inject_result['hash'])
             else:
-                map(lambda item: get_state_update_def(item, TRANSACTION_STATES.FAILED.value, 'Error during sync: {}'.format(
-                    json.dumps(operation_inject_result))), state_update_items)
-
+                update_sync_state(state_update_items, TRANSACTION_STATES.FAILED.value, 'Error during sync: {}'.format(
+                    json.dumps(operation_inject_result)))
             return is_operation_applied
         except Exception as error:
-            map(lambda item: get_state_update_def(item, TRANSACTION_STATES.FAILED.value,
-                                                  'Exception during sync: {}'.format(repr(error))), state_update_items)
+            update_sync_state(state_update_items, TRANSACTION_STATES.FAILED.value,
+                              'Exception during sync: {}'.format(repr(error)))
             return False
+    else:
+        return OperationResult.is_applied(operation_result)
 
 
 def create_claim_transaction(wallet):

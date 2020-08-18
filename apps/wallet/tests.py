@@ -128,6 +128,7 @@ class TransactionTestCase(TestCase):
             Transaction.objects.create(to_wallet=self.wallet1, amount=100)
 
 
+@skip
 class BlockchainSyncTestCase(TestCase):
     def setUp(self):
         self.currency = Currency.objects.create(token_id=0, name="TEZ")
@@ -191,6 +192,7 @@ class BlockchainSyncTestCase(TestCase):
         end = time.time()
         print(end - start)
 
+    @skip
     def test_complex_sync(self):
         for i in range(40):
             key = crypto.Key.generate()
@@ -216,9 +218,10 @@ class BlockchainSyncTestCase(TestCase):
 
         self.assertEquals(81, Transaction.objects.filter(
             state=TRANSACTION_STATES.OPEN.value).count())  # 50 meta, 50 funding, 1 mint
-
         start = time.time()
         self.assertEquals(True, sync_to_blockchain(
-            is_dry_run=True))
+            is_dry_run=False))
         end = time.time()
+        self.assertEquals(81, Transaction.objects.filter(
+            state=TRANSACTION_STATES.DONE.value).count())
         print(end - start)
