@@ -8,7 +8,6 @@ from apps.currency.models import Currency
 from apps.wallet.models import WALLET_STATES, CashOutRequest, Transaction, MetaTransaction, Wallet, WalletPublicKeyTransferRequest
 from apps.wallet.serializers import WalletSerializer, WalletPublicKeyTransferRequestSerializer, CashOutRequestSerializer
 from apps.wallet.utils import (pack_meta_transaction,
-                               publish_open_meta_transactions_to_chain,
                                read_nonce_from_chain)
 from django.db.utils import IntegrityError
 from django.core.exceptions import ValidationError

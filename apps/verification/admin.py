@@ -62,8 +62,8 @@ class ImportMixin:
             form = ImportForm(request.POST, request.FILES)
             if form.is_valid():
                 currency = form.cleaned_data['currency']
-                def is_row_valid(x): return all((row.get(x) is not None and row.get(
-                    x) is not '') for x in self.import_validate_fields)
+                def is_row_valid(x): return all((row.get(x) != None and row.get(
+                    x) != '') for x in self.import_validate_fields)
                 csv_reader = csv.DictReader(
                     StringIO(form.cleaned_data['csv_file'].read().decode('UTF-8')))
                 created, line_number = 0, 1

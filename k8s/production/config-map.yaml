@@ -21,3 +21,6 @@ data:
 
   # FCM
   FCM_KEY: __FCM_KEY__
+
+  ENABLE_POSTCARD: "True"
+  ENABLE_SMS: "True"

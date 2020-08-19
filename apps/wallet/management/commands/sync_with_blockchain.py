@@ -9,4 +9,4 @@ class Command(BaseCommand):
     help = 'Syncs the database with the blockchain'
 
     def handle(self, *args, **options):
-        sync_to_blockchain()
+        sync_to_blockchain(is_dry_run=False)

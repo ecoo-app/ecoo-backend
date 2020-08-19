@@ -56,7 +56,8 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'django_filters',
 
-    "fcm_django",
+    'fcm_django',
+    'django_simple_task',
     'apps.wallet',
     'apps.currency',
     'apps.profiles',
@@ -299,10 +300,8 @@ MAILJET_SENDER_ID = 'ECOO'
 # Test encryption key, override for prod
 ENCRYPTION_KEY = '63298563e90a5d9cd751136c91cc5c7d471c362148480fe4dac2943e6e36051b'
 
-ENABLE_SMS = os.environ.get(
-    'ENABLE_SMS', 'true').lower() in ('true', 'yes', '1')
-ENABLE_POSTCARD = os.environ.get(
-    'ENABLE_POSTCARD', 'true').lower() in ('true', 'yes', '1')
+ENABLE_SMS = False
+ENABLE_POSTCARD = False
 
 PUSH_NOTIFICATION_TITLE = 'ecoo'
 
