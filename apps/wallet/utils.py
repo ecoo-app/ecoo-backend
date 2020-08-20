@@ -77,7 +77,7 @@ def create_message(from_wallet, to_wallet, nonce, token_id, amount):
                             }
                         ]
                     ]
-            }
+                    }
         ]
     }
     return michelson.pack.pack(message_to_encode, MESSAGE_STRUCTURE)
@@ -191,8 +191,11 @@ def sync_to_blockchain(is_dry_run=True, _async=False):
             meta_transaction_payloads).operation_group.sign())
 
     # wallet public key transfers
+    wallet_public_key_transfer_requests = []
     wallet_public_key_transfer_payloads = []
     for wallet_public_key_transfer_request in WalletPublicKeyTransferRequest.objects.exclude(state=TRANSACTION_STATES.DONE.value):
+        wallet_public_key_transfer_requests.append(
+            wallet_public_key_transfer_request)
         state_update_items.append(wallet_public_key_transfer_request)
         new_address = Wallet(
             public_key=wallet_public_key_transfer_request.new_public_key).address
@@ -204,6 +207,8 @@ def sync_to_blockchain(is_dry_run=True, _async=False):
                     "amount": wallet_public_key_transfer_request.wallet.balance
                     }]
         })
+        wallet_public_key_transfer_request.old_public_key = wallet_public_key_transfer_request.wallet.public_key
+        wallet_public_key_transfer_request.save()
     operation_groups.append(token_contract.transfer(
         wallet_public_key_transfer_payloads).operation_group.sign())
 
@@ -240,6 +245,9 @@ def sync_to_blockchain(is_dry_run=True, _async=False):
             if is_operation_applied:
                 update_sync_state(state_update_items, TRANSACTION_STATES.DONE.value, json.dumps(
                     operation_inject_result), operation_inject_result['hash'])
+                for wallet_public_key_transfer_request in wallet_public_key_transfer_requests:
+                    wallet_public_key_transfer_request.wallet.public_key = wallet_public_key_transfer_request.new_public_key
+                    wallet_public_key_transfer_request.wallet.save()
             else:
                 update_sync_state(state_update_items, TRANSACTION_STATES.FAILED.value, 'Error during sync: {}'.format(
                     json.dumps(operation_inject_result)))
