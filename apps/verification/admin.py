@@ -9,7 +9,6 @@ from apps.verification.forms import ImportForm
 from django.template.response import TemplateResponse
 from django.contrib import messages
 from django.http import HttpResponseRedirect
-from apps.currency.models import Currency
 from apps.verification.filters import VerificaitonFilter
 from django.utils.translation import gettext as _
 import csv
@@ -61,7 +60,6 @@ class ImportMixin:
         if request.method == 'POST':
             form = ImportForm(request.POST, request.FILES)
             if form.is_valid():
-                currency = form.cleaned_data['currency']
                 def is_row_valid(x): return all((row.get(x) != None and row.get(
                     x) != '') for x in self.import_validate_fields)
                 csv_reader = csv.DictReader(
@@ -71,12 +69,9 @@ class ImportMixin:
                     for row in csv_reader:
                         line_number += 1
                         if not is_row_valid(row):
-                            form.add_error('csv_file', _('Line Nr {line_number} is invalid:{row}') % {
-                                           'line_number': str(line_number), 'row': row})
+                            form.add_error('csv_file', _('Line Nr {} is invalid:{}').format(str(line_number), row))
                             transaction.set_rollback(True)
                             break
-
-                        row['currency_id'] = currency.pk
                         user_verification = UserVerification(**row)
                         user_verification.save()
                         created += 1
@@ -103,8 +98,7 @@ class UserVerificationAdmin(ImportMixin, admin.ModelAdmin):
                      'address_town', 'address_postal_code', 'date_of_birth']
 
     import_name = 'user_import'
-    import_validate_fields = ['first_name',
-                              'last_name', 'address_street', 'date_of_birth']
+    import_validate_fields = ['first_name', 'last_name', 'address_street', 'date_of_birth']
 
     class Meta:
         model = UserVerification
