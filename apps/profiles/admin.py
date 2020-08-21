@@ -15,6 +15,7 @@ def verify_users(modeladmin, request, queryset):
     modified = 0
     for user_profile in queryset.exclude(user_verification__isnull=False).exclude(sms_pin_verification__isnull=False):
         UserVerification.objects.create(
+            user_profile=user_profile,
             state=VERIFICATION_STATES.CLAIMED.value,
             first_name=user_profile.first_name,
             last_name=user_profile.last_name,
@@ -41,6 +42,7 @@ def verify_companies(modeladmin, request, queryset):
     modified = 0
     for company_profile in queryset.exclude(company_verification__isnull=False): #.exclude(sms_pin_verification__isnull=False):
         CompanyVerification.objects.create(
+            company_profile=company_profile,
             state=VERIFICATION_STATES.CLAIMED.value,
             name=company_profile.name,
             uid=company_profile.uid,
