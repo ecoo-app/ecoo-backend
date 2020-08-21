@@ -38,3 +38,10 @@ class UserProfileSerializer(serializers.ModelSerializer):
         model = UserProfile
         fields = ['owner', 'uuid', 'first_name', 'last_name', 'address_street',
                   'address_town', 'address_postal_code', 'telephone_number', 'verification_stage', 'wallet', 'date_of_birth']
+
+
+class AutocompleteSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = UserProfile
+        fields = ['address_street', 'address_town', 'address_postal_code',]

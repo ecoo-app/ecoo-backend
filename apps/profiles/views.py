@@ -14,9 +14,8 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.permissions import BasePermission
 
-from apps.profiles.serializers import UserProfileSerializer, CompanyProfileSerializer
+from apps.profiles.serializers import UserProfileSerializer, CompanyProfileSerializer, AutocompleteSerializer
 from apps.profiles.models import UserProfile, CompanyProfile
-
 
 class UserProfileListCreate(generics.ListCreateAPIView):
     serializer_class = UserProfileSerializer
@@ -44,3 +43,17 @@ class CompanyProfileDestroy(generics.DestroyAPIView):
 
     def get_queryset(self):
         return self.request.user.company_profiles
+
+
+class AutocompleteListCreate(generics.ListCreateAPIView):
+    serializer_class = AutocompleteSerializer
+
+    def list(self, request):
+        self.request = request
+        return super(AutocompleteListCreate, self).list(request)
+
+    def get_queryset(self):
+        search_string = self.request.GET['search']
+        if search_string.strip() == '':
+            return UserProfile.objects.none()
+        return UserProfile.objects.filter(Q(user_verification__state=0) |Q(user_verification__isnull=True)).filter(Q(address_street__istartswith=search_string) | Q(address_town__istartswith=search_string) | Q(address_postal_code__istartswith=search_string))

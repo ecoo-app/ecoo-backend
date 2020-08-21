@@ -1,6 +1,6 @@
 from django.urls import path
 
-from apps.profiles.views import CompanyProfileListCreate, UserProfileListCreate, UserProfileDestroy, CompanyProfileDestroy
+from apps.profiles.views import CompanyProfileListCreate, UserProfileListCreate, UserProfileDestroy, CompanyProfileDestroy, AutocompleteListCreate
 
 urlpatterns = [
     path('user_profiles/<uuid:pk>/',
@@ -9,6 +9,6 @@ urlpatterns = [
          name='user_profiles'),
     path('company_profiles/', CompanyProfileListCreate.as_view(),
          name='company_profiles'),
-    path('company_profiles/<uuid:pk>/',
-         CompanyProfileDestroy.as_view(), name='company_profile_destroy'),
+    path('company_profiles/<uuid:pk>/', CompanyProfileDestroy.as_view(), name='company_profile_destroy'),
+    path('autocomplete/', AutocompleteListCreate.as_view(), name='autocomplete_streets'),
 ]
