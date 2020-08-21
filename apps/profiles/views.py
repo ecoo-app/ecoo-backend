@@ -14,7 +14,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.permissions import BasePermission
 
-from apps.profiles.serializers import UserProfileSerializer, CompanyProfileSerializer, AutocompleteSerializer
+from apps.profiles.serializers import UserProfileSerializer, CompanyProfileSerializer, AutocompleteUserSerializer, AutocompleteCompanySerializer
 from apps.profiles.models import UserProfile, CompanyProfile
 
 class UserProfileListCreate(generics.ListCreateAPIView):
@@ -45,15 +45,29 @@ class CompanyProfileDestroy(generics.DestroyAPIView):
         return self.request.user.company_profiles
 
 
-class AutocompleteListCreate(generics.ListCreateAPIView):
-    serializer_class = AutocompleteSerializer
+class AutocompleteUserList(generics.ListCreateAPIView):
+    serializer_class = AutocompleteUserSerializer
 
     def list(self, request):
         self.request = request
-        return super(AutocompleteListCreate, self).list(request)
+        return super(AutocompleteUserList, self).list(request)
 
     def get_queryset(self):
         search_string = self.request.GET['search']
         if search_string.strip() == '':
             return UserProfile.objects.none()
-        return UserProfile.objects.filter(Q(user_verification__state=0) |Q(user_verification__isnull=True)).filter(Q(address_street__istartswith=search_string) | Q(address_town__istartswith=search_string) | Q(address_postal_code__istartswith=search_string))
+        return UserProfile.objects.filter(Q(address_street__istartswith=search_string) & (Q(user_verification__state=0) | Q(user_verification__isnull=True))).distinct('address_street', 'address_postal_code')
+
+        
+class AutocompleteCompanyList(generics.ListCreateAPIView):
+    serializer_class = AutocompleteCompanySerializer
+
+    def list(self, request):
+        self.request = request
+        return super(AutocompleteCompanyList, self).list(request)
+
+    def get_queryset(self):
+        search_string = self.request.GET['search']
+        if search_string.strip() == '':
+            return CompanyProfile.objects.none()
+        return CompanyProfile.objects.filter(Q(address_street__istartswith=search_string) & (Q(company_verification__state=0) | Q(company_verification__isnull=True))).distinct('address_street', 'address_postal_code')
