@@ -11,6 +11,11 @@ class CompanyProfileSerializer(serializers.ModelSerializer):
     wallet = serializers.SlugRelatedField(many=False, read_only=False,
                                           slug_field='wallet_id', queryset=Wallet.objects.all())
 
+    def validate_wallet(self, value):
+        if value.currency.claim_deadline is not None and value.currency.claim_deadline < date.today():
+            raise serializers.ValidationError("Currency deadline in the past")
+        return value
+
     def validate_owner(self, value):
         if value != self.context['request'].user:
             raise serializers.ValidationError("Does not belong to user")
@@ -30,7 +35,6 @@ class UserProfileSerializer(serializers.ModelSerializer):
                                           slug_field='wallet_id', queryset=Wallet.objects.all())
 
     def validate_wallet(self, value):
-        print(value)
         if value.currency.claim_deadline is not None and value.currency.claim_deadline < date.today():
             raise serializers.ValidationError("Currency deadline in the past")
         return value
