@@ -12,8 +12,7 @@ spec:
         app: __NAMESPACE_NAME__-backend
     spec:
       containers:
-      - command: ["/bin/bash", "-c", "python /code/manage.py migrate; supervisord -n;"]
-        image: __TO_BE_REPLACED_BY_IMAGE_TAG__
+      - image: __TO_BE_REPLACED_BY_IMAGE_TAG__
         imagePullPolicy: IfNotPresent
         name: __NAMESPACE_NAME__-backend
         envFrom:
