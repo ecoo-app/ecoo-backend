@@ -56,7 +56,7 @@ class AutocompleteUserList(generics.ListCreateAPIView):
         search_string = self.request.GET['search']
         if search_string.strip() == '':
             return UserProfile.objects.none()
-        return UserProfile.objects.filter(Q(address_street__istartswith=search_string) & (Q(user_verification__state=0) | Q(user_verification__isnull=True))).distinct('address_street', 'address_postal_code')
+        return UserProfile.objects.filter(Q(address_street__istartswith=search_string) & (Q(user_verification__state=0) | Q(user_verification__isnull=True))).values('address_street', 'address_postal_code').distinct('address_street', 'address_postal_code')
 
         
 class AutocompleteCompanyList(generics.ListCreateAPIView):
@@ -70,4 +70,4 @@ class AutocompleteCompanyList(generics.ListCreateAPIView):
         search_string = self.request.GET['search']
         if search_string.strip() == '':
             return CompanyProfile.objects.none()
-        return CompanyProfile.objects.filter(Q(address_street__istartswith=search_string) & (Q(company_verification__state=0) | Q(company_verification__isnull=True))).distinct('address_street', 'address_postal_code')
+        return CompanyProfile.objects.filter(Q(address_street__istartswith=search_string) & (Q(company_verification__state=0) | Q(company_verification__isnull=True))).values('address_street', 'address_postal_code').distinct('address_street', 'address_postal_code')
