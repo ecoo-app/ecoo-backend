@@ -28,7 +28,8 @@ import apps.wallet.urls as wallet_url
 from two_factor.urls import urlpatterns as tf_urls
 from project.mixins import AdminSiteOTPRequiredMixinRedirSetup
 
-admin.site.__class__ = AdminSiteOTPRequiredMixinRedirSetup
+if not settings.DEBUG:
+    admin.site.__class__ = AdminSiteOTPRequiredMixinRedirSetup
 
 
 admin.site.site_header = 'ecoo-admin'
