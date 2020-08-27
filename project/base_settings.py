@@ -296,7 +296,7 @@ LOGIN_REDIRECT_URL = 'admin:index'
 PAIN_SERVICE_URL = "https://pain-service-backend.prod.gke.papers.tech"
 MAILJET_API_URL = 'https://api.mailjet.com/v4/'
 MAILJET_SMS_TOKEN = '61be7c85f45a4ebba72a612ac9bb5bc8'
-MAILJET_SENDER_ID = 'ECOO'
+MAILJET_SENDER_ID = 'ecoo'
 
 # Test encryption key, override for prod
 ENCRYPTION_KEY = '63298563e90a5d9cd751136c91cc5c7d471c362148480fe4dac2943e6e36051b'
@@ -340,3 +340,5 @@ POST_API_CONFIG = {
     }
 
 }
+
+SMS_TEXT = 'Bitte geben Sie diesen Code im ecoo App ein um den Verifizierungsprozess zu beenden und ihr Guthaben zu bekommen.'

@@ -13,7 +13,9 @@ def custom_sms_pin_verification_validation(sender, instance, **kwargs):
         instance.pin = token_hex(4)
         send_sms(
             to_number=instance.user_profile.telephone_number, 
-            message=instance.pin
+            message=
+            """{}
+            {}""".format(instance.pin, settings.SMS_TEXT)
         )
 
 
