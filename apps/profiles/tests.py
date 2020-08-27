@@ -114,6 +114,7 @@ class ProfileApiTest(APITestCase):
 
         self.client.force_authenticate(user=self.user_2)
 
+        # TODO: shouldn't test for those endpoints be inside apps.verification.tests ?
         response = self.client.post(
             '/api/verification/resend_user_profile_pin/{}'.format(user_profile.pk), data, format='json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

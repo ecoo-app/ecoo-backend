@@ -38,6 +38,10 @@ class CompanyVerification(AbstractVerification):
     name = models.CharField(verbose_name=_('Name'), max_length=128)
     uid = models.CharField(verbose_name=_('Uid'), max_length=15,)
 
+    address_street = models.CharField(verbose_name=_('Street'), max_length=128, blank=True, null=True)
+    address_town = models.CharField(verbose_name=_('Town'), max_length=128, blank=True, null=True)
+    address_postal_code = models.CharField(verbose_name=_('Postal code'), max_length=128, blank=True, null=True)
+
     class Meta:
         verbose_name = _('Company verification')
         verbose_name_plural = _('Company verifications')

@@ -1,13 +1,18 @@
 from django.core.exceptions import PermissionDenied
-from rest_framework import status
+from rest_framework import generics, status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from apps.profiles.models import UserProfile, CompanyProfile
-from apps.verification.models import SMSPinVerification, VERIFICATION_STATES
+
+from apps.profiles.models import CompanyProfile, UserProfile
+from apps.verification.models import VERIFICATION_STATES, SMSPinVerification
+from apps.verification.serializers import (AutocompleteCompanySerializer,
+                                           AutocompleteUserSerializer)
+from apps.verification.utils import send_sms
+from apps.verification.models import UserVerification, CompanyVerification
 from apps.wallet.models import WALLET_CATEGORIES, WALLET_STATES
 from apps.wallet.utils import create_claim_transaction
 from project.utils import raise_api_exception
-from apps.verification.utils import send_sms
+from django.db.models import Q
 
 
 @api_view(['POST'])
@@ -64,3 +69,37 @@ def verify_company_profile_pin(request, company_profile_uuid=None):
     else:
         raise_api_exception(
             422, 'PIN did not match')
+
+
+
+class AutocompleteUserList(generics.ListAPIView):
+    serializer_class = AutocompleteUserSerializer
+
+    def list(self, request):
+        self.request = request
+        return super(AutocompleteUserList, self).list(request)
+
+    def get_queryset(self):
+        search_string = self.request.query_params.get('search','')
+        if search_string.strip() == '':
+            return UserVerification.objects.none()
+        
+        qs = UserVerification.objects.filter(Q(address_street__istartswith=search_string)).distinct('address_street')
+        pks = qs.values_list('uuid', flat=True)
+        return UserVerification.objects.filter(uuid__in=pks)
+
+        
+class AutocompleteCompanyList(generics.ListAPIView):
+    serializer_class = AutocompleteCompanySerializer
+
+    def list(self, request):
+        self.request = request
+        return super(AutocompleteCompanyList, self).list(request)
+
+    def get_queryset(self):
+        search_string = self.request.GET['search']
+        if search_string.strip() == '':
+            return CompanyVerification.objects.none()
+        qs = CompanyVerification.objects.filter(Q(address_street__istartswith=search_string)).distinct('address_street')
+        pks = qs.values_list('uuid', flat=True)
+        return CompanyVerification.objects.filter(uuid__in=pks)
