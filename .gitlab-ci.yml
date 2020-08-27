@@ -23,12 +23,6 @@ build:
     - docker
 
 test:
-  services:
-  - postgres:alpine
-  variables:
-    POSTGRES_DB: postgres
-    POSTGRES_USER: postgres
-    POSTGRES_PASSWORD: postgres    
   stage: test
   script:
     - docker run $GOOGLE_TAG python manage.py test
