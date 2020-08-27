@@ -17,9 +17,16 @@ DATABASES = {
 }
 
 if 'test' in sys.argv:
+    # DATABASES['default'] = {
+        # 'ENGINE': 'django.db.backends.sqlite3',
+        # 'NAME': 'mydatabase'
+    # }
     DATABASES['default'] = {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': 'mydatabase'
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'postgres',
+        'USER': 'postgres',
+        'PASSWORD': 'postgres',
+        'HOST': 'postgres'
     }
 
 MEDIA_ROOT = "/code/media/"
