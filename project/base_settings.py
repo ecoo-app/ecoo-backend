@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.humanize',
     'apps.custom_auth',
 
+    'raven.contrib.django.raven_compat',
     'oauth2_provider',
     'social_django',
     'rest_framework_social_oauth2',

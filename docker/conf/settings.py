@@ -1,5 +1,6 @@
 import os
 import sys
+import raven
 
 from project.base_settings import *
 
@@ -58,3 +59,8 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.environ.get('GOOGLE_OAUTH2_SECRET', '?')
 
 # FCM
 FCM_DJANGO_SETTINGS["FCM_SERVER_KEY"] = os.environ.get('FCM_KEY', '?')
+
+# SENTRY
+RAVEN_CONFIG = {
+    'dsn': 'https://8b98001b655b4257b1c3872c886dc8c3:ebb447ab9c654a21ab88cd3aae68aab0@sentry.papers.tech/176',
+}
