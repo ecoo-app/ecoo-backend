@@ -21,6 +21,12 @@ class WalletTestCase(TestCase):
         pre_save.connect(custom_meta_transaction_validation,
                          sender=MetaTransaction, dispatch_uid='custom_meta_transaction_validation')
 
+    def test_bogus_pubkey(self):
+        currency = Currency.objects.create(token_id=0, name="test")
+        with self.assertRaises(ValidationError):
+            wallet = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
+            ), public_key="bogus", currency=currency, state=WALLET_STATES.VERIFIED.value)
+
     def test_address_calculation(self):
         currency = Currency.objects.create(token_id=0, name="test")
         wallet = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
