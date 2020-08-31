@@ -8,11 +8,16 @@ from apps.verification.models import VERIFICATION_STATES, SMSPinVerification
 from apps.verification.serializers import (AutocompleteCompanySerializer,
                                            AutocompleteUserSerializer)
 from apps.verification.utils import send_sms
-from apps.verification.models import UserVerification, CompanyVerification
+from apps.verification.models import UserVerification, CompanyVerification, AddressPinVerification
 from apps.wallet.models import WALLET_CATEGORIES, WALLET_STATES
 from apps.wallet.utils import create_claim_transaction
 from project.utils import raise_api_exception
 from django.db.models import Q
+from django.views.generic.detail import DetailView
+
+
+class AddressPinVerificationView(DetailView):
+    model = AddressPinVerification
 
 
 @api_view(['POST'])
@@ -71,7 +76,6 @@ def verify_company_profile_pin(request, company_profile_uuid=None):
             422, 'PIN did not match')
 
 
-
 class AutocompleteUserList(generics.ListAPIView):
     serializer_class = AutocompleteUserSerializer
 
@@ -80,15 +84,16 @@ class AutocompleteUserList(generics.ListAPIView):
         return super(AutocompleteUserList, self).list(request)
 
     def get_queryset(self):
-        search_string = self.request.query_params.get('search','')
+        search_string = self.request.query_params.get('search', '')
         if search_string.strip() == '':
             return UserVerification.objects.none()
-        
-        qs = UserVerification.objects.filter(Q(address_street__istartswith=search_string)).distinct('address_street')
+
+        qs = UserVerification.objects.filter(
+            Q(address_street__istartswith=search_string)).distinct('address_street')
         pks = qs.values_list('uuid', flat=True)
         return UserVerification.objects.filter(uuid__in=pks)
 
-        
+
 class AutocompleteCompanyList(generics.ListAPIView):
     serializer_class = AutocompleteCompanySerializer
 
@@ -100,6 +105,7 @@ class AutocompleteCompanyList(generics.ListAPIView):
         search_string = self.request.GET['search']
         if search_string.strip() == '':
             return CompanyVerification.objects.none()
-        qs = CompanyVerification.objects.filter(Q(address_street__istartswith=search_string)).distinct('address_street')
+        qs = CompanyVerification.objects.filter(
+            Q(address_street__istartswith=search_string)).distinct('address_street')
         pks = qs.values_list('uuid', flat=True)
         return CompanyVerification.objects.filter(uuid__in=pks)

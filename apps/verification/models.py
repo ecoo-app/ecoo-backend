@@ -7,6 +7,12 @@ from apps.wallet.models import Wallet
 from apps.profiles.models import CompanyProfile, UserProfile
 from project.mixins import UUIDModel
 from django.utils.translation import gettext as _
+from django.conf import settings
+from oauthlib.oauth2 import BackendApplicationClient
+from requests_oauthlib import OAuth2Session
+import requests
+from django.urls import reverse
+from django.utils.html import format_html
 
 
 class VERIFICATION_STATES(Enum):
@@ -38,9 +44,12 @@ class CompanyVerification(AbstractVerification):
     name = models.CharField(verbose_name=_('Name'), max_length=128)
     uid = models.CharField(verbose_name=_('Uid'), max_length=15,)
 
-    address_street = models.CharField(verbose_name=_('Street'), max_length=128, blank=True, null=True)
-    address_town = models.CharField(verbose_name=_('Town'), max_length=128, blank=True, null=True)
-    address_postal_code = models.CharField(verbose_name=_('Postal code'), max_length=128, blank=True, null=True)
+    address_street = models.CharField(verbose_name=_(
+        'Street'), max_length=128, blank=True, null=True)
+    address_town = models.CharField(verbose_name=_(
+        'Town'), max_length=128, blank=True, null=True)
+    address_postal_code = models.CharField(verbose_name=_(
+        'Postal code'), max_length=128, blank=True, null=True)
 
     class Meta:
         verbose_name = _('Company verification')
@@ -70,6 +79,35 @@ class AddressPinVerification(AbstractVerification):
     company_profile = models.OneToOneField(
         CompanyProfile, on_delete=models.CASCADE, related_name='address_pin_verification')
     pin = models.CharField(verbose_name=_('Pin'), max_length=8, blank=True)
+    external_id = models.CharField(max_length=36, editable=False, blank=True)
+
+    def preview_image(self, side="front"):
+        POST_API_CONFIG = settings.POST_API_CONFIG
+        client = BackendApplicationClient(
+            client_id=POST_API_CONFIG['client_id'], scope=POST_API_CONFIG['scope'])
+        oauth = OAuth2Session(client=client)
+        token = oauth.fetch_token(
+            token_url=POST_API_CONFIG['token_url'], client_id=POST_API_CONFIG['client_id'], client_secret=POST_API_CONFIG['client_secret'])
+
+        preview_url = POST_API_CONFIG['base_url'] + \
+            'v1/postcards/{}/previews/{}'.format(self.external_id, side)
+        response = requests.get(preview_url, headers={
+            'Authorization': token['token_type'] + ' ' + token['access_token']})
+        return "data:{};base64,{}".format(response.json()['fileType'], response.json()['imagedata'])
+
+    @property
+    def preview_back_image(self):
+        return self.preview_image(side="back")
+
+    @property
+    def preview_front_image(self):
+        return self.preview_image(side="front")
+
+    def preview_link(self):
+        return format_html('<a href="{}">Preview</a>'.format(reverse('addresspinverification_detail', args=(self.pk,))))
+
+    preview_link.allow_tags = True
+    preview_link.short_description = _('Preview')
 
     class Meta:
         verbose_name = _('Adress pin verification')
