@@ -12,9 +12,8 @@ def custom_sms_pin_verification_validation(sender, instance, **kwargs):
     if not instance.pin:
         instance.pin = token_hex(4)
         send_sms(
-            to_number=instance.user_profile.telephone_number, 
-            message=
-            """{}
+            to_number=instance.user_profile.telephone_number,
+            message="""{}
             {}""".format(instance.pin, settings.SMS_TEXT)
         )
 
@@ -23,9 +22,10 @@ def custom_sms_pin_verification_validation(sender, instance, **kwargs):
 def custom_address_pin_verification_validation(sender, instance, **kwargs):
     if not instance.pin:
         instance.pin = token_hex(4)
-        send_postcard(
-            message=instance.pin, 
-            company=instance.company_profile.name, 
+        print(settings.POST_CARD_TEXT.format(instance.pin))
+        instance.external_id = send_postcard(
+            message=settings.POST_CARD_TEXT.format(instance.pin),
+            company=instance.company_profile.name,
             street=instance.company_profile.address_street,
             zip=instance.company_profile.address_postal_code,
             city=instance.company_profile.address_town,
