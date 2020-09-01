@@ -18,10 +18,9 @@ from apps.wallet.models import (WALLET_CATEGORIES, WALLET_STATES,
 
 class ProfileApiTest(APITestCase):
     pubkey_1 = 'edpkuvNy6TuQ2z8o9wnoaTtTXkzQk7nhegCHfxBc4ecsd4qG71KYNG'
-    pubkey_2 = 'edpkuvNy6TuQ2z8o9wnoaTtTXkzQk7nhegCHfxBc4ecsd4qG71KYNg'
+    pubkey_2 = 'edpkv75x1Rn8GZbGUU8eXqyur5sWxdJNazCq3eN4SW6J4ykp2XUNgC'
 
     def setUp(self):
-        settings.DEBUG = True
         self.user = get_user_model().objects.create(
             username="testuser", password="abcd")
         self.user_2 = get_user_model().objects.create(
@@ -32,13 +31,13 @@ class ProfileApiTest(APITestCase):
             token_id=1, name="TEZ2", starting_capital=22)
 
         self.wallet_1 = Wallet.objects.create(owner=self.user, wallet_id=Wallet.generate_wallet_id(
-        ), public_key="edpku976gpuAD2bXyx1XGraeKuCo1gUZ3LAJcHM12W1ecxZwoiu22r", currency=self.currency)
+        ), public_key="edpkuWW8CKkKRD7VipUyggFFnUaCumbMKDBLzPRNtbDx9zG2PtMeRS", currency=self.currency)
 
         self.wallet_1_1 = Wallet.objects.create(owner=self.user, wallet_id=Wallet.generate_wallet_id(
-        ), public_key="edpku976gpuAD2bXyx1XGraeKuCo1gUZ3LAJcHM12W1ecxZwoiu22q", currency=self.currency)
+        ), public_key="edpkuqDMtBwt45prqmLpjUTNNKUkKvy7i1xXvEkkHkDfAq6ihzMGtX", currency=self.currency)
 
         self.wallet_1_2 = Wallet.objects.create(owner=self.user, wallet_id=Wallet.generate_wallet_id(
-        ), public_key="edpku976gpuAD2bXyx1XGraeKuCo1gUZ3LAJcHM12W1ecxZwoiu22f", currency=self.currency, category=WALLET_CATEGORIES.COMPANY.value)
+        ), public_key="edpkuUwKji4CWfQchkf2F1X8VKbYXtgjarAmg7pn4Rhydf1YYzrDka", currency=self.currency, category=WALLET_CATEGORIES.COMPANY.value)
 
         self.wallet_2 = Wallet.objects.create(owner=self.user_2, wallet_id=Wallet.generate_wallet_id(
         ), public_key=self.pubkey_2, currency=self.currency)
@@ -47,9 +46,6 @@ class ProfileApiTest(APITestCase):
             to_wallet=self.currency.owner_wallet, amount=2000)
         Transaction.objects.create(
             to_wallet=self.currency_2.owner_wallet, amount=2000)
-
-    def tearDown(self):
-        settings.DEBUG = False
 
     def test_user_profile_verification_flow(self):
         user_verification = UserVerification.objects.create(

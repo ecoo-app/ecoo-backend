@@ -103,6 +103,10 @@ class Wallet(CurrencyOwnedMixin):
 
     def clean(self, *args, **kwargs):
         super(Wallet, self).clean(*args, **kwargs)
+        try:
+            self.address
+        except:
+            raise ValidationError(_('Public key is not in valid format'))
 
     class Meta:
         ordering = ['created_at']

@@ -3,6 +3,7 @@ from django.conf import settings
 from oauthlib.oauth2 import BackendApplicationClient
 from requests_oauthlib import OAuth2Session
 import json
+import base64
 
 
 def accept_verfication_and_create_transaction(obj):
@@ -28,8 +29,8 @@ def send_sms(to_number: str, message: str):
         print('sending immaginary SMS to {}:"{}"'.format(to_number, message))
 
 
-def send_postcard(message='', title='', firstname='', lastname='', company='', street='', house_nr='', zip='', city='', country='Switzerland', po_box='', additional_address_info=''):
-    if settings.ENABLE_SMS:
+def send_postcard(message='', firstname=' ', lastname=' ', company='', street='', house_nr='', zip='', city='', country='Switzerland', po_box='', additional_address_info=''):
+    if settings.ENABLE_POSTCARD:
         POST_API_CONFIG = settings.POST_API_CONFIG
         client = BackendApplicationClient(
             client_id=POST_API_CONFIG['client_id'], scope=POST_API_CONFIG['scope'])
@@ -39,28 +40,47 @@ def send_postcard(message='', title='', firstname='', lastname='', company='', s
 
         url = POST_API_CONFIG['base_url'] + \
             'v1/postcards?campaignKey=' + POST_API_CONFIG['campaign_key']
-        response = requests.post(url,
-                                 headers={
-                                     'Authorization': token['token_type'] + ' ' + token['access_token']
-                                 },
-                                 json={
-                                     'senderAddress': POST_API_CONFIG['sender'],
-                                     'recipientAddress': {
-                                         'title': title,
-                                         'firstname': firstname,
-                                         'lastname': lastname,
-                                         'company': company,
-                                         'street': street,
-                                         'houseNr': house_nr,
-                                         'zip': zip,
-                                         'city': city,
-                                         'country': country,
-                                         'poBox': po_box,
-                                         'additionalAdrInfo': additional_address_info
-                                     },
-                                     'senderText': message,
-                                     'branding': POST_API_CONFIG['branding']
-                                 })
-        return (response.ok, response.text)
+        post_card_creation_response = requests.post(url,
+                                                    headers={
+                                                        'Authorization': token['token_type'] + ' ' + token['access_token']
+                                                    },
+                                                    json={
+                                                        'senderAddress': POST_API_CONFIG['sender'],
+                                                        'recipientAddress': {
+                                                            'firstname': firstname,
+                                                            'lastname': lastname,
+                                                            'company': company,
+                                                            'street': street,
+                                                            'houseNr': house_nr,
+                                                            'zip': zip,
+                                                            'city': city,
+                                                            'country': country,
+                                                            'poBox': po_box,
+                                                            'additionalAdrInfo': additional_address_info
+                                                        },
+                                                        'senderText': message
+                                                    })
+
+        post_card_key = post_card_creation_response.json()['cardKey']
+        post_card_stamp_image = open(
+            "static/post_card_stamp.jpeg", "rb")
+        stamp_set_url = POST_API_CONFIG['base_url'] + \
+            'v1/postcards/{}/branding/stamp'.format(post_card_key)
+        requests.put(
+            stamp_set_url, headers={
+                'Authorization': token['token_type'] + ' ' + token['access_token']
+            }, files={'stamp': post_card_stamp_image})
+
+        post_card_front_image = open(
+            "static/post_card_front.jpeg", "rb")
+        image_set_url = POST_API_CONFIG['base_url'] + \
+            'v1/postcards/{}/image'.format(post_card_key)
+        requests.put(
+            image_set_url, headers={
+                'Authorization': token['token_type'] + ' ' + token['access_token']
+            }, files={'image': post_card_front_image})
+
+        return post_card_key
     else:
         print('sending immaginary POSTCARD to {}:"{}"'.format(company, message))
+        return "dummy"

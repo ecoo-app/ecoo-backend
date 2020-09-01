@@ -74,7 +74,8 @@ class ImportMixin:
                     for row in csv_reader:
                         line_number += 1
                         if not is_row_valid(row):
-                            form.add_error('csv_file', _('Line Nr {} is invalid:{}').format(str(line_number), row))
+                            form.add_error('csv_file', _(
+                                'Line Nr {} is invalid:{}').format(str(line_number), row))
                             transaction.set_rollback(True)
                             break
                         user_verification = UserVerification(**row)
@@ -103,7 +104,8 @@ class UserVerificationAdmin(ImportMixin, admin.ModelAdmin):
                      'address_town', 'address_postal_code', 'date_of_birth']
 
     import_name = 'user_import'
-    import_validate_fields = ['first_name', 'last_name', 'address_street', 'date_of_birth']
+    import_validate_fields = ['first_name',
+                              'last_name', 'address_street', 'date_of_birth']
 
     class Meta:
         model = UserVerification
@@ -144,4 +146,4 @@ class SMSPinVerificationAdmin(admin.ModelAdmin):
 @admin.register(AddressPinVerification)
 class AddressPinVerificationAdmin(admin.ModelAdmin):
     readonly_fields = ['company_profile', 'pin']
-    list_display = ['company_profile', 'pin', 'state']
+    list_display = ['company_profile', 'pin', 'state', 'preview_link']

@@ -303,7 +303,7 @@ MAILJET_SENDER_ID = 'ecoo'
 ENCRYPTION_KEY = '63298563e90a5d9cd751136c91cc5c7d471c362148480fe4dac2943e6e36051b'
 
 ENABLE_SMS = False
-ENABLE_POSTCARD = False
+ENABLE_POSTCARD = True
 
 PUSH_NOTIFICATION_TITLE = 'ecoo'
 
@@ -343,3 +343,14 @@ POST_API_CONFIG = {
 }
 
 SMS_TEXT = 'Bitte geben Sie diesen Code im ecoo App ein um den Verifizierungsprozess zu beenden und ihr Guthaben zu bekommen.'
+POST_CARD_TEXT = """
+Liebes Wetziker Gewerbe,
+
+Es freut uns dass Sie an dieser Aktion mitmachen!
+
+Bitte geben Sie den folgen Code in die ecoo App ein um die Verifizerung abzuschliesen:
+
+{}
+
+Wir wünschen Ihnen viel Erfolg!
+"""
