@@ -268,7 +268,7 @@ class Transaction(UUIDModel):
         super(Transaction, self).clean(*args, **kwargs)
 
     class Meta:
-        ordering = ['created_at']
+        ordering = ['-created_at']
         verbose_name = _('Transaction')
         verbose_name_plural = _('Transactions')
 

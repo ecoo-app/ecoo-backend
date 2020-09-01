@@ -2,6 +2,8 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.shortcuts import redirect
+
+from django.utils.translation import gettext as _
 from rest_framework import generics, status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -10,6 +12,7 @@ from apps.currency.models import Currency
 from apps.profiles.models import CompanyProfile, UserProfile
 from apps.verification.models import (VERIFICATION_STATES, CompanyVerification,
                                       SMSPinVerification, UserVerification, AddressPinVerification)
+
 from apps.verification.serializers import (AutocompleteCompanySerializer,
                                            AutocompleteUserSerializer)
 from apps.verification.utils import send_sms
@@ -29,21 +32,21 @@ class AddressPinVerificationView(DetailView):
 def resend_user_profile_pin(request, user_profile_uuid=None):
     user_profile = UserProfile.objects.get(uuid=user_profile_uuid)
     if user_profile.owner != request.user:
-        raise PermissionDenied("The profile does not belong to you")
+        raise PermissionDenied(_("The profile does not belong to you"))
     if user_profile.sms_pin_verification.state == VERIFICATION_STATES.PENDING.value:
         send_sms(user_profile.telephone_number,
                  user_profile.sms_pin_verification.pin)
         return Response(status=status.HTTP_204_NO_CONTENT)
     else:
         raise_api_exception(
-            422, 'no pin verification open for given user profile at this time')
+            422, _('There is no pin verification open for the given user profile at this time'))
 
 
 @api_view(['POST'])
 def verify_user_profile_pin(request, user_profile_uuid=None):
     user_profile = UserProfile.objects.get(uuid=user_profile_uuid)
     if user_profile.owner != request.user:
-        raise PermissionDenied("The profile does not belong to you")
+        raise PermissionDenied(_("The profile does not belong to you"))
 
     if user_profile.sms_pin_verification.state == VERIFICATION_STATES.PENDING.value and user_profile.sms_pin_verification.pin == request.data.get('pin', 'XX'):
         user_profile.sms_pin_verification.state = VERIFICATION_STATES.CLAIMED.value
@@ -59,14 +62,14 @@ def verify_user_profile_pin(request, user_profile_uuid=None):
         SMSPinVerification.objects.create(
             user_profile=user_profile, state=VERIFICATION_STATES.PENDING.value)
         raise_api_exception(
-            422, 'PIN did not match, we resent a new one')
+            422, _('PIN did not match, we resent a new one'))
 
 
 @api_view(['POST'])
 def verify_company_profile_pin(request, company_profile_uuid=None):
     company_profile = CompanyProfile.objects.get(uuid=company_profile_uuid)
     if company_profile.owner != request.user:
-        raise PermissionDenied("The profile does not belong to you")
+        raise PermissionDenied(_("The profile does not belong to you"))
 
     if company_profile.address_pin_verification.state == VERIFICATION_STATES.PENDING.value and company_profile.address_pin_verification.pin == request.data.get('pin', 'XX'):
         company_profile.address_pin_verification.state = VERIFICATION_STATES.CLAIMED.value
@@ -78,8 +81,7 @@ def verify_company_profile_pin(request, company_profile_uuid=None):
         return Response(status=status.HTTP_204_NO_CONTENT)
     else:
         raise_api_exception(
-            422, 'PIN did not match')
-
+            422, _('PIN did not match'))
 
 class AutocompleteUserList(generics.ListAPIView):
     serializer_class = AutocompleteUserSerializer
