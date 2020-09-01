@@ -46,6 +46,7 @@ class CompanyProfile(UUIDModel):
 
     def verification_stage(self):
         if hasattr(self, 'company_verification'):
+            # TODO: remove magic number
             if self.company_verification.state == 3:
                 return 2
             else:
@@ -93,6 +94,7 @@ class UserProfile(UUIDModel):
 
     def verification_stage(self):
         if hasattr(self, 'user_verification'):
+            # TODO: remove magic number
             if self.user_verification.state == 3:
                 return 2
             else:
@@ -104,6 +106,8 @@ class UserProfile(UUIDModel):
     verification_stage_display.short_description = _('Verification status')
 
     def clean(self, *args, **kwargs):
+        # TODO: this isn't sufficient to be sure that it's a swiss mobile number
+        # additionally verfication should be done on the field and not on the model
         if not self.telephone_number.replace(' ', '').startswith("+417"):
             raise ValidationError(_('Only Swiss mobile numbers are allowed'))        
         if self.wallet.category != WALLET_CATEGORIES.CONSUMER.value:
