@@ -126,6 +126,7 @@ def create_paper_wallet_from_userverification(request, uuid):
     
     paper_wallet = PaperWallet.generate_new_wallet(
         currency=Currency.objects.all().first(), verification_data=user_verification)
+    create_claim_transaction(paper_wallet)
     user_verification = UserVerification.objects.get(uuid=uuid)
     user_verification.state = VERIFICATION_STATES.CLAIMED.value
     user_verification.save()
