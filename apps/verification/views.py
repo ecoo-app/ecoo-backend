@@ -1,18 +1,21 @@
+from django.contrib.admin.views.decorators import staff_member_required
 from django.core.exceptions import PermissionDenied
+from django.db.models import Q
+from django.shortcuts import redirect
 from rest_framework import generics, status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
+from apps.currency.models import Currency
 from apps.profiles.models import CompanyProfile, UserProfile
-from apps.verification.models import VERIFICATION_STATES, SMSPinVerification
+from apps.verification.models import (VERIFICATION_STATES, CompanyVerification,
+                                      SMSPinVerification, UserVerification)
 from apps.verification.serializers import (AutocompleteCompanySerializer,
                                            AutocompleteUserSerializer)
 from apps.verification.utils import send_sms
-from apps.verification.models import UserVerification, CompanyVerification
-from apps.wallet.models import WALLET_CATEGORIES, WALLET_STATES
+from apps.wallet.models import WALLET_CATEGORIES, WALLET_STATES, PaperWallet
 from apps.wallet.utils import create_claim_transaction
 from project.utils import raise_api_exception
-from django.db.models import Q
 
 
 @api_view(['POST'])
@@ -103,3 +106,18 @@ class AutocompleteCompanyList(generics.ListAPIView):
         qs = CompanyVerification.objects.filter(Q(address_street__istartswith=search_string)).distinct('address_street')
         pks = qs.values_list('uuid', flat=True)
         return CompanyVerification.objects.filter(uuid__in=pks)
+
+
+@staff_member_required
+def create_paper_wallet_from_userverification(request, uuid):
+    user_verification = UserVerification.objects.get(uuid=uuid)
+    if user_verification.state != VERIFICATION_STATES.OPEN.value:
+        return redirect('admin:verification_userverification_changelist')
+    
+    paper_wallet = PaperWallet.generate_new_wallet(
+        currency=Currency.objects.all().first(), verification_data=user_verification)
+    user_verification = UserVerification.objects.get(uuid=uuid)
+    user_verification.state = VERIFICATION_STATES.CLAIMED.value
+    user_verification.save()
+    
+    return redirect('admin:wallet_paperwallet_change', paper_wallet.uuid)

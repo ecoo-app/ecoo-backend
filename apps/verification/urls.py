@@ -1,7 +1,9 @@
 from django.urls import path
 
 from apps.currency.views import CurrencyList
-from apps.verification.views import verify_company_profile_pin, verify_user_profile_pin, resend_user_profile_pin, AutocompleteUserList, AutocompleteCompanyList
+from apps.verification.views import AutocompleteCompanyList, AutocompleteUserList, create_paper_wallet_from_userverification, resend_user_profile_pin, verify_company_profile_pin, verify_user_profile_pin
+
+app_name='verification'
 
 urlpatterns = [
     path('resend_user_profile_pin/<slug:user_profile_uuid>',
@@ -12,4 +14,5 @@ urlpatterns = [
          name='verify_company_profile_pin'),
     path('autocomplete_user/', AutocompleteUserList.as_view(), name='autocomplete_user'),
     path('autocomplete_company/', AutocompleteCompanyList.as_view(), name='autocomplete_company'),
+    path('create_paper_wallet/<uuid:uuid>',create_paper_wallet_from_userverification, name='generate_paper_wallet'),
 ]

@@ -2,22 +2,23 @@ import secrets
 import string
 from enum import Enum
 
+import pytezos
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Max, Q, Sum
 from django.db.models.signals import pre_save
 from django.utils.crypto import get_random_string
+from django.utils.translation import ugettext_lazy as _
 from fcm_django.models import FCMDevice
 from pytezos.crypto import Key
-import pytezos
+from schwifty import IBAN
 
 from apps.currency.mixins import CurrencyOwnedMixin
-from project.mixins import UUIDModel
-from django.utils.translation import ugettext_lazy as _
 from apps.wallet.utils import create_message
-from schwifty import IBAN
+from project.mixins import UUIDModel
+from django.contrib.auth import get_user_model
 
 
 class WALLET_STATES(Enum):
@@ -46,11 +47,16 @@ WALLET_CATEGORY_CHOICES = (
 
 
 class Wallet(CurrencyOwnedMixin):
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True, on_delete=models.DO_NOTHING, related_name='wallets')
-    wallet_id = models.CharField(_('Wallet Id'), unique=True, blank=True, editable=False, max_length=128)
-    public_key = models.CharField(_('Publickey'), unique=True, max_length=60)  # encoded public_key
-    category = models.IntegerField(_('Category'), default=WALLET_CATEGORIES.CONSUMER.value, choices=WALLET_CATEGORY_CHOICES)
-    state = models.IntegerField(_('State'), default=WALLET_STATES.UNVERIFIED.value, choices=WALLET_STATE_CHOICES)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True,
+                              null=True, on_delete=models.DO_NOTHING, related_name='wallets')
+    wallet_id = models.CharField(
+        _('Wallet Id'), unique=True, blank=True, editable=False, max_length=128)
+    public_key = models.CharField(
+        _('Publickey'), unique=True, max_length=60)  # encoded public_key
+    category = models.IntegerField(
+        _('Category'), default=WALLET_CATEGORIES.CONSUMER.value, choices=WALLET_CATEGORY_CHOICES)
+    state = models.IntegerField(
+        _('State'), default=WALLET_STATES.UNVERIFIED.value, choices=WALLET_STATE_CHOICES)
 
     @property
     def address(self):
@@ -87,11 +93,13 @@ class Wallet(CurrencyOwnedMixin):
             f'Sie haben {amount/pow(10,self.currency.decimals)} CHF an {to_wallet_id} gesendet')
 
     def notify_owner_verified(self):
-        self.__notify_owner_devices(f'Wallet {self.wallet_id} wurde verifiziert')
+        self.__notify_owner_devices(
+            f'Wallet {self.wallet_id} wurde verifiziert')
 
     def __notify_owner_devices(self, message):
         devices = FCMDevice.objects.filter(user=self.owner)
-        devices.send_message(title=settings.PUSH_NOTIFICATION_TITLE, body=message)
+        devices.send_message(
+            title=settings.PUSH_NOTIFICATION_TITLE, body=message)
 
     def clean(self, *args, **kwargs):
         super(Wallet, self).clean(*args, **kwargs)
@@ -114,8 +122,58 @@ class PaperWallet(Wallet):
         'verification.UserVerification', null=True, on_delete=models.DO_NOTHING, )
     private_key = models.CharField(unique=True, max_length=128)
 
+    @staticmethod
+    def generate_new_wallet(currency, verification_data, category=WALLET_CATEGORIES.CONSUMER.value, state=WALLET_STATES.VERIFIED.value):
+        with transaction.atomic():
+            while True:
+                # print("BLA")
+                wallet_id = Wallet.generate_wallet_id()
+                if Wallet.objects.filter(wallet_id=wallet_id).exists():
+                    continue
+                else:
+                    key = pytezos.crypto.Key.generate()
+                    private_key = key.secret_key()
+                    public_key = key.public_key()
+
+                    paper_wallet = PaperWallet.objects.create(
+                        wallet_id=wallet_id, private_key=private_key, public_key=public_key, currency=currency, state=state, category=category)
+
+                    from apps.profiles.models import CompanyProfile, UserProfile
+
+                    if category == WALLET_CATEGORIES.CONSUMER.value:
+                        username_base = verification_data.first_name + verification_data.last_name
+                        username = username_base
+                        count = 0
+                        while get_user_model().objects.filter(username=username).exists():
+                            print(f'exists {username}')
+
+                            username = username_base + str(count)
+                            count+=1
+                        user = get_user_model().objects.create(username=username, password=get_user_model().objects.make_random_password())
+                        raw_data = verification_data.__dict__
+                        raw_data.pop('_state', None)
+                        raw_data.pop('state', None)
+                        raw_data.pop('user_profile_id', None)
+                        raw_data.pop('uuid', None)
+                        
+                        profile = UserProfile(**raw_data)
+                        profile.telephone_number = '+417'
+                    else:
+                        user = get_user_model().objects.create(username=verification_data.name,
+                                                            password=get_user_model().objects.make_random_password())
+                        profile = CompanyProfile(**verification_data.__dict__)
+                    
+                    profile._state
+                    profile.owner = user
+                    profile.wallet = paper_wallet
+                    profile.save()
+                    paper_wallet.owner = user
+                    paper_wallet.save()
+
+                    return paper_wallet
+
     def save(self, *args, **kwargs):
-        self.state = WALLET_CATEGORIES.OWNER.value
+        self.state = WALLET_STATES.VERIFIED.value
         super(PaperWallet, self).save(*args, **kwargs)
 
 
@@ -135,17 +193,23 @@ TRANSACTION_STATE_CHOICES = (
 
 
 class Transaction(UUIDModel):
-    from_wallet = models.ForeignKey(Wallet, verbose_name=_('From Wallet'), on_delete=models.DO_NOTHING, related_name='from_transactions', blank=True, null=True)
-    to_wallet = models.ForeignKey(Wallet, verbose_name=_('To Wallet'), on_delete=models.DO_NOTHING, related_name='to_transactions')
+    from_wallet = models.ForeignKey(Wallet, verbose_name=_(
+        'From Wallet'), on_delete=models.DO_NOTHING, related_name='from_transactions', blank=True, null=True)
+    to_wallet = models.ForeignKey(Wallet, verbose_name=_(
+        'To Wallet'), on_delete=models.DO_NOTHING, related_name='to_transactions')
     amount = models.IntegerField(verbose_name=_('Amount'),)
 
-    state = models.IntegerField(verbose_name=_('State'), choices=TRANSACTION_STATE_CHOICES, default=TRANSACTION_STATES.OPEN.value)
+    state = models.IntegerField(verbose_name=_(
+        'State'), choices=TRANSACTION_STATE_CHOICES, default=TRANSACTION_STATES.OPEN.value)
 
-    submitted_to_chain_at = models.DateTimeField(verbose_name=_('Submitted to chain'), null=True, blank=True, editable=False)
+    submitted_to_chain_at = models.DateTimeField(verbose_name=_(
+        'Submitted to chain'), null=True, blank=True, editable=False)
 
-    operation_hash = models.CharField(verbose_name=_('Operation hash'), max_length=128, blank=True, editable=False)
+    operation_hash = models.CharField(verbose_name=_(
+        'Operation hash'), max_length=128, blank=True, editable=False)
 
-    notes = models.TextField(verbose_name=_('Notes'), blank=True, editable=False)
+    notes = models.TextField(verbose_name=_(
+        'Notes'), blank=True, editable=False)
 
     def __str__(self):
         if self.from_wallet:

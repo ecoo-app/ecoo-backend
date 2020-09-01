@@ -40,18 +40,16 @@ class CompanyProfile(UUIDModel):
     address_postal_code = models.CharField(max_length=128, blank=True, verbose_name=_('Postal code'),)
 
     wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name='company_profiles', verbose_name=_('Wallet'),)
-    # 0 -> no match with the verifications entries
-    # 1 -> there has been a match but pin is pending
-    # 2 -> match and pin fully verified
-
+    
     def verification_stage(self):
+        from apps.verification.models import VERIFICATION_STATES
         if hasattr(self, 'company_verification'):
-            if self.company_verification.state == 3:
-                return 2
+            if self.company_verification.state == VERIFICATION_STATES.CLAIMED.value:
+                return PROFILE_VERIFICATION_STAGES.VERIFIED.value
             else:
-                return 1
+                return PROFILE_VERIFICATION_STAGES.PARTIALLY_VERIFIED.value
         else:
-            return 0
+            return PROFILE_VERIFICATION_STAGES.UNVERIFIED.value
 
 
     def verification_stage_display(self):
@@ -93,11 +91,13 @@ class UserProfile(UUIDModel):
 
     def verification_stage(self):
         if hasattr(self, 'user_verification'):
-            if self.user_verification.state == 3:
-                return 2
+            from apps.verification.models import VERIFICATION_STATES
+            if self.user_verification.state == VERIFICATION_STATES.CLAIMED.value:
+                return PROFILE_VERIFICATION_STAGES.VERIFIED.value
             else:
-                return 1
-        return 0
+                return PROFILE_VERIFICATION_STAGES.PARTIALLY_VERIFIED.value
+        else:
+            return PROFILE_VERIFICATION_STAGES.UNVERIFIED.value
 
     def verification_stage_display(self):
         return dict(PROFILE_VERIFICATION_STAGES_CHOICES).get(self.verification_stage())

@@ -2,7 +2,7 @@
 from django.urls import include, path
 from rest_framework import routers
 
-from apps.wallet.views import CashOutRequestListCreate, TransactionList, MetaTransactionListCreate, WalletPublicKeyTransferRequestListCreate, WalletDetail, WalletListCreate
+from apps.wallet.views import CashOutRequestListCreate, MetaTransactionListCreate, TransactionList, WalletDetail, WalletListCreate, WalletPublicKeyTransferRequestListCreate
 
 urlpatterns = [
     path('wallet/', WalletListCreate.as_view(), name='wallet_list_create'),
