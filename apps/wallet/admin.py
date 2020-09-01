@@ -56,7 +56,7 @@ def download_zip(modeladmin, request, queryset):
             'pk': pk.hex()
         }
 
-        qr_code = pyqrcode.create(json.dumps(payload), error='Q')
+        qr_code = pyqrcode.create(json.dumps(payload), error='M')
         filename = os.path.join(settings.MEDIA_ROOT,
                                 'qr', wallet.wallet_id + '.png')
         qr_code.png(filename, scale=5)
