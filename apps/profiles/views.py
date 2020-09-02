@@ -17,6 +17,8 @@ from rest_framework.permissions import BasePermission
 from apps.profiles.serializers import UserProfileSerializer, CompanyProfileSerializer
 from apps.profiles.models import UserProfile, CompanyProfile
 
+# TODO: add check for too many profiles per user
+
 class UserProfileListCreate(generics.ListCreateAPIView):
     serializer_class = UserProfileSerializer
 
