@@ -1,13 +1,19 @@
+from unittest import skip
+
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.test import APIClient, APIRequestFactory, APITestCase
 
 from apps.currency.models import Currency
-from apps.verification.models import VERIFICATION_STATES, UserVerification, CompanyVerification, SMSPinVerification, AddressPinVerification
+from apps.profiles.models import (PROFILE_VERIFICATION_STAGES, CompanyProfile,
+                                  UserProfile)
+from apps.verification.models import (VERIFICATION_STATES,
+                                      AddressPinVerification,
+                                      CompanyVerification, SMSPinVerification,
+                                      UserVerification)
 from apps.wallet.models import (WALLET_CATEGORIES, WALLET_STATES,
                                 MetaTransaction, Transaction, Wallet)
-from apps.profiles.models import UserProfile, CompanyProfile
-from django.conf import settings
 
 
 class ProfileApiTest(APITestCase):
@@ -345,3 +351,136 @@ class ProfileApiTest(APITestCase):
         self.assertEqual(response.status_code,
                          status.HTTP_204_NO_CONTENT)
         self.assertEqual(CompanyProfile.objects.all().count(), 0)
+
+    # TODO: implement the correct behavior
+    @skip
+    def test_to_many_verifications_company(self):
+        self.client.force_authenticate(user=self.user)
+
+        for i in range(5):
+            company_verification = CompanyVerification.objects.create(
+                name="Papers AG"+str(i),
+                uid="12-3-4-3"
+            )
+
+            data = {
+                "name": "Papers AG"+str(i),
+                "uid": "12-3-4-3",
+                "address_street": "Sonnmattstr. 121",
+                "address_postal_code": "5242",
+                "address_town": "Birr",
+                "wallet": self.wallet_1_2.wallet_id
+            }
+
+            response = self.client.post(
+                '/api/profiles/company_profiles/', data, format='json')
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+            company_profile = CompanyProfile.objects.get(
+                pk=response.data['uuid'])
+            pin = company_profile.address_pin_verification
+            response = self.client.post(
+                '/api/verification/verify_company_profile_pin/{}'.format(company_profile.pk), {'pin': pin.pin}, format='json')
+            self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+            company_verification = CompanyVerification.objects.get(
+                pk=company_verification.pk)
+            self.assertEqual(company_verification.state,
+                             VERIFICATION_STATES.CLAIMED.value)
+
+        company_verification = CompanyVerification.objects.create(
+            name="Papers AG",
+            uid="12-3-4-3"
+        )
+
+        data = {
+            "name": "Papers AG",
+            "uid": "12-3-4-3",
+            "address_street": "Sonnmattstr. 121",
+            "address_postal_code": "5242",
+            "address_town": "Birr",
+            "wallet": self.wallet_1_2.wallet_id
+        }
+        response = self.client.post(
+            '/api/profiles/company_profiles/', data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        company_profile = CompanyProfile.objects.get(pk=response.data['uuid'])
+        pin = company_profile.address_pin_verification
+        response = self.client.post('/api/verification/verify_company_profile_pin/{}'.format(
+            company_profile.pk), {'pin': pin.pin}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        company_verification = CompanyVerification.objects.get(
+            pk=company_verification.pk)
+        self.assertNotEqual(company_verification.state,
+                            VERIFICATION_STATES.CLAIMED.value)
+
+    @skip
+    def test_to_many_verifications_user(self):
+        self.client.force_authenticate(user=self.user)
+
+        for i in range(5):
+            user_verification = UserVerification.objects.create(
+                first_name="Alessandro"+str(i),
+                last_name="De Carli",
+                address_street="Sonnmattstr. 121",
+                address_postal_code="5242",
+                address_town="Birr",
+                date_of_birth="1989-06-24"
+            )
+
+            data = {
+                "first_name": "Alessandro"+str(i),
+                "last_name": "De Carli",
+                "address_street": "Sonnmattstr. 121",
+                "address_postal_code": "5242",
+                "address_town": "Birr",
+                "telephone_number": "+41763057500",
+                "date_of_birth": "1989-06-24",
+                "wallet": self.wallet_1.wallet_id
+            }
+
+            response = self.client.post(
+                '/api/profiles/user_profiles/', data, format='json')
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+            user_profile = UserProfile.objects.get(
+                pk=response.data['uuid'])
+            pin = user_profile.sms_pin_verification
+            response = self.client.post(
+                '/api/verification/verify_user_profile_pin/{}'.format(user_profile.pk), {'pin': pin.pin}, format='json')
+            self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+            user_verification = UserVerification.objects.get(
+                pk=user_verification.pk)
+            self.assertEqual(user_verification.state,
+                             VERIFICATION_STATES.CLAIMED.value)
+
+        user_verification = UserVerification.objects.create(
+            first_name="Alessandro",
+            last_name="De Carli",
+            address_street="Sonnmattstr. 121",
+            address_postal_code="5242",
+            address_town="Birr",
+            date_of_birth="1989-06-24"
+        )
+
+        data = {
+            "first_name": "Alessandro",
+            "last_name": "De Carli",
+            "address_street": "Sonnmattstr. 121",
+            "address_postal_code": "5242",
+            "address_town": "Birr",
+            "telephone_number": "+41763057500",
+            "date_of_birth": "1989-06-24",
+            "wallet": self.wallet_1.wallet_id
+        }
+        response = self.client.post(
+            '/api/profiles/user_profiles/', data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        user_profile = UserProfile.objects.get(pk=response.data['uuid'])
+        pin = user_profile.sms_pin_verification
+        response = self.client.post('/api/verification/verify_user_profile_pin/{}'.format(
+            user_profile.pk), {'pin': pin.pin}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        user_verification = UserVerification.objects.get(
+            pk=user_verification.pk)
+        self.assertNotEqual(user_verification.state,
+                            VERIFICATION_STATES.CLAIMED.value)

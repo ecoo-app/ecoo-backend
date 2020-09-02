@@ -1,23 +1,25 @@
 import secrets
 import string
 from enum import Enum
+from django.utils.text import slugify
 
+import pytezos
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Max, Q, Sum
 from django.db.models.signals import pre_save
 from django.utils.crypto import get_random_string
+from django.utils.translation import ugettext_lazy as _
 from fcm_django.models import FCMDevice
 from pytezos.crypto import Key
-import pytezos
+from schwifty import IBAN
 
 from apps.currency.mixins import CurrencyOwnedMixin
-from project.mixins import UUIDModel
-from django.utils.translation import ugettext_lazy as _
 from apps.wallet.utils import create_message
-from schwifty import IBAN
+from project.mixins import UUIDModel
+from django.contrib.auth import get_user_model
 
 
 class WALLET_STATES(Enum):
@@ -125,8 +127,54 @@ class PaperWallet(Wallet):
         'verification.UserVerification', null=True, on_delete=models.DO_NOTHING, )
     private_key = models.CharField(unique=True, max_length=128)
 
+    @staticmethod
+    def generate_new_wallet(currency, verification_data, category=WALLET_CATEGORIES.CONSUMER.value, state=WALLET_STATES.VERIFIED.value):
+        with transaction.atomic():
+            while True:
+                # print("BLA")
+                wallet_id = Wallet.generate_wallet_id()
+                if Wallet.objects.filter(wallet_id=wallet_id).exists():
+                    continue
+                else:
+                    key = pytezos.crypto.Key.generate()
+                    private_key = key.secret_key()
+                    public_key = key.public_key()
+
+                    paper_wallet = PaperWallet.objects.create(
+                        wallet_id=wallet_id, private_key=private_key, public_key=public_key, currency=currency, state=state, category=category)
+
+                    from apps.profiles.models import CompanyProfile, UserProfile
+
+                    if category == WALLET_CATEGORIES.CONSUMER.value:
+                        username = slugify('%s %s %s' % (verification_data.firstname, verification_data.lastname, get_random_string(10)))
+                        while get_user_model().objects.filter(username=username).exists():
+                            username = slugify('%s %s %s' % (verification_data.firstname, verification_data.lastname, get_random_string(10)))
+
+                        user = get_user_model().objects.create(username=username, password=get_user_model().objects.make_random_password())
+                        raw_data = verification_data.__dict__
+                        raw_data.pop('_state', None)
+                        raw_data.pop('state', None)
+                        raw_data.pop('user_profile_id', None)
+                        raw_data.pop('uuid', None)
+                        
+                        profile = UserProfile(**raw_data)
+                        profile.telephone_number = '+417'
+                    else:
+                        user = get_user_model().objects.create(username=verification_data.name,
+                                                            password=get_user_model().objects.make_random_password())
+                        profile = CompanyProfile(**verification_data.__dict__)
+                    
+                    profile._state
+                    profile.owner = user
+                    profile.wallet = paper_wallet
+                    profile.save()
+                    paper_wallet.owner = user
+                    paper_wallet.save()
+
+                    return paper_wallet
+
     def save(self, *args, **kwargs):
-        self.state = WALLET_CATEGORIES.OWNER.value
+        self.state = WALLET_STATES.VERIFIED.value
         super(PaperWallet, self).save(*args, **kwargs)
 
 
