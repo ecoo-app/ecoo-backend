@@ -211,8 +211,68 @@ class ProfileApiTest(APITestCase):
             '/api/profiles/company_profiles/', data, format='json')
         self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
 
-    def test_company_verification_no_(self):
-        pass
+    def test_company_verification_incomplete_address(self):
+        company_verification = CompanyVerification.objects.create(
+            name="Papers AG",
+            uid="12-3-4-3",
+            address_street="Sonnmattstr. 121",
+            address_postal_code="5242",
+            address_town="Birr",
+        )
+
+        data = {
+            # "name": "Papers AG",
+            "address_street": "Sonnmattstr. 121",
+            "address_postal_code": "5242",
+            "address_town": "Birr",
+            "wallet": self.wallet_1_2.wallet_id
+        }
+        
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(
+            '/api/profiles/company_profiles/', data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        data = {
+            "name": "Papers AG",
+            # "address_street": "Sonnmattstr. 121",
+            "address_postal_code": "5242",
+            "address_town": "Birr",
+            "wallet": self.wallet_1_2.wallet_id
+        }
+        
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(
+            '/api/profiles/company_profiles/', data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        data = {
+            "name": "Papers AG",
+            "address_street": "Sonnmattstr. 121",
+            # "address_postal_code": "5242",
+            "address_town": "Birr",
+            "wallet": self.wallet_1_2.wallet_id
+        }
+        
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(
+            '/api/profiles/company_profiles/', data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        data = {
+            "name": "Papers AG",
+            "address_street": "Sonnmattstr. 121",
+            "address_postal_code": "5242",
+            # "address_town": "Birr",
+            "wallet": self.wallet_1_2.wallet_id
+        }
+        
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(
+            '/api/profiles/company_profiles/', data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+
     
     def test_company_verification_no_uid(self):
         company_verification = CompanyVerification.objects.create(
