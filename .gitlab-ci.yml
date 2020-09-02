@@ -66,10 +66,21 @@ k8s-deploy-development:
   script:
     - find k8s -type f -name \*.yaml -exec sed -i "s|__TO_BE_REPLACED_BY_IMAGE_TAG__|"$GOOGLE_TAG"|g" {} +
     - find k8s -type f -name \*.yaml -exec sed -i "s|__NAMESPACE_NAME__|"$NAMESPACE"|g" {} +
+
+    # DJANGO
     - find k8s -type f -name \*.yaml -exec sed -i "s|__DJANGO_DB_USER_DEVELOPMENT__|"$DJANGO_DB_USER_DEVELOPMENT"|g" {} +
     - find k8s -type f -name \*.yaml -exec sed -i "s|__DJANGO_DB_PASSWORD_DEVELOPMENT__|"$DJANGO_DB_PASSWORD_DEVELOPMENT"|g" {} +
     - find k8s -type f -name \*.yaml -exec sed -i "s|__DJANGO_DB_NAME_DEVELOPMENT__|"$DJANGO_DB_NAME_DEVELOPMENT"|g" {} +
-    
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__DJANGO_SECRET_KEY__|"$DJANGO_SECRET_KEY_DEV"|g" {} +
+
+    # POST API
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__POST_CLIENT_ID__|"$POST_CLIENT_ID"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__POST_CLIENT_SECRET__|"$POST_CLIENT_SECRET"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__POST_CAMPAIGN_KEY__|"$POST_CAMPAIGN_KEY"|g" {} +
+
+    # TEZOS
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__TEZOS_ADMIN_ACCOUNT_PRIVATE_KEY__|"$TEZOS_ADMIN_ACCOUNT_PRIVATE_KEY_PROD"|g" {} +
+
     # OAUTH APPLE
     - find k8s -type f -name \*.yaml -exec sed -i "s|__APPLE_ID_CLIENT__|"$APPLE_ID_CLIENT_DEV"|g" {} +
     - find k8s -type f -name \*.yaml -exec sed -i "s|__APPLE_ID_TEAM__|"$APPLE_ID_TEAM_DEV"|g" {} +
@@ -82,9 +93,14 @@ k8s-deploy-development:
 
     # FCM
     - find k8s -type f -name \*.yaml -exec sed -i "s|__FCM_KEY__|"$FCM_KEY"|g" {} +
-    
+
+    # MAILJET
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__ENCRYPTION_KEY__|"$ENCRYPTION_KEY"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__MAILJET_SMS_TOKEN__|"$MAILJET_SMS_TOKEN"|g" {} +
+
+
     - kubectl apply -f k8s/common/namespace.yaml
-    - kubectl apply -f k8s/development/secret.yaml
+    - kubectl apply -f k8s/common/secret.yaml
     - kubectl apply -f k8s/development/ --recursive
     - kubectl apply -f k8s/common/ --recursive
 
@@ -109,10 +125,22 @@ k8s-deploy-production:
   script:
     - find k8s -type f -name \*.yaml -exec sed -i "s|__TO_BE_REPLACED_BY_IMAGE_TAG__|"$GOOGLE_TAG"|g" {} +
     - find k8s -type f -name \*.yaml -exec sed -i "s|__NAMESPACE_NAME__|"$NAMESPACE"|g" {} +
+    
+    # DJANGO
     - find k8s -type f -name \*.yaml -exec sed -i "s|__DJANGO_DB_USER_PRODUCTION__|"$DJANGO_DB_USER_PRODUCTION"|g" {} +
     - find k8s -type f -name \*.yaml -exec sed -i "s|__DJANGO_DB_PASSWORD_PRODUCTION__|"$DJANGO_DB_PASSWORD_PRODUCTION"|g" {} +
     - find k8s -type f -name \*.yaml -exec sed -i "s|__DJANGO_DB_NAME_PRODUCTION__|"$DJANGO_DB_NAME_PRODUCTION"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__DJANGO_SECRET_KEY__|"$DJANGO_SECRET_KEY_PROD"|g" {} +
+    
+    # POST API
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__POST_CLIENT_ID__|"$POST_CLIENT_ID"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__POST_CLIENT_SECRET__|"$POST_CLIENT_SECRET"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__POST_CAMPAIGN_KEY__|"$POST_CAMPAIGN_KEY"|g" {} +
 
+    # TEZOS
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__TEZOS_ADMIN_ACCOUNT_PRIVATE_KEY__|"$TEZOS_ADMIN_ACCOUNT_PRIVATE_KEY_PROD"|g" {} +
+    
+    
     # OAUTH APPLE
     - find k8s -type f -name \*.yaml -exec sed -i "s|__APPLE_ID_CLIENT__|"$APPLE_ID_CLIENT_PROD"|g" {} +
     - find k8s -type f -name \*.yaml -exec sed -i "s|__APPLE_ID_TEAM__|"$APPLE_ID_TEAM_PROD"|g" {} +
@@ -126,7 +154,12 @@ k8s-deploy-production:
     # FCM
     - find k8s -type f -name \*.yaml -exec sed -i "s|__FCM_KEY__|"$FCM_KEY"|g" {} +
 
+    # MAILJET
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__ENCRYPTION_KEY__|"$ENCRYPTION_KEY"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__MAILJET_SMS_TOKEN__|"$MAILJET_SMS_TOKEN"|g" {} +
+
     - kubectl apply -f k8s/common/namespace.yaml
+    - kubectl apply -f k8s/common/secret.yaml
     - kubectl apply -f k8s/production/ --recursive
     - kubectl apply -f k8s/common/ --recursive
   tags:

@@ -21,7 +21,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'cqo_%6g)wia2h8+8u1hb95r=j9o!2l85rx39dmjdr(60ia&o83'
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY','cqo_%6g)wia2h8+8u1hb95r=j9o!2l85rx39dmjdr(60ia&o83')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -275,11 +275,11 @@ SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.user.user_details',
 )
 
-TEZOS_ADMIN_ACCOUNT_PRIVATE_KEY = "edskRqFp3Z9AqoKrMNFb9bnWNwEsRzbjqjBhzmFMLF9UqB6VBmw7F8ppTiXaAnHtysmi6xFxoHf6rMUz6Y1ipiDz2EgwZQv3pa"
-TEZOS_TOKEN_CONTRACT_ADDRESS = "KT1NX1CTMYi7cttUom5KfRX2HKfRDPMygKc6"
-TEZOS_CALLBACK_CONTRACT_ADDRESS = "KT1FM1yaa8sfADNojRBGnt9QGXssCicVbeTY"
-TEZOS_BLOCK_WAIT_TIME = 5
-TEZOS_NODE = "https://rpc.tzkt.io/carthagenet/"
+TEZOS_ADMIN_ACCOUNT_PRIVATE_KEY = os.environ.get('TEZOS_ADMIN_ACCOUNT_PRIVATE_KEY')
+TEZOS_TOKEN_CONTRACT_ADDRESS = os.environ.get('TEZOS_CALLBACK_CONTRACT_ADDRESS',"KT1NX1CTMYi7cttUom5KfRX2HKfRDPMygKc6")
+TEZOS_CALLBACK_CONTRACT_ADDRESS = os.environ.get('TEZOS_CALLBACK_CONTRACT_ADDRESS',"KT1FM1yaa8sfADNojRBGnt9QGXssCicVbeTY")
+TEZOS_BLOCK_WAIT_TIME = os.environ.get('TEZOS_BLOCK_WAIT_TIME',5)
+TEZOS_NODE = os.environ.get('TEZOS_NODE', "https://rpc.tzkt.io/carthagenet/")
 
 FCM_DJANGO_SETTINGS = {
     "APP_VERBOSE_NAME": "FCM Django",
@@ -296,11 +296,11 @@ LOGIN_REDIRECT_URL = 'admin:index'
 
 PAIN_SERVICE_URL = "https://pain-service-backend.prod.gke.papers.tech"
 MAILJET_API_URL = 'https://api.mailjet.com/v4/'
-MAILJET_SMS_TOKEN = '61be7c85f45a4ebba72a612ac9bb5bc8'
+MAILJET_SMS_TOKEN = os.environ.get('MAILJET_SMS_TOKEN')
 MAILJET_SENDER_ID = 'ecoo'
 
 # Test encryption key, override for prod
-ENCRYPTION_KEY = '63298563e90a5d9cd751136c91cc5c7d471c362148480fe4dac2943e6e36051b'
+ENCRYPTION_KEY = os.environ.get('ENCRYPTION_KEY','63298563e90a5d9cd751136c91cc5c7d471c362148480fe4dac2943e6e36051b')
 
 ENABLE_SMS = False
 ENABLE_POSTCARD = True
@@ -308,13 +308,13 @@ ENABLE_POSTCARD = True
 PUSH_NOTIFICATION_TITLE = 'ecoo'
 
 POST_API_CONFIG = {
-    'client_id': 'aab50d904093a2c9792a6bc7ba4f54d3',
-    'client_secret': '36eb8194fa891e4c1b9a03e929977d31',
+    'client_id': os.environ.get('POST_CLIENT_ID'),
+    'client_secret': os.environ.get('POST_CLIENT_SECRET'),
     'base_url': 'https://apiint.post.ch/pcc/api/',
     'token_url': 'https://apiint.post.ch/OAuth/token',
     'scope': 'PCCAPI',
 
-    'campaign_key': 'ef11746b-29f7-4229-b0ab-bcefe51daaeb',
+    'campaign_key': os.environ.get('POST_CAMPAIGN_KEY'),
 
     'sender': {
         'firstname': '',
