@@ -1,6 +1,7 @@
 import secrets
 import string
 from enum import Enum
+from django.utils.text import slugify
 
 import pytezos
 from django.conf import settings
@@ -145,14 +146,10 @@ class PaperWallet(Wallet):
                     from apps.profiles.models import CompanyProfile, UserProfile
 
                     if category == WALLET_CATEGORIES.CONSUMER.value:
-                        username_base = verification_data.first_name + verification_data.last_name
-                        username = username_base
-                        count = 0
+                        username = slugify('%s %s %s' % (verification_data.firstname, verification_data.lastname, get_random_string(10)))
                         while get_user_model().objects.filter(username=username).exists():
-                            print(f'exists {username}')
+                            username = slugify('%s %s' % (verification_data.firstname, verification_data.lastname, get_random_string(10)))
 
-                            username = username_base + str(count)
-                            count+=1
                         user = get_user_model().objects.create(username=username, password=get_user_model().objects.make_random_password())
                         raw_data = verification_data.__dict__
                         raw_data.pop('_state', None)
