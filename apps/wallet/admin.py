@@ -23,12 +23,12 @@ import uuid
 
 @admin.register(Wallet)
 class WalletAdmin(admin.ModelAdmin):
-    readonly_fields = ['wallet_id']
+    readonly_fields = ['wallet_id','created_at']
     fields = ['currency', 'wallet_id', 'category',
-              'owner', 'public_key', 'state']
+              'owner', 'public_key', 'state','created_at']
     list_display = ['wallet_id', 'owner', 'balance',
                     'nonce', 'state', 'category', 'currency']
-    list_filter = ['currency', 'category', 'state']
+    list_filter = ['currency', 'category', 'state','created_at']
 
 
 @admin.register(OwnerWallet)
@@ -119,9 +119,9 @@ class PaperWalletAdmin(WalletAdmin):
 
 @admin.register(Transaction)
 class TransactionAdmin(admin.ModelAdmin):
-    readonly_fields = ['submitted_to_chain_at', 'operation_hash', 'notes']
-    list_display = ['from_wallet', 'to_wallet', 'amount', 'state']
-    list_filter = ['from_wallet__currency', 'state']
+    readonly_fields = ['submitted_to_chain_at', 'operation_hash', 'notes','created_at']
+    list_display = ['from_wallet', 'to_wallet', 'amount', 'state','created_at']
+    list_filter = ['from_wallet__currency', 'state','created_at']
     search_fields = ['from_wallet__wallet_id', 'to_wallet__wallet_id']
     actions = ['retry_failed']
 
@@ -137,17 +137,17 @@ class TransactionAdmin(admin.ModelAdmin):
 
 @admin.register(MetaTransaction)
 class MetaTransactionAdmin(admin.ModelAdmin):
-    readonly_fields = ['submitted_to_chain_at', 'operation_hash', 'notes']
-    list_display = ['from_wallet', 'to_wallet', 'amount', 'state']
-    list_filter = ['from_wallet__currency', 'state']
+    readonly_fields = ['submitted_to_chain_at', 'operation_hash', 'notes','created_at']
+    list_display = ['from_wallet', 'to_wallet', 'amount', 'state','created_at']
+    list_filter = ['from_wallet__currency', 'state','created_at']
     search_fields = ['from_wallet__wallet_id', 'to_wallet__wallet_id']
 
 
 @admin.register(WalletPublicKeyTransferRequest)
 class WalletPublicKeyTransferRequestAdmin(admin.ModelAdmin):
-    readonly_fields = ['submitted_to_chain_at', 'operation_hash', 'notes']
-    list_display = ['wallet', 'old_public_key', 'new_public_key', 'state']
-    list_filter = ['wallet', 'state']
+    readonly_fields = ['submitted_to_chain_at', 'operation_hash', 'notes','created_at']
+    list_display = ['wallet', 'old_public_key', 'new_public_key', 'state','created_at']
+    list_filter = ['wallet', 'state','created_at']
     search_fields = ['wallet__wallet_id']
 
 
@@ -159,10 +159,10 @@ class CashOutRequestAdmin(admin.ModelAdmin):
 
     actions = ['generate_payout_file']
     list_display = ['transaction', 'beneficiary_name',
-                    'beneficiary_iban', 'state']
-    list_filter = ['transaction__state', 'state']
+                    'beneficiary_iban', 'state','created_at']
+    list_filter = ['transaction__state', 'state','created_at']
     search_fields = [
-        'transaction__from_wallet__wallet_id', 'beneficiary_name']
+        'transaction__from_wallet__wallet_id', 'beneficiary_name',]
 
     def generate_payout_file(self, request, queryset):
         class PaymentDateForm(forms.Form):

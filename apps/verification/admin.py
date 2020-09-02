@@ -98,14 +98,16 @@ class ImportMixin:
 @admin.register(UserVerification)
 class UserVerificationAdmin(ImportMixin, admin.ModelAdmin):
     list_display = ['first_name', 'last_name', 'address_street',
-                    'address_town', 'address_postal_code', 'date_of_birth', 'state', 'create_paper_wallet']
-    list_filter = ['state']
+                    'address_town', 'address_postal_code', 'date_of_birth', 'state', 'create_paper_wallet', 'created_at']
+    list_filter = ['state', 'created_at']
     search_fields = ['first_name', 'last_name', 'address_street',
                      'address_town', 'address_postal_code', 'date_of_birth']
 
     import_name = 'user_import'
     import_validate_fields = ['first_name',
                               'last_name', 'address_street', 'date_of_birth']
+    readonly_fields=['created_at',]
+    
 
     class Meta:
         model = UserVerification
@@ -123,12 +125,14 @@ class UserVerificationAdmin(ImportMixin, admin.ModelAdmin):
 
 @admin.register(CompanyVerification)
 class CompanyVerificationAdmin(ImportMixin, admin.ModelAdmin):
-    list_display = ['name', 'uid', 'state']
-    list_filter = ['state']
+    list_display = ['name', 'uid', 'state', 'created_at']
+    list_filter = ['state', 'created_at']
     search_fields = ['name', 'uid']
 
     import_name = 'company_import'
     import_validate_fields = ['name', 'uid']
+    readonly_fields=['created_at',]
+
 
     class Meta:
         model = CompanyVerification
@@ -139,11 +143,11 @@ class CompanyVerificationAdmin(ImportMixin, admin.ModelAdmin):
 
 @admin.register(SMSPinVerification)
 class SMSPinVerificationAdmin(admin.ModelAdmin):
-    readonly_fields = ['user_profile', 'pin']
-    list_display = ['user_profile', 'pin', 'state']
+    readonly_fields = ['user_profile', 'pin', 'created_at']
+    list_display = ['user_profile', 'pin', 'state','created_at']
 
 
 @admin.register(AddressPinVerification)
 class AddressPinVerificationAdmin(admin.ModelAdmin):
-    readonly_fields = ['company_profile', 'pin']
-    list_display = ['company_profile', 'pin', 'state', 'preview_link']
+    readonly_fields = ['company_profile', 'pin','created_at']
+    list_display = ['company_profile', 'pin', 'state', 'preview_link','created_at']
