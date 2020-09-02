@@ -10,11 +10,11 @@ def custom_company_profile_validation(sender, instance, **kwargs):
     
     if instance.address_street and instance.address_postal_code and instance.address_town and instance.name and instance.uid:
         company_verifications = CompanyVerification.objects.exclude(state=VERIFICATION_STATES.CLAIMED.value).filter(
-            address_street=instance.address_street,
+            address_street__icontains=instance.address_street,
             address_postal_code=instance.address_postal_code,
-            address_town=instance.address_town,
-            name=instance.name,
-            uid=instance.uid,
+            address_town__icontains=instance.address_town,
+            name__icontains=instance.name,
+            uid__icontains=instance.uid,
         )
         if company_verifications.exists():
             company_verification = company_verifications[0]
@@ -29,8 +29,8 @@ def custom_company_profile_validation(sender, instance, **kwargs):
 def custom_user_profile_validation(sender, instance, **kwargs):
     instance.full_clean()
 
-    user_verifications = UserVerification.objects.exclude(state=VERIFICATION_STATES.CLAIMED.value).filter(first_name=instance.first_name, last_name=instance.last_name,
-                                                                                        address_street=instance.address_street, address_town=instance.address_town,
+    user_verifications = UserVerification.objects.exclude(state=VERIFICATION_STATES.CLAIMED.value).filter(first_name__icontains=instance.first_name, last_name__icontains=instance.last_name,
+                                                                                        address_street__icontains=instance.address_street, address_town__icontains=instance.address_town,
                                                                                         address_postal_code=instance.address_postal_code, date_of_birth=instance.date_of_birth)
     if user_verifications.exists():
         user_verification = user_verifications[0]
