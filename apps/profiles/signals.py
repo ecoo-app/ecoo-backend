@@ -7,13 +7,25 @@ from apps.verification.models import CompanyVerification, UserVerification, SMSP
 @receiver(post_save, sender=CompanyProfile, dispatch_uid='custom_company_profile_validation')
 def custom_company_profile_validation(sender, instance, **kwargs):
     instance.full_clean()
+    # company verification allways uid
+    # check for uid address fields
+    # if CompanyVerification.objects.exclude(state=VERIFICATION_STATES.CLAIMED.value).filter(name=instance.name, uid=instance.uid).exists():
+    
+    if instance.address_street and instance.address_postal_code and instance.address_town and instance.name and instance.uid:
 
-    if CompanyVerification.objects.exclude(state=VERIFICATION_STATES.CLAIMED.value).filter(name=instance.name, uid=instance.uid).exists():
-        company_verification = CompanyVerification.objects.get(
-            name=instance.name, uid=instance.uid)
-        company_verification.company_profile = instance
-        company_verification.state = VERIFICATION_STATES.PENDING.value
-        company_verification.save()
+    
+        company_verifications = CompanyVerification.objects.exclude(state=VERIFICATION_STATES.CLAIMED.value).filter(
+            address_street=instance.address_street,
+            address_postal_code=instance.address_postal_code,
+            address_town=instance.address_town,
+            name=instance.name,
+            uid=instance.uid,
+        )
+        if company_verifications.exists():
+            company_verification = company_verifications[0]
+            company_verification.company_profile = instance
+            company_verification.state = VERIFICATION_STATES.PENDING.value
+            company_verification.save()
 
         address_pin_verification = AddressPinVerification.objects.create(company_profile=instance, state=VERIFICATION_STATES.PENDING.value)
 

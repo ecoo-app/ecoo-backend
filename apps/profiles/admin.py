@@ -24,9 +24,11 @@ def verify_users(modeladmin, request, queryset):
             address_postal_code=user_profile.address_postal_code,
             date_of_birth=user_profile.date_of_birth,
         )
-
         user_profile.save()
-        
+
+        from apps.wallet.utils import create_claim_transaction
+        create_claim_transaction(user_profile.wallet)
+
         modified += 1
 
     if modified > 0:
@@ -49,6 +51,9 @@ def verify_companies(modeladmin, request, queryset):
         )
 
         company_profile.save()
+        
+        from apps.wallet.utils import create_claim_transaction
+        create_claim_transaction(company_profile.wallet)
 
         modified += 1
 

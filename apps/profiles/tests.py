@@ -161,7 +161,10 @@ class ProfileApiTest(APITestCase):
     def test_company_verification_ok(self):
         company_verification = CompanyVerification.objects.create(
             name="Papers AG",
-            uid="12-3-4-3"
+            uid="12-3-4-3",
+            address_street="Sonnmattstr. 121",
+            address_postal_code="5242",
+            address_town="Birr"
         )
 
         data = {
@@ -194,7 +197,10 @@ class ProfileApiTest(APITestCase):
     def test_company_verification_not_matching_wallet(self):
         company_verification = CompanyVerification.objects.create(
             name="Papers AG",
-            uid="12-3-4-3"
+            uid="12-3-4-3",
+            address_street="Sonnmattstr. 121",
+            address_postal_code="5242",
+            address_town="Birr"
         )
 
         data = {
@@ -277,7 +283,10 @@ class ProfileApiTest(APITestCase):
     def test_company_verification_no_uid(self):
         company_verification = CompanyVerification.objects.create(
             name="Papers AG",
-            uid="12-3-4-3"
+            uid="12-3-4-3",
+            address_street="Sonnmattstr. 121",
+            address_postal_code="5242",
+            address_town="Birr"
         )
 
         data = {
@@ -294,6 +303,10 @@ class ProfileApiTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['verification_stage'], PROFILE_VERIFICATION_STAGES.UNVERIFIED.value)
         company_profile = CompanyProfile.objects.get(pk=response.data['uuid'])
+
+        # TODO: check that no verification data is there!!
+
+
         try:
             address_pin_verification = company_profile.address_pin_verification
         except ObjectDoesNotExist:
@@ -301,7 +314,10 @@ class ProfileApiTest(APITestCase):
         
         company_verification = CompanyVerification.objects.create(
             name="Papers AG",
-            uid="12-3-4-3"
+            uid="12-3-4-3",
+            address_street="Sonnmattstr. 121",
+            address_postal_code="5242",
+            address_town="Birr"
         )
 
         data = {
@@ -350,7 +366,10 @@ class ProfileApiTest(APITestCase):
     def test_company_profile_verification_flow(self):
         company_verification = CompanyVerification.objects.create(
             name="Papers AG",
-            uid="12-3-4-3"
+            uid="12-3-4-3",
+            address_street="Sonnmattstr. 121",
+            address_postal_code="5242",
+            address_town="Birr"
         )
 
         data = {
