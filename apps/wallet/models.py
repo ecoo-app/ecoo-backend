@@ -148,7 +148,7 @@ class PaperWallet(Wallet):
                     if category == WALLET_CATEGORIES.CONSUMER.value:
                         username = slugify('%s %s %s' % (verification_data.firstname, verification_data.lastname, get_random_string(10)))
                         while get_user_model().objects.filter(username=username).exists():
-                            username = slugify('%s %s' % (verification_data.firstname, verification_data.lastname, get_random_string(10)))
+                            username = slugify('%s %s %s' % (verification_data.firstname, verification_data.lastname, get_random_string(10)))
 
                         user = get_user_model().objects.create(username=username, password=get_user_model().objects.make_random_password())
                         raw_data = verification_data.__dict__
