@@ -98,8 +98,8 @@ class ImportMixin:
 @admin.register(UserVerification)
 class UserVerificationAdmin(ImportMixin, admin.ModelAdmin):
     list_display = ['first_name', 'last_name', 'address_street',
-                    'address_town', 'address_postal_code', 'date_of_birth', 'state', 'created_at']
-    list_filter = ['state','create_paper_wallet', 'created_at']
+                    'address_town', 'address_postal_code', 'date_of_birth', 'state', 'create_paper_wallet', 'created_at']
+    list_filter = ['state', 'created_at']
     search_fields = ['first_name', 'last_name', 'address_street',
                      'address_town', 'address_postal_code', 'date_of_birth']
 
