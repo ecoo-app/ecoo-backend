@@ -68,12 +68,13 @@ class PreventDeleteWhenVerifiedMixin:
 
 @admin.register(UserProfile)
 class UserProfile(PreventDeleteWhenVerifiedMixin, admin.ModelAdmin):
-    list_display = ['first_name', 'last_name',
-                    'address_street', 'telephone_number', 'date_of_birth', 'verification_stage_display']
+    list_display = ['first_name', 'last_name', 'address_street', 'telephone_number', 'date_of_birth', 'verification_stage_display','created_at']
     search_fields = ['first_name', 'last_name',
                      'address_street', 'telephone_number', 'date_of_birth']
-    list_filter = [VerificationLevelFilter]
+    list_filter = [VerificationLevelFilter,'created_at']
     actions = [verify_users]
+    readonly_fields=['created_at',]
+
 
     def render_change_form(self, request, context, *args, **kwargs):
         context['adminform'].form.fields['wallet'].queryset = Wallet.objects.filter(category=0)
@@ -81,12 +82,12 @@ class UserProfile(PreventDeleteWhenVerifiedMixin, admin.ModelAdmin):
 
 @admin.register(CompanyProfile)
 class CompanyProfile(PreventDeleteWhenVerifiedMixin, admin.ModelAdmin):
-    list_display = ['name', 'uid',
-                    'address_street', 'verification_stage_display']
+    list_display = ['name', 'uid', 'address_street', 'verification_stage_display', 'created_at']
     search_fields = ['name', 'uid',
                      'address_street']
-    list_filter = [VerificationLevelFilter]
+    list_filter = [VerificationLevelFilter,'created_at']
     actions = [verify_companies]
+    readonly_fields=['created_at',]
 
     def render_change_form(self, request, context, *args, **kwargs):
         context['adminform'].form.fields['wallet'].queryset = Wallet.objects.filter(category=1)
