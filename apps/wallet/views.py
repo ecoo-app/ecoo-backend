@@ -7,7 +7,7 @@ from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError
 from django.db.models import Q
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from pytezos import Key
 from rest_framework import generics, mixins, status, filters
 from rest_framework.decorators import api_view
@@ -15,7 +15,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.permissions import BasePermission
 
-from apps.wallet.models import WALLET_CATEGORIES, WALLET_STATES, CashOutRequest, Transaction, MetaTransaction, Wallet, WalletPublicKeyTransferRequest
+from apps.wallet.models import WALLET_CATEGORIES, WALLET_STATES, CashOutRequest, Transaction, MetaTransaction, Wallet, WalletPublicKeyTransferRequest, PaperWallet
 from apps.wallet.serializers import CashOutRequestSerializer, MetaTransactionSerializer, TransactionSerializer, WalletSerializer, WalletPublicKeyTransferRequestSerializer
 from apps.wallet.utils import create_message, read_nonce_from_chain
 
@@ -73,3 +73,4 @@ class CashOutRequestListCreate(generics.ListCreateAPIView):
 
     def get_queryset(self):
         return CashOutRequest.objects.filter(transaction__from_wallet__owner=self.request.user)
+
