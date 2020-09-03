@@ -128,8 +128,8 @@ k8s-deploy-production:
     - find k8s -type f -name \*.yaml -exec sed -i "s|__NAMESPACE_NAME__|"$NAMESPACE"|g" {} +
     
     # DJANGO
-    - find k8s -type f -name \*.yaml -exec sed -i "s|__DJANGO_DB_USER_PRODUCTION__|"$DJANGO_DB_USER_PRODUCTION"|g" {} +
-    - find k8s -type f -name \*.yaml -exec sed -i "s|__DJANGO_DB_PASSWORD_PRODUCTION__|"$DJANGO_DB_PASSWORD_PRODUCTION"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__DJANGO_DB_USER__|"$DJANGO_DB_USER_PRODUCTION"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__DJANGO_DB_PASSWORD__|"$DJANGO_DB_PASSWORD_PRODUCTION"|g" {} +
     - find k8s -type f -name \*.yaml -exec sed -i "s|__DJANGO_DB_NAME_PRODUCTION__|"$DJANGO_DB_NAME_PRODUCTION"|g" {} +
     - find k8s -type f -name \*.yaml -exec sed -i "s|__DJANGO_SECRET_KEY__|"$DJANGO_SECRET_KEY_PROD"|g" {} +
     
