@@ -47,4 +47,3 @@ def custom_cash_out_request_validation(sender, instance, **kwargs):
 def async_sync_to_blockchain_after_wallet_public_key_transfer(sender, instance, created, **kwargs):
     if created:
         defer(lambda: sync_to_blockchain(is_dry_run=False))
-        print('starting to defer')

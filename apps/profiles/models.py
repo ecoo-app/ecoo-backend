@@ -40,18 +40,16 @@ class CompanyProfile(UUIDModel):
     address_postal_code = models.CharField(max_length=128, blank=True, verbose_name=_('Postal code'),)
 
     wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name='company_profiles', verbose_name=_('Wallet'),)
-    # 0 -> no match with the verifications entries
-    # 1 -> there has been a match but pin is pending
-    # 2 -> match and pin fully verified
-
+    
     def verification_stage(self):
+        from apps.verification.models import VERIFICATION_STATES
         if hasattr(self, 'company_verification'):
-            if self.company_verification.state == 3:
-                return 2
+            if self.company_verification.state == VERIFICATION_STATES.CLAIMED.value:
+                return PROFILE_VERIFICATION_STAGES.VERIFIED.value
             else:
-                return 1
+                return PROFILE_VERIFICATION_STAGES.PARTIALLY_VERIFIED.value
         else:
-            return 0
+            return PROFILE_VERIFICATION_STAGES.UNVERIFIED.value
 
 
     def verification_stage_display(self):
@@ -63,8 +61,10 @@ class CompanyProfile(UUIDModel):
             raise ValidationError(_('Only company wallets can be attached to company profiles'))
         if self.wallet.owner is not None and self.owner.pk != self.wallet.owner.pk:
             raise ValidationError(_('You can only attach a wallet you own to this profile'))
-        if not self.uid:
-            raise ValidationError(_('Either uid or owner information has to be filled out'))
+        if not self.address_street  or not self.address_postal_code or not self.address_town or not self.name:
+            raise ValidationError(_('Address needs to be filled out completely'))
+        # if not self.uid:
+            # raise ValidationError(_('Either uid or owner information has to be filled out'))
         super(CompanyProfile, self).clean(*args, **kwargs)
 
     class Meta:
@@ -93,17 +93,21 @@ class UserProfile(UUIDModel):
 
     def verification_stage(self):
         if hasattr(self, 'user_verification'):
-            if self.user_verification.state == 3:
-                return 2
+            from apps.verification.models import VERIFICATION_STATES
+            if self.user_verification.state == VERIFICATION_STATES.CLAIMED.value:
+                return PROFILE_VERIFICATION_STAGES.VERIFIED.value
             else:
-                return 1
-        return 0
+                return PROFILE_VERIFICATION_STAGES.PARTIALLY_VERIFIED.value
+        else:
+            return PROFILE_VERIFICATION_STAGES.UNVERIFIED.value
 
     def verification_stage_display(self):
         return dict(PROFILE_VERIFICATION_STAGES_CHOICES).get(self.verification_stage())
     verification_stage_display.short_description = _('Verification status')
 
     def clean(self, *args, **kwargs):
+        # TODO: this isn't sufficient to be sure that it's a swiss mobile number
+        # additionally verfication should be done on the field and not on the model
         if not self.telephone_number.replace(' ', '').startswith("+417"):
             raise ValidationError(_('Only Swiss mobile numbers are allowed'))        
         if self.wallet.category != WALLET_CATEGORIES.CONSUMER.value:

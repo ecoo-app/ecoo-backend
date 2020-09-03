@@ -2,24 +2,29 @@ from django.contrib import admin
 from django.conf.urls import url
 from django.db import transaction
 from io import StringIO
-from apps.verification.models import (CompanyVerification, UserVerification,
-                                      AddressPinVerification, SMSPinVerification)
+from apps.verification.models import AddressPinVerification, CompanyVerification, SMSPinVerification, UserVerification, VERIFICATION_STATES
 from apps.wallet.utils import create_claim_transaction
 from apps.verification.forms import ImportForm
 from django.template.response import TemplateResponse
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from apps.verification.filters import VerificaitonFilter
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext as _, ngettext
+from django.utils.safestring import mark_safe
+
 import csv
+from django.urls import reverse
+from apps.wallet.models import PaperWallet, WALLET_CATEGORIES, WALLET_STATES
+from django.core.exceptions import PermissionDenied
 
-
+# TODO: ths isn't used anymore, should it be fixed and used or removed?
 def approve_verification(modeladmin, request, queryset):
     updated = 0
     transactions_created = 0
     for obj in queryset:
         if obj.state == VERIFICATION_STATES.CLAIMED.value:
             continue
+        # TODO: this field has been removed
         if not obj.receiving_wallet:
             continue
         obj.state = VERIFICATION_STATES.CLAIMED.value
@@ -34,13 +39,13 @@ def approve_verification(modeladmin, request, queryset):
         obj.save()
         updated += 1
 
-    self.message_user(request, ngettext(
+    modeladmin.message_user(request, ngettext(
         _('%d entry updated.'),
         _('%d entries updated.'),
         updated,
     ) % updated, messages.SUCCESS)
 
-    self.message_user(request, ngettext(
+    modeladmin.message_user(request, ngettext(
         _('%d entry updated.'),
         _('%d entries updated.'),
         transactions_created,
@@ -69,7 +74,8 @@ class ImportMixin:
                     for row in csv_reader:
                         line_number += 1
                         if not is_row_valid(row):
-                            form.add_error('csv_file', _('Line Nr {} is invalid:{}').format(str(line_number), row))
+                            form.add_error('csv_file', _(
+                                'Line Nr {} is invalid:{}').format(str(line_number), row))
                             transaction.set_rollback(True)
                             break
                         user_verification = UserVerification(**row)
@@ -92,13 +98,16 @@ class ImportMixin:
 @admin.register(UserVerification)
 class UserVerificationAdmin(ImportMixin, admin.ModelAdmin):
     list_display = ['first_name', 'last_name', 'address_street',
-                    'address_town', 'address_postal_code', 'date_of_birth', 'state']
-    list_filter = ['state']
+                    'address_town', 'address_postal_code', 'date_of_birth', 'state', 'create_paper_wallet', 'created_at']
+    list_filter = ['state', 'created_at']
     search_fields = ['first_name', 'last_name', 'address_street',
                      'address_town', 'address_postal_code', 'date_of_birth']
 
     import_name = 'user_import'
-    import_validate_fields = ['first_name', 'last_name', 'address_street', 'date_of_birth']
+    import_validate_fields = ['first_name',
+                              'last_name', 'address_street', 'date_of_birth']
+    readonly_fields=['created_at',]
+    
 
     class Meta:
         model = UserVerification
@@ -106,15 +115,24 @@ class UserVerificationAdmin(ImportMixin, admin.ModelAdmin):
     def get_urls(self):
         return self.get_extra_urls() + super(UserVerificationAdmin, self).get_urls()
 
+    def create_paper_wallet(self,obj):
+        if obj.state == VERIFICATION_STATES.OPEN.value:
+            return mark_safe(u"<a class='button btn-success' href='{}'>{}</a>".format(reverse('verification:generate_paper_wallet', args=(obj.uuid,)), _('create paper wallet')))
+        return mark_safe(u"<a class='btn-info'>{}</a>".format(_('cannot create paper wallet')))
+
+    create_paper_wallet.short_description = _('paper wallet')
+    create_paper_wallet.allow_tags = True
 
 @admin.register(CompanyVerification)
 class CompanyVerificationAdmin(ImportMixin, admin.ModelAdmin):
-    list_display = ['name', 'uid', 'state']
-    list_filter = ['state']
+    list_display = ['name', 'uid', 'state', 'created_at']
+    list_filter = ['state', 'created_at']
     search_fields = ['name', 'uid']
 
     import_name = 'company_import'
     import_validate_fields = ['name', 'uid']
+    readonly_fields=['created_at',]
+
 
     class Meta:
         model = CompanyVerification
@@ -125,11 +143,11 @@ class CompanyVerificationAdmin(ImportMixin, admin.ModelAdmin):
 
 @admin.register(SMSPinVerification)
 class SMSPinVerificationAdmin(admin.ModelAdmin):
-    readonly_fields = ['user_profile', 'pin']
-    list_display = ['user_profile', 'pin', 'state']
+    readonly_fields = ['user_profile', 'pin', 'created_at']
+    list_display = ['user_profile', 'pin', 'state','created_at']
 
 
 @admin.register(AddressPinVerification)
 class AddressPinVerificationAdmin(admin.ModelAdmin):
-    readonly_fields = ['company_profile', 'pin']
-    list_display = ['company_profile', 'pin', 'state']
+    readonly_fields = ['company_profile', 'pin','created_at']
+    list_display = ['company_profile', 'pin', 'state', 'preview_link','created_at']
