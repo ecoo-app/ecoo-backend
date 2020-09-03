@@ -4,7 +4,7 @@ metadata:
   name: __NAMESPACE_NAME__-config-map
   namespace: __NAMESPACE_NAME__
 data:
-  DJANGO_DEBUG: "False"
+  DJANGO_DEBUG: "True"
   DJANGO_DB_NAME: __DJANGO_DB_NAME_DEVELOPMENT__
   DJANGO_DB_HOST: development-postgresql-stolon-proxy.development-postgresql
   DJANGO_EMAIL_HOST: "mignon.metanet.ch"

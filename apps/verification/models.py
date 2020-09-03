@@ -26,7 +26,7 @@ VERIFICATION_STATES_CHOICES = (
     (VERIFICATION_STATES.OPEN.value, _('Open')),
     (VERIFICATION_STATES.PENDING.value, _('Pending')),
     (VERIFICATION_STATES.CLAIMED.value, _('Claimed')),
-    (VERIFICATION_STATES.FAILED.value, _('Failes'))
+    (VERIFICATION_STATES.FAILED.value, _('Failes')) # TODO: not used??
 )
 
 
@@ -59,7 +59,7 @@ class CompanyVerification(AbstractVerification):
 class UserVerification(AbstractVerification):
     user_profile = models.OneToOneField(
         UserProfile, on_delete=models.SET_NULL, related_name='user_verification', blank=True, null=True)
-
+    # TODO: move this as FK to UserProfile??
     first_name = models.CharField(verbose_name=_('Firstname'), max_length=128)
     last_name = models.CharField(verbose_name=_('Lastname'), max_length=128)
 
@@ -104,7 +104,7 @@ class AddressPinVerification(AbstractVerification):
         return self.preview_image(side="front")
 
     def preview_link(self):
-        return format_html('<a href="{}">Preview</a>'.format(reverse('addresspinverification_detail', args=(self.pk,))))
+        return format_html('<a href="{}">Preview</a>'.format(reverse('verification:addresspinverification_detail', args=(self.pk,))))
 
     preview_link.allow_tags = True
     preview_link.short_description = _('Preview')
