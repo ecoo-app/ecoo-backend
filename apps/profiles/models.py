@@ -61,8 +61,10 @@ class CompanyProfile(UUIDModel):
             raise ValidationError(_('Only company wallets can be attached to company profiles'))
         if self.wallet.owner is not None and self.owner.pk != self.wallet.owner.pk:
             raise ValidationError(_('You can only attach a wallet you own to this profile'))
-        if not self.uid:
-            raise ValidationError(_('Either uid or owner information has to be filled out'))
+        if not self.address_street  or not self.address_postal_code or not self.address_town or not self.name:
+            raise ValidationError(_('Address needs to be filled out completely'))
+        # if not self.uid:
+            # raise ValidationError(_('Either uid or owner information has to be filled out'))
         super(CompanyProfile, self).clean(*args, **kwargs)
 
     class Meta:

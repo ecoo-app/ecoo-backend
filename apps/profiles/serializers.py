@@ -25,6 +25,8 @@ class CompanyProfileSerializer(serializers.ModelSerializer):
         model = CompanyProfile
         fields = ['owner', 'uuid', 'name', 'uid', 'address_street',
                   'address_town', 'verification_stage', 'wallet', 'address_postal_code']
+        extra_kwargs = {'address_town': {'required': True}, 'address_street': {'required': True}, 'address_postal_code': {'required': True}} 
+
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
