@@ -40,7 +40,7 @@ verify_users.short_description = _('Verify users')
 def verify_companies(modeladmin, request, queryset):
 
     modified = 0
-    for company_profile in queryset.exclude(company_verification__isnull=False): #.exclude(sms_pin_verification__isnull=False):
+    for company_profile in queryset.exclude(company_verification__isnull=False):
         CompanyVerification.objects.create(
             company_profile=company_profile,
             state=VERIFICATION_STATES.CLAIMED.value,

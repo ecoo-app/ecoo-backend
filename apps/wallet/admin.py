@@ -31,7 +31,7 @@ class WalletAdmin(admin.ModelAdmin):
     fields = ['currency', 'wallet_id', 'category',
               'owner', 'public_key', 'state','created_at']
     list_display = ['wallet_id', 'owner', 'balance',
-                    'nonce', 'state', 'category', 'currency']
+                    'nonce', 'state', 'category', 'currency', 'created_at']
     list_filter = ['currency', 'category', 'state','created_at']
 
 
