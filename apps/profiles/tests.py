@@ -183,12 +183,13 @@ class ProfileApiTest(APITestCase):
             "address_town": "Birr",
             "wallet": self.wallet_1_2.wallet_id
         }
-        
+
         self.client.force_authenticate(user=self.user)
         response = self.client.post(
             '/api/profiles/company_profiles/', data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data['verification_stage'], PROFILE_VERIFICATION_STAGES.PARTIALLY_VERIFIED.value)
+        self.assertEqual(response.data['verification_stage'],
+                         PROFILE_VERIFICATION_STAGES.PARTIALLY_VERIFIED.value)
         # verify with pin
         company_profile = CompanyProfile.objects.get(pk=response.data['uuid'])
         address_pin_verification = company_profile.address_pin_verification
@@ -198,10 +199,9 @@ class ProfileApiTest(APITestCase):
         response = self.client.post(
             '/api/verification/verify_company_profile_pin/{}'.format(company_profile.pk), {'pin': pin}, format='json')
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertEqual(company_profile.verification_stage(), PROFILE_VERIFICATION_STAGES.VERIFIED.value)
+        self.assertEqual(company_profile.verification_stage(),
+                         PROFILE_VERIFICATION_STAGES.VERIFIED.value)
 
-
-    
     def test_company_verification_not_matching_wallet(self):
         company_verification = CompanyVerification.objects.create(
             name="Papers AG",
@@ -219,11 +219,12 @@ class ProfileApiTest(APITestCase):
             "address_town": "Birr",
             "wallet": self.wallet_1.wallet_id
         }
-        
+
         self.client.force_authenticate(user=self.user)
         response = self.client.post(
             '/api/profiles/company_profiles/', data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
+        self.assertEqual(response.status_code,
+                         status.HTTP_422_UNPROCESSABLE_ENTITY)
 
     def test_company_verification_incomplete_address(self):
         company_verification = CompanyVerification.objects.create(
@@ -241,7 +242,7 @@ class ProfileApiTest(APITestCase):
             "address_town": "Birr",
             "wallet": self.wallet_1_2.wallet_id
         }
-        
+
         self.client.force_authenticate(user=self.user)
         response = self.client.post(
             '/api/profiles/company_profiles/', data, format='json')
@@ -254,7 +255,7 @@ class ProfileApiTest(APITestCase):
             "address_town": "Birr",
             "wallet": self.wallet_1_2.wallet_id
         }
-        
+
         self.client.force_authenticate(user=self.user)
         response = self.client.post(
             '/api/profiles/company_profiles/', data, format='json')
@@ -267,7 +268,7 @@ class ProfileApiTest(APITestCase):
             "address_town": "Birr",
             "wallet": self.wallet_1_2.wallet_id
         }
-        
+
         self.client.force_authenticate(user=self.user)
         response = self.client.post(
             '/api/profiles/company_profiles/', data, format='json')
@@ -280,14 +281,12 @@ class ProfileApiTest(APITestCase):
             # "address_town": "Birr",
             "wallet": self.wallet_1_2.wallet_id
         }
-        
+
         self.client.force_authenticate(user=self.user)
         response = self.client.post(
             '/api/profiles/company_profiles/', data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-
-    
     def test_company_verification_no_uid(self):
         company_verification = CompanyVerification.objects.create(
             name="Papers AG",
@@ -304,22 +303,22 @@ class ProfileApiTest(APITestCase):
             "address_town": "Birr",
             "wallet": self.wallet_1_2.wallet_id
         }
-        
+
         self.client.force_authenticate(user=self.user)
         response = self.client.post(
             '/api/profiles/company_profiles/', data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data['verification_stage'], PROFILE_VERIFICATION_STAGES.UNVERIFIED.value)
+        self.assertEqual(
+            response.data['verification_stage'], PROFILE_VERIFICATION_STAGES.UNVERIFIED.value)
         company_profile = CompanyProfile.objects.get(pk=response.data['uuid'])
 
         # TODO: check that no verification data is there!!
-
 
         try:
             address_pin_verification = company_profile.address_pin_verification
         except ObjectDoesNotExist:
             pass
-        
+
         company_verification = CompanyVerification.objects.create(
             name="Papers AG",
             uid="12-3-4-3",
@@ -336,11 +335,12 @@ class ProfileApiTest(APITestCase):
             "address_town": "Birr",
             "wallet": self.wallet_1_2.wallet_id
         }
-        
+
         response = self.client.post(
             '/api/profiles/company_profiles/', data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data['verification_stage'], PROFILE_VERIFICATION_STAGES.UNVERIFIED.value)
+        self.assertEqual(
+            response.data['verification_stage'], PROFILE_VERIFICATION_STAGES.UNVERIFIED.value)
         company_profile = CompanyProfile.objects.get(pk=response.data['uuid'])
         try:
             address_pin_verification = company_profile.address_pin_verification
@@ -351,9 +351,9 @@ class ProfileApiTest(APITestCase):
         company_verification = CompanyVerification.objects.create(
             name="Papers AG",
             uid="12-3-4-4",
-            address_street = "Sonnmattstr. 121",
-            address_postal_code = "5242",
-            address_town = "Birr",
+            address_street="Sonnmattstr. 121",
+            address_postal_code="5242",
+            address_town="Birr",
         )
 
         data = {
@@ -364,12 +364,12 @@ class ProfileApiTest(APITestCase):
             "address_town": "Birr",
             "wallet": self.wallet_1.wallet_id
         }
-        
+
         self.client.force_authenticate(user=self.user)
         response = self.client.post(
             '/api/profiles/company_profiles/', data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
-
+        self.assertEqual(response.status_code,
+                         status.HTTP_422_UNPROCESSABLE_ENTITY)
 
     def test_company_profile_verification_flow(self):
         company_verification = CompanyVerification.objects.create(
@@ -544,7 +544,6 @@ class ProfileApiTest(APITestCase):
         response = self.client.post(
             '/api/profiles/company_profiles/', data, format='json')
         # the second create overrides user 2
-
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         user_1_profile_uuid = response.data['uuid']
 

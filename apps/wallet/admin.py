@@ -29,7 +29,7 @@ import weasyprint
 class WalletAdmin(admin.ModelAdmin):
     readonly_fields = ['wallet_id', 'created_at']
     fields = ['currency', 'wallet_id', 'category',
-              'owner', 'public_key',  'state', , 'created_at']
+              'owner', 'public_key',  'state', 'created_at']
     list_display = ['wallet_id', 'owner', 'balance',
                     'nonce', 'state', 'category', 'address', 'currency', 'created_at']
     list_filter = ['currency', 'category', 'state', 'created_at']
