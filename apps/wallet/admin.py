@@ -25,9 +25,9 @@ import uuid
 class WalletAdmin(admin.ModelAdmin):
     readonly_fields = ['wallet_id']
     fields = ['currency', 'wallet_id', 'category',
-              'owner', 'public_key', 'state']
+              'owner', 'public_key',  'state']
     list_display = ['wallet_id', 'owner', 'balance',
-                    'nonce', 'state', 'category', 'currency']
+                    'nonce', 'state', 'category', 'address', 'currency']
     list_filter = ['currency', 'category', 'state']
 
 
@@ -97,7 +97,8 @@ class PaperWalletAdmin(WalletAdmin):
                     print(str(i) + ' wallet generated')
 
                 if form.is_valid():
-                    messages.add_message(request, messages.SUCCESS, _('{} Wallets generated').format(amount))
+                    messages.add_message(request, messages.SUCCESS, _(
+                        '{} Wallets generated').format(amount))
                     return HttpResponseRedirect(request.META['HTTP_REFERER'])
 
         return TemplateResponse(request, 'admin/generate_wallets.html', {'form': form, 'opts': self.opts, 'media': self.media, })
