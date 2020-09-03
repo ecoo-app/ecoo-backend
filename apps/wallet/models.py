@@ -131,7 +131,6 @@ class PaperWallet(Wallet):
     def generate_new_wallet(currency, verification_data, category=WALLET_CATEGORIES.CONSUMER.value, state=WALLET_STATES.VERIFIED.value):
         with transaction.atomic():
             while True:
-                # print("BLA")
                 wallet_id = Wallet.generate_wallet_id()
                 if Wallet.objects.filter(wallet_id=wallet_id).exists():
                     continue
@@ -146,9 +145,9 @@ class PaperWallet(Wallet):
                     from apps.profiles.models import CompanyProfile, UserProfile
 
                     if category == WALLET_CATEGORIES.CONSUMER.value:
-                        username = slugify('%s %s %s' % (verification_data.firstname, verification_data.lastname, get_random_string(10)))
+                        username = slugify('%s %s %s' % (verification_data.first_name, verification_data.last_name, get_random_string(10)))
                         while get_user_model().objects.filter(username=username).exists():
-                            username = slugify('%s %s %s' % (verification_data.firstname, verification_data.lastname, get_random_string(10)))
+                            username = slugify('%s %s %s' % (verification_data.first_name, verification_data.last_name, get_random_string(10)))
 
                         user = get_user_model().objects.create(username=username, password=get_user_model().objects.make_random_password())
                         raw_data = verification_data.__dict__

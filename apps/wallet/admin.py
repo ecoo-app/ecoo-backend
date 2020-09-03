@@ -19,6 +19,10 @@ import pysodium
 import os
 import json
 import uuid
+from django.template.loader import get_template, render_to_string
+from io import BytesIO
+from django.contrib.staticfiles import finders
+import weasyprint
 
 
 @admin.register(Wallet)
@@ -70,9 +74,47 @@ def download_zip(modeladmin, request, queryset):
 download_zip.short_description = _('Download QR-Code Zip')
 
 
+def get_pdf(modeladmin, request, queryset):
+    documents = []
+
+
+    for wallet in queryset.all():
+        encryption_key = bytes.fromhex(settings.ENCRYPTION_KEY)
+        nonce = pysodium.randombytes(pysodium.crypto_secretbox_NONCEBYTES)
+        pk = pysodium.crypto_aead_xchacha20poly1305_ietf_encrypt(
+            wallet.private_key.encode('UTF-8'), None, nonce, encryption_key)
+        decrypted_pk = pysodium.crypto_aead_xchacha20poly1305_ietf_decrypt(
+            pk, None, nonce, encryption_key)
+
+        payload = {
+            'nonce': nonce.hex(),
+            'id': wallet.wallet_id,
+            'pk': pk.hex()
+        }
+
+        qr_code = pyqrcode.create(json.dumps(payload), error='M')
+
+        template = get_template('wallet/paper_wallet_pdf.html')
+        html = template.render({'image': qr_code.png_as_base64_str()})
+
+        documents.append(weasyprint.HTML(
+                string=html, base_url=request.build_absolute_uri()).render())
+    
+    response = HttpResponse(content_type="application/pdf")
+    response['Content-Disposition'] = f'filename="paper_wallet_{queryset[0].wallet_id}"'
+    all_pages = []
+    for doc in documents:
+        all_pages.extend(doc.pages)
+    documents[0].copy(all_pages).write_pdf(response)
+    return response
+    # return HttpResponse(html)
+
+get_pdf.short_description = _('Download QR-Code pdf')
+
+
 @admin.register(PaperWallet)
 class PaperWalletAdmin(WalletAdmin):
-    actions = [download_zip]
+    actions = [download_zip, get_pdf]
 
     def get_urls(self):
         return [
@@ -97,7 +139,8 @@ class PaperWalletAdmin(WalletAdmin):
                     print(str(i) + ' wallet generated')
 
                 if form.is_valid():
-                    messages.add_message(request, messages.SUCCESS, _('{} Wallets generated').format(amount))
+                    messages.add_message(request, messages.SUCCESS, _(
+                        '{} Wallets generated').format(amount))
                     return HttpResponseRedirect(request.META['HTTP_REFERER'])
 
         return TemplateResponse(request, 'admin/generate_wallets.html', {'form': form, 'opts': self.opts, 'media': self.media, })
