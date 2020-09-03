@@ -51,10 +51,6 @@ def verify_companies(modeladmin, request, queryset):
         )
 
         company_profile.save()
-        
-        from apps.wallet.utils import create_claim_transaction
-        create_claim_transaction(company_profile.wallet)
-
         modified += 1
 
     if modified > 0:
