@@ -192,20 +192,29 @@ def sync_to_blockchain(is_dry_run=True, _async=False):
 
     # wallet public key transfers
     wallet_public_key_transfer_payloads = []
+    wallet_public_key_transfer_requests = []
     for wallet_public_key_transfer_request in WalletPublicKeyTransferRequest.objects.exclude(state=TRANSACTION_STATES.PENDING.value).exclude(state=TRANSACTION_STATES.DONE.value):
-        state_update_items.append(wallet_public_key_transfer_request)
-        new_address = Wallet(
-            public_key=wallet_public_key_transfer_request.new_public_key).address
-        wallet_public_key_transfer_payloads.append({
-            "from_": wallet_public_key_transfer_request.wallet.address,
-            "txs": [{
-                    "to_": new_address,
-                    "token_id": wallet_public_key_transfer_request.wallet.currency.token_id,
-                    "amount": wallet_public_key_transfer_request.wallet.balance
-                    }]
-        })
-    operation_groups.append(token_contract.transfer(
-        wallet_public_key_transfer_payloads).operation_group.sign())
+        if wallet_public_key_transfer_request.wallet.balance > 0:
+            state_update_items.append(wallet_public_key_transfer_request)
+            wallet_public_key_transfer_requests.append(
+                wallet_public_key_transfer_request)
+            wallet_public_key_transfer_payloads.append({
+                "from_": wallet_public_key_transfer_request.wallet.address,
+                "txs": [{
+                        "to_": new_address,
+                        "token_id": wallet_public_key_transfer_request.wallet.currency.token_id,
+                        "amount": wallet_public_key_transfer_request.wallet.balance
+                        }]
+            })
+        else:
+            wallet_public_key_transfer_request.old_public_key = wallet_public_key_transfer_request.wallet.public_key
+            wallet_public_key_transfer_request.wallet.public_key = wallet_public_key_transfer_request.new_public_key
+            wallet_public_key_transfer_request.wallet.save()
+            wallet_public_key_transfer_request.save()
+
+    if len(wallet_public_key_transfer_payloads) > 0:
+        operation_groups.append(token_contract.transfer(
+            wallet_public_key_transfer_payloads).operation_group.sign())
 
     # merging all operations into one single group
     final_operation_group = None
@@ -227,7 +236,6 @@ def sync_to_blockchain(is_dry_run=True, _async=False):
         return OperationResult.is_applied(operation_result)
     elif OperationResult.is_applied(operation_result):
         def update_sync_state(items, state=TRANSACTION_STATES.PENDING.value, notes='', operation_hash=''):
-
             for item in items:
                 type(item).objects.filter(pk=item.pk).update(state=state, notes=notes,
                                                              operation_hash=operation_hash, submitted_to_chain_at=now())
@@ -238,6 +246,11 @@ def sync_to_blockchain(is_dry_run=True, _async=False):
             is_operation_applied = OperationResult.is_applied(
                 operation_inject_result)
             if is_operation_applied:
+                for wallet_public_key_transfer_request in wallet_public_key_transfer_requests:
+                    wallet_public_key_transfer_request.old_public_key = wallet_public_key_transfer_request.wallet.public_key
+                    wallet_public_key_transfer_request.wallet.public_key = wallet_public_key_transfer_request.new_public_key
+                    wallet_public_key_transfer_request.wallet.save()
+                    wallet_public_key_transfer_request.save()
                 update_sync_state(state_update_items, TRANSACTION_STATES.DONE.value, json.dumps(
                     operation_inject_result), operation_inject_result['hash'])
             else:

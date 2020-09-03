@@ -27,12 +27,12 @@ import weasyprint
 
 @admin.register(Wallet)
 class WalletAdmin(admin.ModelAdmin):
-    readonly_fields = ['wallet_id','created_at']
+    readonly_fields = ['wallet_id', 'created_at']
     fields = ['currency', 'wallet_id', 'category',
-              'owner', 'public_key', 'state','created_at']
+              'owner', 'public_key',  'state', 'created_at']
     list_display = ['wallet_id', 'owner', 'balance',
-                    'nonce', 'state', 'category', 'currency', 'created_at']
-    list_filter = ['currency', 'category', 'state','created_at']
+                    'nonce', 'state', 'category', 'address', 'currency', 'created_at']
+    list_filter = ['currency', 'category', 'state', 'created_at']
 
 
 @admin.register(OwnerWallet)
@@ -77,7 +77,6 @@ download_zip.short_description = _('Download QR-Code Zip')
 def get_pdf(modeladmin, request, queryset):
     documents = []
 
-
     for wallet in queryset.all():
         encryption_key = bytes.fromhex(settings.ENCRYPTION_KEY)
         nonce = pysodium.randombytes(pysodium.crypto_secretbox_NONCEBYTES)
@@ -98,8 +97,8 @@ def get_pdf(modeladmin, request, queryset):
         html = template.render({'image': qr_code.png_as_base64_str()})
 
         documents.append(weasyprint.HTML(
-                string=html, base_url=request.build_absolute_uri()).render())
-    
+            string=html, base_url=request.build_absolute_uri()).render())
+
     response = HttpResponse(content_type="application/pdf")
     response['Content-Disposition'] = f'filename="paper_wallet_{queryset[0].wallet_id}"'
     all_pages = []
@@ -108,6 +107,7 @@ def get_pdf(modeladmin, request, queryset):
     documents[0].copy(all_pages).write_pdf(response)
     return response
     # return HttpResponse(html)
+
 
 get_pdf.short_description = _('Download QR-Code pdf')
 
@@ -162,9 +162,11 @@ class PaperWalletAdmin(WalletAdmin):
 
 @admin.register(Transaction)
 class TransactionAdmin(admin.ModelAdmin):
-    readonly_fields = ['submitted_to_chain_at', 'operation_hash', 'notes','created_at']
-    list_display = ['from_wallet', 'to_wallet', 'amount', 'state','created_at']
-    list_filter = ['from_wallet__currency', 'state','created_at']
+    readonly_fields = ['submitted_to_chain_at',
+                       'operation_hash', 'notes', 'created_at']
+    list_display = ['from_wallet', 'to_wallet',
+                    'amount', 'state', 'created_at']
+    list_filter = ['from_wallet__currency', 'state', 'created_at']
     search_fields = ['from_wallet__wallet_id', 'to_wallet__wallet_id']
     actions = ['retry_failed']
 
@@ -180,17 +182,21 @@ class TransactionAdmin(admin.ModelAdmin):
 
 @admin.register(MetaTransaction)
 class MetaTransactionAdmin(admin.ModelAdmin):
-    readonly_fields = ['submitted_to_chain_at', 'operation_hash', 'notes','created_at']
-    list_display = ['from_wallet', 'to_wallet', 'amount', 'state','created_at']
-    list_filter = ['from_wallet__currency', 'state','created_at']
+    readonly_fields = ['submitted_to_chain_at',
+                       'operation_hash', 'notes', 'created_at']
+    list_display = ['from_wallet', 'to_wallet',
+                    'amount', 'state', 'created_at']
+    list_filter = ['from_wallet__currency', 'state', 'created_at']
     search_fields = ['from_wallet__wallet_id', 'to_wallet__wallet_id']
 
 
 @admin.register(WalletPublicKeyTransferRequest)
 class WalletPublicKeyTransferRequestAdmin(admin.ModelAdmin):
-    readonly_fields = ['submitted_to_chain_at', 'operation_hash', 'notes','created_at']
-    list_display = ['wallet', 'old_public_key', 'new_public_key', 'state','created_at']
-    list_filter = ['wallet', 'state','created_at']
+    readonly_fields = ['submitted_to_chain_at',
+                       'operation_hash', 'notes', 'created_at']
+    list_display = ['wallet', 'old_public_key',
+                    'new_public_key', 'state', 'created_at']
+    list_filter = ['wallet', 'state', 'created_at']
     search_fields = ['wallet__wallet_id']
 
 
@@ -202,10 +208,10 @@ class CashOutRequestAdmin(admin.ModelAdmin):
 
     actions = ['generate_payout_file']
     list_display = ['transaction', 'beneficiary_name',
-                    'beneficiary_iban', 'state','created_at']
-    list_filter = ['transaction__state', 'state','created_at']
+                    'beneficiary_iban', 'state', 'created_at']
+    list_filter = ['transaction__state', 'state', 'created_at']
     search_fields = [
-        'transaction__from_wallet__wallet_id', 'beneficiary_name',]
+        'transaction__from_wallet__wallet_id', 'beneficiary_name', ]
 
     def generate_payout_file(self, request, queryset):
         class PaymentDateForm(forms.Form):
