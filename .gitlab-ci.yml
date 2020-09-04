@@ -80,7 +80,7 @@ k8s-deploy-development:
     - find k8s -type f -name \*.yaml -exec sed -i "s|__POST_CAMPAIGN_KEY__|"$POST_CAMPAIGN_KEY"|g" {} +
 
     # TEZOS
-    - find k8s -type f -name \*.yaml -exec sed -i "s|__TEZOS_ADMIN_ACCOUNT_PRIVATE_KEY__|"$TEZOS_ADMIN_ACCOUNT_PRIVATE_KEY_PROD"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__TEZOS_ADMIN_ACCOUNT_PRIVATE_KEY__|"$TEZOS_ADMIN_ACCOUNT_PRIVATE_KEY_DEV"|g" {} +
 
     # OAUTH APPLE
     - find k8s -type f -name \*.yaml -exec sed -i "s|__APPLE_ID_CLIENT__|"$APPLE_ID_CLIENT_DEV"|g" {} +
