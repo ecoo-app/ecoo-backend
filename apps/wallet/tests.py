@@ -198,7 +198,6 @@ class BlockchainSyncTestCase(TestCase):
         end = time.time()
         print(end - start)
 
-    @skip
     def test_complex_sync(self):
         for i in range(40):
             key = crypto.Key.generate()
