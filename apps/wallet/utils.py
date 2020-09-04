@@ -78,7 +78,7 @@ def create_message(from_wallet, to_wallet, nonce, token_id, amount):
                             }
                         ]
                     ]
-                }
+            }
         ]
     }
     return michelson.pack.pack(message_to_encode, MESSAGE_STRUCTURE)
@@ -153,7 +153,7 @@ def sync_to_blockchain(is_dry_run=True, _async=False):
 
     state_update_items = []
 
-    for transaction in Transaction.objects.exclude(state=TRANSACTION_STATES.PENDING.value).exclude(state=TRANSACTION_STATES.DONE.value):
+    for transaction in Transaction.objects.exclude(state=TRANSACTION_STATES.PENDING.value).exclude(state=TRANSACTION_STATES.DONE.value).order_by('created_at'):
         state_update_items.append(transaction)
         if not transaction.from_wallet:
             operation_groups.append(token_contract.mint(address=transaction.to_wallet.address,
@@ -194,7 +194,7 @@ def sync_to_blockchain(is_dry_run=True, _async=False):
     # wallet public key transfers
     wallet_public_key_transfer_payloads = []
     wallet_public_key_transfer_requests = []
-    for wallet_public_key_transfer_request in WalletPublicKeyTransferRequest.objects.exclude(state=TRANSACTION_STATES.PENDING.value).exclude(state=TRANSACTION_STATES.DONE.value):
+    for wallet_public_key_transfer_request in WalletPublicKeyTransferRequest.objects.exclude(state=TRANSACTION_STATES.PENDING.value).exclude(state=TRANSACTION_STATES.DONE.value).order_by('created_at'):
         if wallet_public_key_transfer_request.wallet.balance > 0:
             new_address = Wallet(
                 public_key=wallet_public_key_transfer_request.new_public_key).address
@@ -264,11 +264,19 @@ def sync_to_blockchain(is_dry_run=True, _async=False):
                     wallet_public_key_transfer_request.wallet.public_key = wallet_public_key_transfer_request.new_public_key
                     wallet_public_key_transfer_request.wallet.save()
                     wallet_public_key_transfer_request.save()
-                update_sync_state(state_update_items, TRANSACTION_STATES.DONE.value, json.dumps(
-                    operation_inject_result), operation_inject_result['hash'] + "*" if not is_confirmed_in_chain else "")
+                if is_confirmed_in_chain:
+                    update_sync_state(state_update_items, TRANSACTION_STATES.DONE.value, json.dumps(
+                        operation_inject_result), operation_inject_result['hash'])
+                else:
+                    update_sync_state(state_update_items, TRANSACTION_STATES.DONE.value, json.dumps(
+                        operation_result), operation_result['hash'] + "*")
             else:
-                update_sync_state(state_update_items, TRANSACTION_STATES.FAILED.value, 'Error during sync: {}'.format(
-                    json.dumps(operation_inject_result)))
+                if operation_inject_result is None:
+                    update_sync_state(state_update_items, TRANSACTION_STATES.FAILED.value, 'Error during sync: {}'.format(
+                        json.dumps(operation_result)))
+                else:
+                    update_sync_state(state_update_items, TRANSACTION_STATES.FAILED.value, 'Error during sync: {}'.format(
+                        json.dumps(operation_inject_result)))
             return is_operation_applied
         except Exception as error:
             update_sync_state(state_update_items, TRANSACTION_STATES.FAILED.value,
