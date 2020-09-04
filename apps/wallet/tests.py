@@ -48,13 +48,13 @@ class WalletTestCase(TestCase):
         self.assertEqual(
             wallet2.nonce, 0)
         MetaTransaction.objects.create(
-            from_wallet=wallet2, to_wallet=wallet1, amount=1, nonce=2)
+            from_wallet=wallet2, to_wallet=wallet1, amount=1, nonce=1)
         self.assertEqual(
             wallet1.nonce, 1)
         self.assertEqual(
             wallet2.nonce, 1)
         MetaTransaction.objects.create(
-            from_wallet=wallet1, to_wallet=wallet2, amount=1, nonce=3)
+            from_wallet=wallet1, to_wallet=wallet2, amount=1, nonce=2)
         self.assertEqual(
             wallet1.nonce, 2)
         self.assertEqual(

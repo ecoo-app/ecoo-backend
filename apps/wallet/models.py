@@ -68,8 +68,15 @@ class Wallet(CurrencyOwnedMixin):
         return (self.to_transactions.aggregate(Sum('amount')).get('amount__sum') or 0) - (self.from_transactions.aggregate(Sum('amount')).get('amount__sum') or 0)
 
     @property
+    def from_metatransactions(self):
+        return MetaTransaction.objects.filter(from_wallet=self)
+
+    @property
     def nonce(self):
-        return self.from_transactions.count()
+        if self.from_metatransactions.count() == 0:
+            return 0
+        else:
+            return self.from_metatransactions.last().nonce
 
     @property
     def is_in_public_key_transfer(self):
@@ -145,24 +152,27 @@ class PaperWallet(Wallet):
                     from apps.profiles.models import CompanyProfile, UserProfile
 
                     if category == WALLET_CATEGORIES.CONSUMER.value:
-                        username = slugify('%s %s %s' % (verification_data.first_name, verification_data.last_name, get_random_string(10)))
+                        username = slugify('%s %s %s' % (
+                            verification_data.first_name, verification_data.last_name, get_random_string(10)))
                         while get_user_model().objects.filter(username=username).exists():
-                            username = slugify('%s %s %s' % (verification_data.first_name, verification_data.last_name, get_random_string(10)))
+                            username = slugify('%s %s %s' % (
+                                verification_data.first_name, verification_data.last_name, get_random_string(10)))
 
-                        user = get_user_model().objects.create(username=username, password=get_user_model().objects.make_random_password())
+                        user = get_user_model().objects.create(
+                            username=username, password=get_user_model().objects.make_random_password())
                         raw_data = verification_data.__dict__
                         raw_data.pop('_state', None)
                         raw_data.pop('state', None)
                         raw_data.pop('user_profile_id', None)
                         raw_data.pop('uuid', None)
-                        
+
                         profile = UserProfile(**raw_data)
                         profile.telephone_number = '+417'
                     else:
                         user = get_user_model().objects.create(username=verification_data.name,
-                                                            password=get_user_model().objects.make_random_password())
+                                                               password=get_user_model().objects.make_random_password())
                         profile = CompanyProfile(**verification_data.__dict__)
-                    
+
                     profile._state
                     profile.owner = user
                     profile.wallet = paper_wallet
@@ -289,9 +299,10 @@ class MetaTransaction(Transaction):
             raise ValidationError(_('Metatransaction always must have from'))
         if not self.nonce or self.nonce <= 0:
             raise ValidationError(_('Nonce must be > 0'))
-        if self.nonce <= (MetaTransaction.objects.filter(from_wallet=self.from_wallet).aggregate(Max('nonce'))['nonce__max'] or 0):
+
+        if self.nonce != self.from_wallet.nonce+1:
             raise ValidationError(
-                _('Nonce must be higher than from_wallet\'s last meta transaction'))
+                _('Nonce must be 1 higher than from_wallet\'s last meta transaction nonce'))
         if self.from_wallet.currency != self.to_wallet.currency:
             raise ValidationError(
                 _('"From wallet" and "to wallet" need to use same currency'))

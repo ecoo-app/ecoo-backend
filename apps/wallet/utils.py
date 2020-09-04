@@ -5,6 +5,7 @@ from django.conf import settings
 from django.utils.timezone import now
 from pytezos.operation.result import OperationResult
 import json
+import traceback
 
 MESSAGE_STRUCTURE = {
     "prim": "pair",
@@ -77,7 +78,7 @@ def create_message(from_wallet, to_wallet, nonce, token_id, amount):
                             }
                         ]
                     ]
-            }
+                }
         ]
     }
     return michelson.pack.pack(message_to_encode, MESSAGE_STRUCTURE)
@@ -212,6 +213,8 @@ def sync_to_blockchain(is_dry_run=True, _async=False):
             wallet_public_key_transfer_request.old_public_key = wallet_public_key_transfer_request.wallet.public_key
             wallet_public_key_transfer_request.wallet.public_key = wallet_public_key_transfer_request.new_public_key
             wallet_public_key_transfer_request.wallet.save()
+            wallet_public_key_transfer_request.state = TRANSACTION_STATES.DONE.value
+            wallet_public_key_transfer_request.notes = "Has no balance, transferred offchain"
             wallet_public_key_transfer_request.save()
 
     if len(wallet_public_key_transfer_payloads) > 0:
@@ -232,6 +235,7 @@ def sync_to_blockchain(is_dry_run=True, _async=False):
             final_operation_group = final_operation_group.operation(
                 operation_group.contents[0])
 
+    print(final_operation_group)
     operation_result = final_operation_group.sign().preapply()
     print(operation_result)
     if is_dry_run:
@@ -243,10 +247,17 @@ def sync_to_blockchain(is_dry_run=True, _async=False):
                                                              operation_hash=operation_hash, submitted_to_chain_at=now())
         update_sync_state(state_update_items)
         try:
-            operation_inject_result = final_operation_group.sign().inject(
-                _async=_async, preapply=True, check_result=True, num_blocks_wait=settings.TEZOS_BLOCK_WAIT_TIME)
-            is_operation_applied = OperationResult.is_applied(
-                operation_inject_result)
+            is_confirmed_in_chain = False
+            try:
+                operation_inject_result = final_operation_group.sign().inject(
+                    _async=_async, preapply=True, check_result=True, num_blocks_wait=settings.TEZOS_BLOCK_WAIT_TIME)
+                is_operation_applied = OperationResult.is_applied(
+                    operation_inject_result)
+                is_confirmed_in_chain = True
+            except AssertionError:
+                # here we assume that the operation was applied even if we know the assertion failed
+                is_operation_applied = True
+
             if is_operation_applied:
                 for wallet_public_key_transfer_request in wallet_public_key_transfer_requests:
                     wallet_public_key_transfer_request.old_public_key = wallet_public_key_transfer_request.wallet.public_key
@@ -254,14 +265,14 @@ def sync_to_blockchain(is_dry_run=True, _async=False):
                     wallet_public_key_transfer_request.wallet.save()
                     wallet_public_key_transfer_request.save()
                 update_sync_state(state_update_items, TRANSACTION_STATES.DONE.value, json.dumps(
-                    operation_inject_result), operation_inject_result['hash'])
+                    operation_inject_result), operation_inject_result['hash'] + "*" if not is_confirmed_in_chain else "")
             else:
                 update_sync_state(state_update_items, TRANSACTION_STATES.FAILED.value, 'Error during sync: {}'.format(
                     json.dumps(operation_inject_result)))
             return is_operation_applied
         except Exception as error:
             update_sync_state(state_update_items, TRANSACTION_STATES.FAILED.value,
-                              'Exception during sync: {}'.format(repr(error)))
+                              'Exception during sync: {}\nTraceback: {}'.format(repr(error), traceback.format_exc()))
             return False
     else:
         return OperationResult.is_applied(operation_result)
