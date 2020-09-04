@@ -21,7 +21,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY','cqo_%6g)wia2h8+8u1hb95r=j9o!2l85rx39dmjdr(60ia&o83')
+SECRET_KEY = os.environ.get(
+    'DJANGO_SECRET_KEY', 'cqo_%6g)wia2h8+8u1hb95r=j9o!2l85rx39dmjdr(60ia&o83')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -275,10 +276,13 @@ SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.user.user_details',
 )
 
-TEZOS_ADMIN_ACCOUNT_PRIVATE_KEY = os.environ.get('TEZOS_ADMIN_ACCOUNT_PRIVATE_KEY', "edskS8riAZZ3HuMwpFfoTTU3XDNQNM5gqAhSSyQKSpmzhk9Rwwu79kyLEprd35V894fS5wQHeTJfoRXxmm2Kd6mUhk49BafLmb")
-TEZOS_TOKEN_CONTRACT_ADDRESS = os.environ.get('TEZOS_CALLBACK_CONTRACT_ADDRESS',"KT1NX1CTMYi7cttUom5KfRX2HKfRDPMygKc6")
-TEZOS_CALLBACK_CONTRACT_ADDRESS = os.environ.get('TEZOS_CALLBACK_CONTRACT_ADDRESS',"KT1FM1yaa8sfADNojRBGnt9QGXssCicVbeTY")
-TEZOS_BLOCK_WAIT_TIME = os.environ.get('TEZOS_BLOCK_WAIT_TIME',5)
+TEZOS_ADMIN_ACCOUNT_PRIVATE_KEY = os.environ.get(
+    'TEZOS_ADMIN_ACCOUNT_PRIVATE_KEY', "edskRqFp3Z9AqoKrMNFb9bnWNwEsRzbjqjBhzmFMLF9UqB6VBmw7F8ppTiXaAnHtysmi6xFxoHf6rMUz6Y1ipiDz2EgwZQv3pa")
+TEZOS_TOKEN_CONTRACT_ADDRESS = os.environ.get(
+    'TEZOS_TOKEN_CONTRACT_ADDRESS', "KT1NX1CTMYi7cttUom5KfRX2HKfRDPMygKc6")
+TEZOS_CALLBACK_CONTRACT_ADDRESS = os.environ.get(
+    'TEZOS_CALLBACK_CONTRACT_ADDRESS', "KT1FM1yaa8sfADNojRBGnt9QGXssCicVbeTY")
+TEZOS_BLOCK_WAIT_TIME = os.environ.get('TEZOS_BLOCK_WAIT_TIME', 5)
 TEZOS_NODE = os.environ.get('TEZOS_NODE', "https://rpc.tzkt.io/carthagenet/")
 
 FCM_DJANGO_SETTINGS = {
@@ -300,10 +304,11 @@ MAILJET_SMS_TOKEN = os.environ.get('MAILJET_SMS_TOKEN')
 MAILJET_SENDER_ID = 'ecoo'
 
 # Test encryption key, override for prod
-ENCRYPTION_KEY = os.environ.get('ENCRYPTION_KEY','63298563e90a5d9cd751136c91cc5c7d471c362148480fe4dac2943e6e36051b')
+ENCRYPTION_KEY = os.environ.get(
+    'ENCRYPTION_KEY', '63298563e90a5d9cd751136c91cc5c7d471c362148480fe4dac2943e6e36051b')
 
 ENABLE_SMS = False
-ENABLE_POSTCARD = True
+ENABLE_POSTCARD = False
 
 PUSH_NOTIFICATION_TITLE = 'ecoo'
 

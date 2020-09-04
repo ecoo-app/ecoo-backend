@@ -195,6 +195,8 @@ def sync_to_blockchain(is_dry_run=True, _async=False):
     wallet_public_key_transfer_requests = []
     for wallet_public_key_transfer_request in WalletPublicKeyTransferRequest.objects.exclude(state=TRANSACTION_STATES.PENDING.value).exclude(state=TRANSACTION_STATES.DONE.value):
         if wallet_public_key_transfer_request.wallet.balance > 0:
+            new_address = Wallet(
+                public_key=wallet_public_key_transfer_request.new_public_key).address
             state_update_items.append(wallet_public_key_transfer_request)
             wallet_public_key_transfer_requests.append(
                 wallet_public_key_transfer_request)
@@ -231,7 +233,7 @@ def sync_to_blockchain(is_dry_run=True, _async=False):
                 operation_group.contents[0])
 
     operation_result = final_operation_group.sign().preapply()
-
+    print(operation_result)
     if is_dry_run:
         return OperationResult.is_applied(operation_result)
     elif OperationResult.is_applied(operation_result):
