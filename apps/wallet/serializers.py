@@ -2,10 +2,9 @@ from rest_framework import serializers
 import collections
 from apps.currency.models import Currency
 from apps.currency.serializers import CurrencySerializer
-from apps.wallet.models import CashOutRequest, MetaTransaction, Transaction, Wallet, WalletPublicKeyTransferRequest
+from apps.wallet.models import CashOutRequest, MetaTransaction, Transaction, Wallet, WalletPublicKeyTransferRequest, WALLET_CATEGORIES
 
-
-class WalletSerializer(serializers.ModelSerializer):
+class PublicWalletSerializer(serializers.ModelSerializer):
     owner = serializers.HiddenField(
         default=serializers.CurrentUserDefault()
     )
@@ -13,15 +12,23 @@ class WalletSerializer(serializers.ModelSerializer):
         queryset=Currency.objects.all())
     currency_details = CurrencySerializer(source='currency', read_only=True)
 
+    class Meta:
+        model = Wallet
+        fields = ['owner', 'wallet_id', 'public_key',
+                  'nonce', 'currency', 'currency_details', 'category', 'state']
+        read_only_fields = ['state',]
+
+class WalletSerializer(PublicWalletSerializer):
+
     def validate_owner(self, value):
         if value != self.context['request'].user:
             raise serializers.ValidationError("Does not belong to user")
         return value
 
     def validate_category(self, value):
-        if value not in [0, 1]:
+        if value not in [WALLET_CATEGORIES.COMPANY.value, WALLET_CATEGORIES.CONSUMER.value]:
             raise serializers.ValidationError(
-                "Only wallet category 0 and 1 is allowed")
+                "Only wallet category CONSUMER and COMPANY is allowed")
         return value
 
     class Meta:

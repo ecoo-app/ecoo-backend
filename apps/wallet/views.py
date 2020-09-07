@@ -16,7 +16,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import BasePermission
 
 from apps.wallet.models import WALLET_CATEGORIES, WALLET_STATES, CashOutRequest, Transaction, MetaTransaction, Wallet, WalletPublicKeyTransferRequest, PaperWallet
-from apps.wallet.serializers import CashOutRequestSerializer, MetaTransactionSerializer, TransactionSerializer, WalletSerializer, WalletPublicKeyTransferRequestSerializer
+from apps.wallet.serializers import CashOutRequestSerializer, MetaTransactionSerializer, TransactionSerializer, WalletSerializer, WalletPublicKeyTransferRequestSerializer, PublicWalletSerializer
 from apps.wallet.utils import create_message, read_nonce_from_chain
 
 
@@ -27,9 +27,16 @@ class WalletDetail(generics.RetrieveAPIView):
     def get_queryset(self):
         return Wallet.objects.all()
 
+    def get_serializer_class(self):
+        wallet = self.get_object()
+
+        if wallet.owner == self.request.user:
+            return WalletSerializer
+        else:
+            return PublicWalletSerializer
+
 
 class WalletListCreate(generics.ListCreateAPIView):
-
     serializer_class = WalletSerializer
     filterset_fields = ['currency']
 
@@ -73,4 +80,3 @@ class CashOutRequestListCreate(generics.ListCreateAPIView):
 
     def get_queryset(self):
         return CashOutRequest.objects.filter(transaction__from_wallet__owner=self.request.user)
-
