@@ -94,7 +94,7 @@ def get_pdf(modeladmin, request, queryset):
         qr_code = pyqrcode.create(json.dumps(payload), error='M')
 
         template = get_template('wallet/paper_wallet_pdf.html')
-        html = template.render({'image': qr_code.png_as_base64_str()})
+        html = template.render({'image': qr_code.png_as_base64_str()}, request)
 
         documents.append(weasyprint.HTML(
             string=html, base_url=request.build_absolute_uri()).render())
