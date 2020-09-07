@@ -11,7 +11,7 @@ class CurrencyWalletSerializer(serializers.ModelSerializer):
     class Meta:
         from apps.wallet.models import Wallet
         model = Wallet
-        fields = ['wallet_id', 'balance', 'public_key',
+        fields = ['wallet_id', 'public_key',
                   'actual_nonce', 'category', 'state']
 
 class CurrencySerializer(serializers.ModelSerializer):

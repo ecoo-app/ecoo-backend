@@ -5,8 +5,8 @@ from rest_framework import status
 from rest_framework.test import APIClient, APIRequestFactory, APITestCase
 
 from apps.currency.models import Currency
-from apps.wallet.models import WALLET_STATES, CashOutRequest, Transaction, MetaTransaction, Wallet, WalletPublicKeyTransferRequest
-from apps.wallet.serializers import WalletSerializer, WalletPublicKeyTransferRequestSerializer, CashOutRequestSerializer
+from apps.wallet.models import WALLET_STATES, CashOutRequest, Transaction, MetaTransaction, Wallet, WalletPublicKeyTransferRequest, WALLET_CATEGORIES
+from apps.wallet.serializers import WalletSerializer, PublicWalletSerializer, WalletPublicKeyTransferRequestSerializer, CashOutRequestSerializer
 from apps.wallet.utils import (pack_meta_transaction,
                                read_nonce_from_chain)
 from django.db.utils import IntegrityError
@@ -55,7 +55,7 @@ class WalletApiTest(APITestCase):
         response = self.client.post('/api/wallet/wallet/', {
             "public_key": self.pubkey_1,
             "currency": self.currency.uuid,
-            "category": 2
+            "category": WALLET_CATEGORIES.OWNER.value
         }, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -121,7 +121,7 @@ class WalletApiTest(APITestCase):
             '/api/wallet/wallet/' + self.wallet_2.wallet_id+'/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
-            response.data, WalletSerializer(self.wallet_2).data)
+            response.data, PublicWalletSerializer(self.wallet_2).data)
 
         response = self.client.get(
             '/api/wallet/wallet/' + self.wallet_1.wallet_id+'/')

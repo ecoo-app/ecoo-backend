@@ -51,7 +51,7 @@ def verify_user_profile_pin(request, user_profile_uuid=None):
     if user_profile.sms_pin_verification.state == VERIFICATION_STATES.PENDING.value and user_profile.sms_pin_verification.pin == request.data.get('pin', 'XX'):
         user_profile.sms_pin_verification.state = VERIFICATION_STATES.CLAIMED.value
         user_profile.sms_pin_verification.save()
-        user_profile.user_verification.state = VERIFICATION_STATES.CLAIMED.value
+        user_profile.user_verification.state = VERIFICATION_STATES.CLAIMED.value # does this fail if multiple profiles are created?
         user_profile.user_verification.save()
         user_profile.wallet.state = WALLET_STATES.VERIFIED.value
         user_profile.wallet.save()
