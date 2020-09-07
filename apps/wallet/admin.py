@@ -23,6 +23,10 @@ from django.template.loader import get_template, render_to_string
 from io import BytesIO
 from django.contrib.staticfiles import finders
 import weasyprint
+from django.templatetags.static import static
+from django.contrib.staticfiles.storage import staticfiles_storage
+
+from weasyprint import CSS
 
 
 @admin.register(Wallet)
@@ -94,18 +98,24 @@ def get_pdf(modeladmin, request, queryset):
         qr_code = pyqrcode.create(json.dumps(payload), error='M')
 
         template = get_template('wallet/paper_wallet_pdf.html')
+        from django.contrib.staticfiles.finders import find
+        if settings.DEBUG:
+            css = CSS(find('print.css'))
+        else:
+            css = CSS(static('print.css'))
         html = template.render({'image': qr_code.png_as_base64_str()}, request)
 
         documents.append(weasyprint.HTML(
-            string=html, base_url=request.build_absolute_uri()).render())
+            string=html, base_url=request.build_absolute_uri()).render(presentational_hints=True, stylesheets=[css]))
 
     response = HttpResponse(content_type="application/pdf")
-    response['Content-Disposition'] = f'attachment; filename="paper_wallet_{queryset[0].wallet_id}"'
+    # response['Content-Disposition'] = f'attachment; filename="paper_wallet_{queryset[0].wallet_id}.pdf"'
+    response['Content-Disposition'] = f'filename="paper_wallet_{queryset[0].wallet_id}.pdf"'
     all_pages = []
     for doc in documents:
         all_pages.extend(doc.pages)
     # documents[0].copy(all_pages).write_pdf(response, presentational_hints=True)
-    documents[0].write_pdf(response, presentational_hints=True)
+    documents[0].write_pdf(response)
     return response
     # return HttpResponse(html)
 
