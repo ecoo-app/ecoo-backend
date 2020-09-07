@@ -100,11 +100,12 @@ def get_pdf(modeladmin, request, queryset):
             string=html, base_url=request.build_absolute_uri()).render())
 
     response = HttpResponse(content_type="application/pdf")
-    response['Content-Disposition'] = f'filename="paper_wallet_{queryset[0].wallet_id}"'
+    response['Content-Disposition'] = f'attachment; filename="paper_wallet_{queryset[0].wallet_id}"'
     all_pages = []
     for doc in documents:
         all_pages.extend(doc.pages)
-    documents[0].copy(all_pages).write_pdf(response)
+    # documents[0].copy(all_pages).write_pdf(response, presentational_hints=True)
+    documents[0].write_pdf(response, presentational_hints=True)
     return response
     # return HttpResponse(html)
 
