@@ -159,12 +159,13 @@ class ProfileApiTest(APITestCase):
         self.assertEqual(self.wallet_1.balance, 10)
         self.assertEqual(self.wallet_1.state, WALLET_STATES.VERIFIED.value)
 
+        # cannot reuse burned verification
         response = self.client.post(
             '/api/profiles/user_profiles/', data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
 
         # cannot reuse burned verification
-        self.assertEqual(response.data['verification_stage'], 0)
+        # self.assertEqual(response.data['verification_stage'], 0)
 
     def test_company_verification_ok(self):
         company_verification = CompanyVerification.objects.create(
@@ -327,9 +328,10 @@ class ProfileApiTest(APITestCase):
             address_town="Birr"
         )
 
+        # same data again
         data = {
             "name": "Papers AG",
-            "uid": "",
+            # "uid": "",
             "address_street": "Sonnmattstr. 121",
             "address_postal_code": "5242",
             "address_town": "Birr",
@@ -338,14 +340,14 @@ class ProfileApiTest(APITestCase):
 
         response = self.client.post(
             '/api/profiles/company_profiles/', data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(
-            response.data['verification_stage'], PROFILE_VERIFICATION_STAGES.UNVERIFIED.value)
-        company_profile = CompanyProfile.objects.get(pk=response.data['uuid'])
-        try:
-            address_pin_verification = company_profile.address_pin_verification
-        except ObjectDoesNotExist:
-            pass
+        self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
+        # self.assertEqual(
+            # response.data['verification_stage'], PROFILE_VERIFICATION_STAGES.UNVERIFIED.value)
+        # company_profile = CompanyProfile.objects.get(pk=response.data['uuid'])
+        # try:
+            # address_pin_verification = company_profile.address_pin_verification
+        # except ObjectDoesNotExist:
+            # pass
 
     def test_company_verification_not_matching_address(self):
         company_verification = CompanyVerification.objects.create(
