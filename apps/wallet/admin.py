@@ -23,6 +23,10 @@ from django.template.loader import get_template, render_to_string
 from io import BytesIO
 from django.contrib.staticfiles import finders
 import weasyprint
+from django.templatetags.static import static
+from django.contrib.staticfiles.storage import staticfiles_storage
+
+from weasyprint import CSS
 
 
 @admin.register(Wallet)
@@ -76,6 +80,7 @@ download_zip.short_description = _('Download QR-Code Zip')
 
 def get_pdf(modeladmin, request, queryset):
     documents = []
+    response = HttpResponse(content_type="application/pdf")
 
     for wallet in queryset.all():
         encryption_key = bytes.fromhex(settings.ENCRYPTION_KEY)
@@ -94,19 +99,16 @@ def get_pdf(modeladmin, request, queryset):
         qr_code = pyqrcode.create(json.dumps(payload), error='M')
 
         template = get_template('wallet/paper_wallet_pdf.html')
-        html = template.render({'image': qr_code.png_as_base64_str()}, request)
+        html = template.render({'image': qr_code.png_as_base64_str(), 'logo':settings.STATIC_ROOT+'/wallet/ecoo_logo_bw.png'},request)#.encode(encoding="UTF-8")
+        documents.append(weasyprint.HTML( 
+            string=html, base_url=request.build_absolute_uri()).write_pdf(
+                target=response, 
+                presentational_hints=True,
+                stylesheets=[CSS(settings.STATIC_ROOT +  '/wallet/print.css')]
+            ))
 
-        documents.append(weasyprint.HTML(
-            string=html, base_url=request.build_absolute_uri()).render())
-
-    response = HttpResponse(content_type="application/pdf")
-    response['Content-Disposition'] = f'filename="paper_wallet_{queryset[0].wallet_id}"'
-    all_pages = []
-    for doc in documents:
-        all_pages.extend(doc.pages)
-    documents[0].copy(all_pages).write_pdf(response)
     return response
-    # return HttpResponse(html)
+
 
 
 get_pdf.short_description = _('Download QR-Code pdf')

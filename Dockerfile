@@ -15,9 +15,10 @@ RUN mkdir -p /code/static /code/media /code/smedia
 
 WORKDIR /code
 
-COPY . .
+COPY ./requirements.txt ./requirements.txt
 RUN pip install -r requirements.txt
 
+COPY . .
 COPY ./docker/conf/settings.py ./project/settings.py
 
 RUN python manage.py collectstatic --noinput

@@ -24,10 +24,6 @@ if 'test' in sys.argv:
     }
 
 MEDIA_ROOT = "/code/media/"
-STATIC_ROOT = "/code/static_root/"
-STATICFILES_DIRS = [
-    '/code/static',
-]
 
 EMAIL_HOST = os.environ.get('DJANGO_EMAIL_HOST', '?')
 EMAIL_PORT = os.environ.get('DJANGO_EMAIL_PORT', '587')
