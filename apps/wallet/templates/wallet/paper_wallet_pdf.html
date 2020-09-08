@@ -4,7 +4,6 @@
 <html>
 <head>
 <title>ecoo print wallet</title>
-<link rel="stylesheet" type="text/css" href="{% static "wallet/print.css" %}" media="all"> 
 
 </head>
 <body>
@@ -22,7 +21,8 @@
             </ol>
             <div class="ecoologo">
                 <img src="/static/wallet/ecoo_logo_bw.png" alt="ecoo logo1">
-                <img src="{% static "wallet/ecoo_logo_bw.png" %}" alt="ecoo logo">
+                <img src="{% static 'wallet/ecoo_logo_bw.png' %}" alt="ecoo logo">
+                <img src="file://{{logo}}" alt="ecoo logo">
                 <a href="https://payecoo.ch">www.payecoo.ch</a>
             </div>
         </section>
