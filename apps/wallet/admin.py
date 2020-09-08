@@ -100,7 +100,6 @@ def get_pdf(modeladmin, request, queryset):
 
         template = get_template('wallet/paper_wallet_pdf.html')
         html = template.render({'image': qr_code.png_as_base64_str(), 'logo':settings.STATIC_ROOT+'/wallet/ecoo_logo_bw.png'},request)#.encode(encoding="UTF-8")
-        print(html)
         documents.append(weasyprint.HTML( 
             string=html, base_url=request.build_absolute_uri()).write_pdf(
                 target=response, 
