@@ -4,7 +4,7 @@ from rest_framework.pagination import CursorPagination
 from django.core.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework import status
-
+from rest_framework.renderers import JSONRenderer
 
 def raise_api_exception(code, msg):
     e = APIException()
@@ -31,3 +31,7 @@ class CustomCursorPagination(CursorPagination):
     ordering = 'created_at'
     page_size = 10
     page_size_query_param = 'page_size'
+
+
+class CustomJsonRenderer(JSONRenderer):
+    charset = 'utf-8'
