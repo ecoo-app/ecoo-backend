@@ -98,18 +98,18 @@ def get_pdf(modeladmin, request, queryset):
         qr_code = pyqrcode.create(json.dumps(payload), error='M')
 
         template = get_template('wallet/paper_wallet_pdf.html')
-        # from django.contrib.staticfiles.finders import find
-        # if settings.DEBUG:
-        #     css = CSS(find('print.css'))
-        #     ecoo_logo = find('ecoo_logo_bw.png')
-        # else:
-        #     css = CSS(static('print.css'))
-        #     ecoo_logo = static('ecoo_logo_bw.png')
+        from django.contrib.staticfiles.finders import find
+        if settings.DEBUG:
+            css = CSS(find('print.css'))
+            # ecoo_logo = find('ecoo_logo_bw.png')
+        else:
+            css = CSS(static('print.css'))
+            # ecoo_logo = static('ecoo_logo_bw.png')
 
-        html = template.render({'image': qr_code.png_as_base64_str()}, request)
+        html = template.render({'image': qr_code.png_as_base64_str(),}, request)
 
         documents.append(weasyprint.HTML(
-            string=html, base_url=request.build_absolute_uri()).render(stylesheets=[]))
+            string=html, base_url=request.build_absolute_uri()).render(stylesheets=[css]))
 
     response = HttpResponse(content_type="application/pdf")
     # response['Content-Disposition'] = f'attachment; filename="paper_wallet_{queryset[0].wallet_id}.pdf"'
@@ -120,7 +120,6 @@ def get_pdf(modeladmin, request, queryset):
     # documents[0].copy(all_pages).write_pdf(response, presentational_hints=True)
     documents[0].write_pdf(response)
     return response
-    # return HttpResponse(html)
 
 
 get_pdf.short_description = _('Download QR-Code pdf')
