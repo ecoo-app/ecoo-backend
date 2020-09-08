@@ -99,39 +99,15 @@ def get_pdf(modeladmin, request, queryset):
         qr_code = pyqrcode.create(json.dumps(payload), error='M')
 
         template = get_template('wallet/paper_wallet_pdf.html')
-        # from django.contrib.staticfiles.finders import find
-        # if settings.DEBUG:
-            # css = CSS(find('wallet/print.css'))
-            # ecoo_logo = find('ecoo_logo_bw.png')
-        # else:
-            # css = CSS(static('wallet/print.css'))
-            # ecoo_logo = static('ecoo_logo_bw.png')
-
-        # html = template.render({'image': qr_code.png_as_base64_str(),}, request)
-        html = template.render({'image': qr_code.png_as_base64_str()},request)#.encode(encoding="UTF-8")
         html = template.render({'image': qr_code.png_as_base64_str(), 'logo':settings.STATIC_ROOT+'/wallet/ecoo_logo_bw.png'},request)#.encode(encoding="UTF-8")
-        # html = render_to_string('wallet/paper_wallet_pdf.html', {'image': qr_code.png_as_base64_str()})
-        # return HttpResponse(template.render({'image': qr_code.png_as_base64_str()}))
         print(html)
         documents.append(weasyprint.HTML( 
-            # string=html, base_url=request.build_absolute_uri()).render(stylesheets=[CSS(settings.STATIC_ROOT +  '/wallet/print.css')]))
-            # string=html, base_url=request.build_absolute_uri()).render(stylesheets=[]))
-            # string=html, base_url=request.build_absolute_uri()).render())
-            # string=html, base_url=request.build_absolute_uri()).render(presentational_hints=True))
             string=html, base_url=request.build_absolute_uri()).write_pdf(
                 target=response, 
                 presentational_hints=True,
                 stylesheets=[CSS(settings.STATIC_ROOT +  '/wallet/print.css')]
             ))
 
-    # response['Content-Disposition'] = f'attachment; filename="paper_wallet_{queryset[0].wallet_id}.pdf"'
-    # response['Content-Disposition'] = f'filename="paper_wallet_{queryset[0].wallet_id}.pdf"'
-    # all_pages = []
-    # for doc in documents:
-        # all_pages.extend(doc.pages)
-    # documents[0].copy(all_pages).write_pdf(response, presentational_hints=True)
-    # documents[0].write_pdf(response)
-    # return HttpResponse(template.render)
     return response
 
 
