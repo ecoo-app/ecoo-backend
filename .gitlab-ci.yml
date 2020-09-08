@@ -45,16 +45,16 @@ publish:
     - docker push $GOOGLE_TAG
     - docker push $GOOGLE_TAG_LATEST
   only:
-   - master
-   - develop
+    - master
+    - develop
   tags:
     - docker
  
 k8s-deploy-development:
   stage: deploy
   only:
-   - master
-   - develop
+    - master
+    - develop
   when: manual
   image: google/cloud-sdk
   before_script:
