@@ -67,6 +67,17 @@ class CompanyProfile(UUIDModel):
             # raise ValidationError(_('Either uid or owner information has to be filled out'))
         super(CompanyProfile, self).clean(*args, **kwargs)
 
+    def save(self, *args, **kwargs):
+        data = dict(self.__dict__)
+        del data['_state']
+        del data['uuid']
+        del data['created_at']
+        del data['updated_at']
+        queryset = CompanyProfile.objects.filter(**data)
+        if queryset.exists() and not self in queryset:
+            raise ValidationError(_('Cannot generate same companyprofile twice'))    
+        super(CompanyProfile, self).save(*args, **kwargs)
+
     class Meta:
         ordering = ['created_at']
         verbose_name = _('Company Profile')
@@ -115,6 +126,17 @@ class UserProfile(UUIDModel):
         if self.wallet.owner is not None and self.owner.pk != self.wallet.owner.pk:
             raise ValidationError(_('You can only attach a wallet you own to this profile'))
         super(UserProfile, self).clean(*args, **kwargs)
+    
+    def save(self, *args, **kwargs):
+        data = dict(self.__dict__)
+        del data['_state']
+        del data['uuid']
+        del data['created_at']
+        del data['updated_at']
+        queryset = UserProfile.objects.filter(**data)
+        if queryset.exists() and not self in queryset:
+            raise ValidationError(_('Cannot generate same userprofile twice'))    
+        super(UserProfile, self).save(*args, **kwargs)
 
     class Meta:
         ordering = ['created_at']
