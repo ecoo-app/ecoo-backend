@@ -100,10 +100,10 @@ def get_pdf(modeladmin, request, queryset):
         template = get_template('wallet/paper_wallet_pdf.html')
         from django.contrib.staticfiles.finders import find
         if settings.DEBUG:
-            css = CSS(find('print.css'))
+            css = CSS(find('wallet/print.css'))
             # ecoo_logo = find('ecoo_logo_bw.png')
         else:
-            css = CSS(static('print.css'))
+            css = CSS(static('wallet/print.css'))
             # ecoo_logo = static('ecoo_logo_bw.png')
 
         html = template.render({'image': qr_code.png_as_base64_str(),}, request)
