@@ -79,6 +79,7 @@ class ImportMixin:
                             transaction.set_rollback(True)
                             break
                         user_verification = UserVerification(**row)
+                        # TODO: import PlaceOfOrigin
                         user_verification.save()
                         created += 1
 
