@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.conf.urls import url
 from django.db import transaction
 from io import StringIO
-from apps.verification.models import AddressPinVerification, CompanyVerification, SMSPinVerification, UserVerification, VERIFICATION_STATES
+from apps.verification.models import AddressPinVerification, CompanyVerification, PlaceOfOrigin, SMSPinVerification, UserVerification, VERIFICATION_STATES
 from apps.wallet.utils import create_claim_transaction
 from apps.verification.forms import ImportForm
 from django.template.response import TemplateResponse
@@ -57,6 +57,8 @@ approve_verification.short_description = _(
 
 
 class ImportMixin:
+    additional_import_fields = []
+    
     def import_csv(self, request):
         if not request.user.is_superuser:
             raise PermissionDenied
@@ -78,16 +80,26 @@ class ImportMixin:
                                 'Line Nr {} is invalid:{}').format(str(line_number), row))
                             transaction.set_rollback(True)
                             break
+                        
+                        places_of_origin = []
+                        for k in ['place_of_origin1', 'place_of_origin2', 'place_of_origin3']:
+                            if row.get(k) != None:
+                                places_of_origin.append(PlaceOfOrigin(place_of_origin=row.get(k)))
+                                del(row[k])
+
                         user_verification = UserVerification(**row)
-                        # TODO: import PlaceOfOrigin
                         user_verification.save()
+
+                        for p in places_of_origin:
+                            p.user_verification = user_verification
+                            p.save()
                         created += 1
 
                     if form.is_valid():
                         messages.add_message(
                             request, messages.SUCCESS, '{} Objects created'.format(created))
                         return HttpResponseRedirect(request.META['HTTP_REFERER'])
-        return TemplateResponse(request, 'admin/import_csv.html', {'form': form, 'opts': self.opts, 'media': self.media, 'title': 'Import', 'import_validate_fields': self.import_validate_fields, 'import_name': self.import_name})
+        return TemplateResponse(request, 'admin/import_csv.html', {'form': form, 'opts': self.opts, 'media': self.media, 'title': 'Import', 'import_validate_fields': self.import_validate_fields + self.additional_import_fields , 'import_name': self.import_name})
 
     def get_extra_urls(self):
         return [
@@ -106,7 +118,8 @@ class UserVerificationAdmin(ImportMixin, admin.ModelAdmin):
 
     import_name = 'user_import'
     import_validate_fields = ['first_name',
-                              'last_name', 'address_street', 'date_of_birth']
+                              'last_name', 'address_street', 'address_town', 'address_postal_code', 'date_of_birth']
+    additional_import_fields =  ['place_of_origin1', 'place_of_origin2', 'place_of_origin3']
     readonly_fields=['created_at',]
     
 
@@ -131,7 +144,7 @@ class CompanyVerificationAdmin(ImportMixin, admin.ModelAdmin):
     search_fields = ['name', 'uid']
 
     import_name = 'company_import'
-    import_validate_fields = ['name', 'uid']
+    import_validate_fields = ['name', 'uid', 'address_street', 'address_town', 'address_postal_code']
     readonly_fields=['created_at',]
 
 
