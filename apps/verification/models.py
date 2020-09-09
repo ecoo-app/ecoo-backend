@@ -20,13 +20,15 @@ class VERIFICATION_STATES(Enum):
     PENDING = 2
     CLAIMED = 3
     FAILED = 5
+    MAX_CLAIMS = 6
 
 
 VERIFICATION_STATES_CHOICES = (
     (VERIFICATION_STATES.OPEN.value, _('Open')),
     (VERIFICATION_STATES.PENDING.value, _('Pending')),
     (VERIFICATION_STATES.CLAIMED.value, _('Claimed')),
-    (VERIFICATION_STATES.FAILED.value, _('Failes')) # TODO: not used??
+    (VERIFICATION_STATES.FAILED.value, _('Failed')),  # TODO: not used??
+    (VERIFICATION_STATES.MAX_CLAIMS.value, _('Max Claims'))
 )
 
 

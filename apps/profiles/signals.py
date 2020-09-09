@@ -7,7 +7,7 @@ from apps.verification.models import CompanyVerification, UserVerification, SMSP
 @receiver(post_save, sender=CompanyProfile, dispatch_uid='custom_company_profile_validation')
 def custom_company_profile_validation(sender, instance, **kwargs):
     instance.full_clean()
-    
+
     if instance.address_street and instance.address_postal_code and instance.address_town and instance.name and instance.uid:
         company_verifications = CompanyVerification.objects.exclude(state=VERIFICATION_STATES.CLAIMED.value).filter(
             address_street__iexact=instance.address_street,
@@ -22,7 +22,8 @@ def custom_company_profile_validation(sender, instance, **kwargs):
             company_verification.state = VERIFICATION_STATES.PENDING.value
             company_verification.save()
 
-        address_pin_verification = AddressPinVerification.objects.create(company_profile=instance, state=VERIFICATION_STATES.PENDING.value)
+        address_pin_verification = AddressPinVerification.objects.create(
+            company_profile=instance, state=VERIFICATION_STATES.PENDING.value)
 
 
 @receiver(post_save, sender=UserProfile, dispatch_uid='custom_user_profile_validation')
@@ -30,12 +31,17 @@ def custom_user_profile_validation(sender, instance, **kwargs):
     instance.full_clean()
 
     user_verifications = UserVerification.objects.exclude(state=VERIFICATION_STATES.CLAIMED.value).filter(first_name__iexact=instance.first_name, last_name__iexact=instance.last_name,
-                                                                                        address_street__iexact=instance.address_street, address_town__iexact=instance.address_town,
-                                                                                        address_postal_code=instance.address_postal_code, date_of_birth=instance.date_of_birth)
+                                                                                                          address_street__iexact=instance.address_street, address_town__iexact=instance.address_town,
+                                                                                                          address_postal_code=instance.address_postal_code, date_of_birth=instance.date_of_birth)
+
     if user_verifications.exists():
         user_verification = user_verifications[0]
         user_verification.user_profile = instance
-        user_verification.state = VERIFICATION_STATES.PENDING.value
-        user_verification.save()
-
-        SMSPinVerification.objects.create(user_profile=instance, state=VERIFICATION_STATES.PENDING.value)
+        if instance.owner.user_profiles.filter(user_verification__state=VERIFICATION_STATES.CLAIMED.value).count() >= instance.wallet.currency.max_claims:
+            user_verification.state = VERIFICATION_STATES.MAX_CLAIMS.value
+            user_verification.save()
+        else:
+            user_verification.state = VERIFICATION_STATES.PENDING.value
+            SMSPinVerification.objects.create(
+                user_profile=instance, state=VERIFICATION_STATES.PENDING.value)
+            user_verification.save()
