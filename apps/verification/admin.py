@@ -87,11 +87,11 @@ class ImportMixin:
                                 places_of_origin.append(PlaceOfOrigin(place_of_origin=row.get(k)))
                                 del(row[k])
 
-                        user_verification = UserVerification(**row)
-                        user_verification.save()
+                        entry = self.model(**row)
+                        entry.save()
 
                         for p in places_of_origin:
-                            p.user_verification = user_verification
+                            p.user_verification = entry
                             p.save()
                         created += 1
 
@@ -108,6 +108,10 @@ class ImportMixin:
         ]
 
 
+class PlaceOfOriginInline(admin.TabularInline):
+    model = PlaceOfOrigin
+    extra = 1
+
 @admin.register(UserVerification)
 class UserVerificationAdmin(ImportMixin, admin.ModelAdmin):
     list_display = ['first_name', 'last_name', 'address_street',
@@ -115,6 +119,7 @@ class UserVerificationAdmin(ImportMixin, admin.ModelAdmin):
     list_filter = ['state', 'created_at']
     search_fields = ['first_name', 'last_name', 'address_street',
                      'address_town', 'address_postal_code', 'date_of_birth']
+    inlines = [ PlaceOfOriginInline, ]
 
     import_name = 'user_import'
     import_validate_fields = ['first_name',
@@ -165,3 +170,9 @@ class SMSPinVerificationAdmin(admin.ModelAdmin):
 class AddressPinVerificationAdmin(admin.ModelAdmin):
     readonly_fields = ['company_profile', 'pin','created_at']
     list_display = ['company_profile', 'pin', 'state', 'preview_link','created_at']
+
+
+@admin.register(PlaceOfOrigin)
+class PlaceOfOriginAdmin(admin.ModelAdmin):
+    readonly_fields = ['created_at']
+    list_display = ['user_verification', 'place_of_origin']
