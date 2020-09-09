@@ -100,6 +100,8 @@ class UserProfile(UUIDModel):
     telephone_number = models.CharField(verbose_name=_('Phonenumber'), help_text=_('Format: +41 7X XXX XX XX'), max_length=16)
     date_of_birth = models.DateField(verbose_name=_('Birthdate'))
 
+    place_of_origin = models.CharField(max_length=128, verbose_name=_('Place of origin'))
+
     wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name='user_profiles')
 
     def verification_stage(self):
@@ -119,6 +121,7 @@ class UserProfile(UUIDModel):
     def clean(self, *args, **kwargs):
         # TODO: this isn't sufficient to be sure that it's a swiss mobile number
         # additionally verfication should be done on the field and not on the model
+        # https://docs.djangoproject.com/en/3.1/ref/validators/
         if not self.telephone_number.replace(' ', '').startswith("+417"):
             raise ValidationError(_('Only Swiss mobile numbers are allowed'))        
         if self.wallet.category != WALLET_CATEGORIES.CONSUMER.value:
