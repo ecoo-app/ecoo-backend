@@ -32,7 +32,7 @@ def custom_user_profile_validation(sender, instance, **kwargs):
 
     user_verifications = UserVerification.objects.exclude(state=VERIFICATION_STATES.CLAIMED.value).filter(first_name__iexact=instance.first_name, last_name__iexact=instance.last_name,
                                                                                                           address_street__iexact=instance.address_street, address_town__iexact=instance.address_town,
-                                                                                                          address_postal_code=instance.address_postal_code, date_of_birth=instance.date_of_birth)
+                                                                                                          address_postal_code=instance.address_postal_code, date_of_birth=instance.date_of_birth, places_of_origin__place_of_origin=instance.place_of_origin)
 
     if user_verifications.exists():
         user_verification = user_verifications[0]
@@ -42,6 +42,7 @@ def custom_user_profile_validation(sender, instance, **kwargs):
             user_verification.save()
         else:
             user_verification.state = VERIFICATION_STATES.PENDING.value
+
             SMSPinVerification.objects.create(
                 user_profile=instance, state=VERIFICATION_STATES.PENDING.value)
             user_verification.save()

@@ -1,5 +1,5 @@
 from django.contrib import admin, messages
-from apps.profiles.models import UserProfile, CompanyProfile
+from apps.profiles.models import CompanyProfile, PROFILE_VERIFICATION_STAGES, UserProfile
 from django.utils.translation import ugettext_lazy as _
 import requests
 from django.conf import settings
@@ -7,14 +7,16 @@ from django import forms
 import datetime
 from django.shortcuts import render
 from apps.profiles.filters import VerificationLevelFilter
-from apps.verification.models import UserVerification, CompanyVerification, VERIFICATION_STATES
+from apps.verification.models import CompanyVerification, PlaceOfOrigin, UserVerification, VERIFICATION_STATES
 from apps.wallet.models import Wallet
 
 def verify_users(modeladmin, request, queryset):
 
     modified = 0
-    for user_profile in queryset.exclude(user_verification__isnull=False).exclude(sms_pin_verification__isnull=False):
-        UserVerification.objects.create(
+    for user_profile in queryset.exclude(sms_pin_verification__isnull=False):
+        if not user_profile.verification_stage in [PROFILE_VERIFICATION_STAGES.UNVERIFIED.value, PROFILE_VERIFICATION_STAGES.MAX_CLAIMS.value ]:
+            continue
+        user_verification = UserVerification.objects.create(
             user_profile=user_profile,
             state=VERIFICATION_STATES.CLAIMED.value,
             first_name=user_profile.first_name,
@@ -24,13 +26,14 @@ def verify_users(modeladmin, request, queryset):
             address_postal_code=user_profile.address_postal_code,
             date_of_birth=user_profile.date_of_birth,
         )
+        PlaceOfOrigin.objects.create(place_of_origin=user_profile.place_of_origin, user_verification=user_verification)
         user_profile.save()
 
         from apps.wallet.utils import create_claim_transaction
         create_claim_transaction(user_profile.wallet)
 
         modified += 1
-
+        
     if modified > 0:
         messages.add_message(request, messages.SUCCESS, _('{} User Profiles verified').format(modified))
     else:

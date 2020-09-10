@@ -64,17 +64,23 @@ class CompanyProfile(UUIDModel):
     verification_stage_display.short_description = _('Verification status')
 
     def clean(self, *args, **kwargs):
+        # TODO: do we need to clean the data? (eg. strip() on strings)
+        errors = {}
         if self.wallet.category != WALLET_CATEGORIES.COMPANY.value:
-            raise ValidationError(
+            errors['wallet'] = ValidationError(
                 _('Only company wallets can be attached to company profiles'))
+        
         if self.wallet.owner is not None and self.owner.pk != self.wallet.owner.pk:
-            raise ValidationError(
+            errors['wallet'] = ValidationError(
                 _('You can only attach a wallet you own to this profile'))
+        
         if not self.address_street or not self.address_postal_code or not self.address_town or not self.name:
-            raise ValidationError(
+            errors['address_street'] = ValidationError(
                 _('Address needs to be filled out completely'))
-        # if not self.uid:
-            # raise ValidationError(_('Either uid or owner information has to be filled out'))
+        
+        if len(errors) > 0:
+            raise ValidationError(errors)
+
         super(CompanyProfile, self).clean(*args, **kwargs)
 
     def save(self, *args, **kwargs):
@@ -118,6 +124,8 @@ class UserProfile(UUIDModel):
 
     wallet = models.ForeignKey(
         Wallet, on_delete=models.CASCADE, related_name='user_profiles')
+    place_of_origin = models.CharField(
+        max_length=128, verbose_name=_('Place of origin'))
 
     @property
     def sms_pin_verification(self):
@@ -142,16 +150,25 @@ class UserProfile(UUIDModel):
     verification_stage_display.short_description = _('Verification status')
 
     def clean(self, *args, **kwargs):
+        # TODO: additional cleanup (eg. phonenumbers without spaces/always with spaces formatted, Street without trailing/leading spaces etc.)
+        errors = {}
+
         # TODO: this isn't sufficient to be sure that it's a swiss mobile number
-        # additionally verfication should be done on the field and not on the model
         if not self.telephone_number.replace(' ', '').startswith("+417"):
-            raise ValidationError(_('Only Swiss mobile numbers are allowed'))
+            errors['telephone_number'] = ValidationError(
+                _('Only Swiss mobile numbers are allowed'))
+
         if self.wallet.category != WALLET_CATEGORIES.CONSUMER.value:
-            raise ValidationError(
+            errors['wallet'] = ValidationError(
                 _('Only consumer wallets can be attached to user profiles'))
+
         if self.wallet.owner is not None and self.owner.pk != self.wallet.owner.pk:
-            raise ValidationError(
+            errors['wallet'] = ValidationError(
                 _('You can only attach a wallet you own to this profile'))
+
+        if len(errors) > 0:
+            raise ValidationError(errors)
+
         super(UserProfile, self).clean(*args, **kwargs)
 
     def save(self, *args, **kwargs):

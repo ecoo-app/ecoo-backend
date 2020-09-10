@@ -8,10 +8,7 @@ from rest_framework.test import APIClient, APIRequestFactory, APITestCase
 from apps.currency.models import Currency
 from apps.profiles.models import (PROFILE_VERIFICATION_STAGES, CompanyProfile,
                                   UserProfile)
-from apps.verification.models import (VERIFICATION_STATES,
-                                      AddressPinVerification,
-                                      CompanyVerification, SMSPinVerification,
-                                      UserVerification)
+from apps.verification.models import AddressPinVerification, CompanyVerification, PlaceOfOrigin, SMSPinVerification, UserVerification, VERIFICATION_STATES
 from apps.wallet.models import (WALLET_CATEGORIES, WALLET_STATES,
                                 MetaTransaction, Transaction, Wallet)
 from apps.profiles.models import CompanyProfile, PROFILE_VERIFICATION_STAGES, UserProfile
@@ -30,9 +27,9 @@ class ProfileApiTest(APITestCase):
         self.user_2 = get_user_model().objects.create(
             username="testuser_2", password="abcd")
 
-        self.currency = Currency.objects.create(token_id=0, name="TEZ")
+        self.currency = Currency.objects.create(token_id=0, name="TEZ", symbol='tez', claim_deadline='2120-01-01', campaign_end='2120-01-01')
         self.currency_2 = Currency.objects.create(
-            token_id=1, name="TEZ2", starting_capital=22)
+            token_id=1, name="TEZ2", starting_capital=22, symbol='tez2', claim_deadline='2120-01-01', campaign_end='2120-01-01')
 
         self.wallet_1 = Wallet.objects.create(owner=self.user, wallet_id=Wallet.generate_wallet_id(
         ), public_key="edpkuWW8CKkKRD7VipUyggFFnUaCumbMKDBLzPRNtbDx9zG2PtMeRS", currency=self.currency)
@@ -61,6 +58,9 @@ class ProfileApiTest(APITestCase):
             date_of_birth="1989-06-24"
         )
 
+        place_of_origin = PlaceOfOrigin.objects.create(
+            place_of_origin="Baden AG", user_verification=user_verification)
+
         data = {
             "first_name": "Alessandro",
             "last_name": "De Carli",
@@ -69,7 +69,8 @@ class ProfileApiTest(APITestCase):
             "address_town": "Birr",
             "telephone_number": "+41763057500",
             "date_of_birth": "1989-06-24",
-            "wallet": self.wallet_1.wallet_id
+            "wallet": self.wallet_1.wallet_id,
+            "place_of_origin": "Baden AG"
         }
         response = self.client.post(
             '/api/profiles/user_profiles/', data, format='json')
@@ -512,13 +513,15 @@ class ProfileApiTest(APITestCase):
             "address_town": "Birr",
             "telephone_number": "+41763057500",
             "date_of_birth": "1989-06-24",
-            "wallet": self.wallet_2.wallet_id
+            "wallet": self.wallet_2.wallet_id,
+            "place_of_origin": "Baden AG"
         }
 
         self.client.force_authenticate(user=self.user_2)
         response = self.client.post(
             '/api/profiles/user_profiles/', data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        # TODO: why is this failing
         user_2_profile_uuid = response.data['uuid']
 
         self.client.force_authenticate(user=self.user)
@@ -578,7 +581,60 @@ class ProfileApiTest(APITestCase):
                          status.HTTP_204_NO_CONTENT)
         self.assertEqual(CompanyProfile.objects.all().count(), 0)
 
-    # TODO: implement the correct behavior
+    def test_user_verification_with_different_place_of_origin(self):
+        self.client.force_authenticate(user=self.user)
+        user_verification = UserVerification.objects.create(
+            first_name="Alessandro",
+            last_name="De Carli",
+            address_street="Sonnmattstr. 121",
+            address_postal_code="5242",
+            address_town="Birr",
+            date_of_birth="1989-06-24",
+            # place_of_origin="Baden AG"
+        )
+
+        place_of_origin = PlaceOfOrigin.objects.create(
+            user_verification=user_verification, place_of_origin="Baden AG")
+        place_of_origin = PlaceOfOrigin.objects.create(
+            user_verification=user_verification, place_of_origin="Zürich ZH")
+
+        data = {
+            "first_name": "Alessandro",
+            "last_name": "De Carli",
+            "address_street": "Sonnmattstr. 121",
+            "address_postal_code": "5242",
+            "address_town": "Birr",
+            "telephone_number": "+41763057500",
+            "date_of_birth": "1989-06-24",
+            "wallet": self.wallet_1.wallet_id,
+            "place_of_origin": "Baden ZH",
+        }
+
+        response = self.client.post(
+            '/api/profiles/user_profiles/', data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        user_profile = UserProfile.objects.get(
+            pk=response.data['uuid'])
+        with self.assertRaises(UserProfile.sms_pin_verification.RelatedObjectDoesNotExist):
+            pin = user_profile.sms_pin_verification
+
+        # correct place of origin
+        data['place_of_origin'] = "Baden AG  "
+
+        response = self.client.post(
+            '/api/profiles/user_profiles/', data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        user_profile = UserProfile.objects.get(
+            pk=response.data['uuid'])
+        pin = user_profile.sms_pin_verification
+        response = self.client.post(
+            '/api/verification/verify_user_profile_pin/{}'.format(user_profile.pk), {'pin': pin.pin}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        user_verification = UserVerification.objects.get(
+            pk=user_verification.pk)
+        self.assertEqual(user_verification.state,
+                         VERIFICATION_STATES.CLAIMED.value)
+
     @skip
     def test_to_many_verifications_company(self):
         self.client.force_authenticate(user=self.user)

@@ -99,7 +99,7 @@ class AutocompleteUserList(generics.ListAPIView):
             return UserVerification.objects.none()
 
         qs = UserVerification.objects.filter(
-            Q(address_street__istartswith=search_string)).distinct('address_street')
+            Q(address_street__istartswith=search_string)).distinct('address_street', 'address_town', 'address_postal_code')
         pks = qs.values_list('uuid', flat=True)
         return UserVerification.objects.filter(uuid__in=pks)
 
@@ -116,7 +116,7 @@ class AutocompleteCompanyList(generics.ListAPIView):
         if search_string.strip() == '':
             return CompanyVerification.objects.none()
         qs = CompanyVerification.objects.filter(
-            Q(address_street__istartswith=search_string)).distinct('address_street')
+            Q(address_street__istartswith=search_string)).distinct('address_street','address_town', 'address_postal_code')
         pks = qs.values_list('uuid', flat=True)
         return CompanyVerification.objects.filter(uuid__in=pks)
 
