@@ -309,22 +309,25 @@ class MetaTransaction(Transaction):
         if not self.nonce or self.nonce <= 0:
             errors['nonce'] = ValidationError(_('Nonce must be > 0'))
 
-        if self.nonce != self.from_wallet.nonce+1:
+        if self.from_wallet and self.nonce != self.from_wallet.nonce+1:
             errors['nonce'] = ValidationError(
                 _('Nonce must be 1 higher than from_wallet\'s last meta transaction nonce'))
-        if self.from_wallet.currency != self.to_wallet.currency:
+        if self.to_wallet and self.from_wallet and self.from_wallet.currency != self.to_wallet.currency:
             errors['from_wallet'] = ValidationError(
                 _('"From wallet" and "to wallet" need to use same currency'))
             errors['to_wallet'] = ValidationError(
                 _('"From wallet" and "to wallet" need to use same currency'))
-
-        message = create_message(self.from_wallet, self.to_wallet,
-                                 self.nonce, self.from_wallet.currency.token_id, self.amount)
-        key = pytezos.Key.from_encoded_key(self.from_wallet.public_key)
         try:
-            key.verify(self.signature, message)
-        except ValueError:
-            errors['signature'] = ValidationError(_('Signature is invalid'))
+            message = create_message(self.from_wallet, self.to_wallet,
+                                 self.nonce, self.from_wallet.currency.token_id, self.amount)
+        except:
+            pass
+        if self.from_wallet:
+            key = pytezos.Key.from_encoded_key(self.from_wallet.public_key)
+            try:
+                key.verify(self.signature, message)
+            except ValueError:
+                errors['signature'] = ValidationError(_('Signature is invalid'))
 
         if len(errors)>0:
             raise ValidationError(errors)
