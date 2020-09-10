@@ -9,6 +9,7 @@ from django.db import models
 from django.db.models import Max, Q, Sum
 from django.db.models.signals import pre_save
 from django.utils.crypto import get_random_string
+from django.core.validators import RegexValidator
 
 from project.mixins import UUIDModel
 from django.utils.translation import ugettext_lazy as _
@@ -45,6 +46,9 @@ class CompanyProfile(UUIDModel):
         max_length=128, blank=True, verbose_name=_('Town'),)
     address_postal_code = models.CharField(
         max_length=128, blank=True, verbose_name=_('Postal code'),)
+
+    phone_number = models.CharField(
+        max_length=128, blank=True, validators=[RegexValidator(r'(\b(0041|0)|\B\+41)(\s?\(0\))?(\s)?[1-9]{2}(\s)?[0-9]{3}(\s)?[0-9]{2}(\s)?[0-9]{2}\b', _('Not a valid swiss phone number'))])
 
     wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE,
                                related_name='company_profiles', verbose_name=_('Wallet'),)
