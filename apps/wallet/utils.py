@@ -78,7 +78,7 @@ def create_message(from_wallet, to_wallet, nonce, token_id, amount):
                             }
                         ]
                     ]
-            }
+                    }
         ]
     }
     return michelson.pack.pack(message_to_encode, MESSAGE_STRUCTURE)
@@ -195,7 +195,7 @@ def sync_to_blockchain(is_dry_run=True, _async=False):
     wallet_public_key_transfer_payloads = []
     wallet_public_key_transfer_requests = []
     for wallet_public_key_transfer_request in WalletPublicKeyTransferRequest.objects.exclude(state=TRANSACTION_STATES.PENDING.value).exclude(state=TRANSACTION_STATES.DONE.value).order_by('created_at'):
-        if wallet_public_key_transfer_request.wallet.balance > 0:
+        if wallet_public_key_transfer_request.wallet.balance > 0 and wallet_public_key_transfer_request.wallet.public_key != wallet_public_key_transfer_request.new_public_key:
             new_address = Wallet(
                 public_key=wallet_public_key_transfer_request.new_public_key).address
             state_update_items.append(wallet_public_key_transfer_request)
@@ -214,7 +214,7 @@ def sync_to_blockchain(is_dry_run=True, _async=False):
             wallet_public_key_transfer_request.wallet.public_key = wallet_public_key_transfer_request.new_public_key
             wallet_public_key_transfer_request.wallet.save()
             wallet_public_key_transfer_request.state = TRANSACTION_STATES.DONE.value
-            wallet_public_key_transfer_request.notes = "Has no balance, transferred offchain"
+            wallet_public_key_transfer_request.notes = "Has no balance or was recovering to same pubkey, transferred offchain"
             wallet_public_key_transfer_request.save()
 
     if len(wallet_public_key_transfer_payloads) > 0:
@@ -263,13 +263,14 @@ def sync_to_blockchain(is_dry_run=True, _async=False):
                     wallet_public_key_transfer_request.old_public_key = wallet_public_key_transfer_request.wallet.public_key
                     wallet_public_key_transfer_request.wallet.public_key = wallet_public_key_transfer_request.new_public_key
                     wallet_public_key_transfer_request.wallet.save()
+                    wallet_public_key_transfer_request.state = TRANSACTION_STATES.DONE.value
                     wallet_public_key_transfer_request.save()
                 if is_confirmed_in_chain:
                     update_sync_state(state_update_items, TRANSACTION_STATES.DONE.value, json.dumps(
                         operation_inject_result), operation_inject_result['hash'])
                 else:
                     update_sync_state(state_update_items, TRANSACTION_STATES.DONE.value, json.dumps(
-                        operation_result), operation_result['hash'] + "*")
+                        operation_result), "*")
             else:
                 if operation_inject_result is None:
                     update_sync_state(state_update_items, TRANSACTION_STATES.FAILED.value, 'Error during sync: {}'.format(

@@ -1,6 +1,6 @@
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
-from apps.wallet.models import WalletPublicKeyTransferRequest, OwnerWallet, Wallet, CashOutRequest, MetaTransaction, Transaction, WALLET_CATEGORIES, WALLET_STATES
+from apps.wallet.models import WalletPublicKeyTransferRequest, OwnerWallet, Wallet, CashOutRequest, MetaTransaction, Transaction, WALLET_CATEGORIES, TRANSACTION_STATES, WALLET_STATES
 from apps.wallet.utils import sync_to_blockchain
 from django_simple_task import defer
 
@@ -45,5 +45,5 @@ def custom_cash_out_request_validation(sender, instance, **kwargs):
 
 @receiver(post_save, sender=WalletPublicKeyTransferRequest, dispatch_uid='async_sync_to_blockchain_after_wallet_public_key_transfer')
 def async_sync_to_blockchain_after_wallet_public_key_transfer(sender, instance, created, **kwargs):
-    if created:
+    if created and instance.state != TRANSACTION_STATES.DONE.value:
         defer(lambda: sync_to_blockchain(is_dry_run=False))
