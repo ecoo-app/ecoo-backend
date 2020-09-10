@@ -9,7 +9,7 @@ from django.shortcuts import render
 from django.conf.urls import url
 from apps.wallet.forms import GenerateWalletForm
 from django.template.response import TemplateResponse
-from django.http import HttpResponseRedirect, HttpResponse, FileResponse
+from django.http import FileResponse, HttpResponse, HttpResponseRedirect, StreamingHttpResponse
 import pytezos
 from django.db import IntegrityError
 import zipfile
@@ -28,6 +28,7 @@ from django.contrib.staticfiles.storage import staticfiles_storage
 
 from weasyprint import CSS
 from django.db.models.aggregates import Sum
+from django.core.exceptions import PermissionDenied
 
 
 @admin.register(Wallet)
@@ -220,7 +221,7 @@ class CashOutRequestAdmin(admin.ModelAdmin):
         class PaymentDateForm(forms.Form):
             payment_date = forms.DateField(initial=datetime.date.today)
 
-        if queryset.exclude(state=TRANSACTION_STATES.OPEN.value).exists(): # FIXME: shouldn't that be transaction__state?
+        if queryset.exclude(state=TRANSACTION_STATES.OPEN.value).exists():
             self.message_user(request, _(
                 'Only open cashout out requests can be used in this action'), messages.ERROR)
         
@@ -229,38 +230,39 @@ class CashOutRequestAdmin(admin.ModelAdmin):
                 'Only settled (done) transactions can be used in this action'), messages.ERROR)
 
         elif 'apply' in request.POST:
+            if queryset[0].transaction.from_wallet:
+                currency = queryset[0].transaction.from_wallet.currency
+            else:
+                currency = queryset[0].transaction.to_wallet.currency
+
             form = PaymentDateForm(request.POST)
             if form.is_valid():
                 payment_date = form.cleaned_data['payment_date']
                 pain_payload = {
                     'from_account': {
-                        # FIXME: how do we get the "from_account"?
-                        "name":"Papers GmbH",
-                        "bank_clearing_number": "761",
-                        "iban":"CH0500761016094342382"
+                        "name": currency.payoutaccount.name,
+                        "bank_clearing_number": currency.payoutaccount.bank_clearing_number,
+                        "iban":currency.payoutaccount.iban
                     },
                     'transactions': list(map(lambda cash_out_request: {
                         'amount': cash_out_request.transaction.currency_amount,
                         'payment_date': payment_date.strftime('%Y-%m-%d'),
-                        'notes': 'cashout', # This is mandatory
+                        'notes': currency.payoutaccount.payout_notes,
                         'to_account': {
                             'name': cash_out_request.beneficiary_name,
                             'iban': cash_out_request.beneficiary_iban,
                         }
                     }, queryset))
                 }
-                print(pain_payload)
                 response = requests.post(
-                    "{}/api/v1/generate_xml/".format(settings.PAIN_SERVICE_URL), json=pain_payload)
-                print(response)
-                return HttpResponse(content=response.content)
+                    "{}/api/v1/generate_xml/".format(settings.PAIN_SERVICE_URL), json=pain_payload, stream=True)
+
+                return FileResponse(BytesIO(response.content), as_attachment=True, filename=f'payout_{datetime.datetime.now().strftime("%Y-%m-%d")}.xml')
             else:
                 self.message_user(request, _(
                     'Please enter a correct payment date'), messages.ERROR)
         else:
             form = PaymentDateForm()
-            print('queryset')
-            print(queryset)
             return render(request,
                           'admin/generate_payout_file.html',
                           context={'form': form, 'cash_out_requests': queryset, 'total_amount': sum([tx.transaction.currency_amount for tx in queryset])})
