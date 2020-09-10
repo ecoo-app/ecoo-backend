@@ -2,7 +2,7 @@
 {% load i18n admin_urls static admin_modify %}
 
 {% block extrahead %}{{ block.super }}
-    <script type="text/javascript" src="{% url 'admin:jsi18n' %}"></script>
+   <script type="text/javascript" src="{% url 'admin:jsi18n' %}"></script>
     {{ media }}
 {% endblock %}
 
@@ -10,18 +10,22 @@
 
 {% block content %}
     <div id="content-main">
-        <form enctype="multipart/form-data" action="" method="post">
+        <form enctype="multipart/form-data"  action="" method="post">
             {% csrf_token %}
             <fieldset class="module aligned">
                 <h2>{% trans 'Generate Payout XML' %}</h2>
                 <div class="description">
+                    {% with total_requests=cash_out_requests.count %}
                     {% blocktrans %}
-                        You are about to generate a payout XML containing {{cash_out_requests.count}} transactions. 
-                        The total amount is going to be {{cash_out_requests.count}}. The actual beneficiaries are:
+                        You are about to generate a payout XML containing {{ total_requests }} transactions. 
+                        The total amount is going to be {{ total_amount }}. The actual beneficiaries are:
                         
                     {% endblocktrans %}
+                    {% endwith %}
                     <ul>
                         {% for cash_out_request in cash_out_requests %}
+                        <input type="hidden" name="_selected_action" value="{{ cash_out_request.uuid }}" />
+
                             <li>
                                {{cash_out_request.beneficiary_name}} ({{cash_out_request.beneficiary_iban}}): {{cash_out_request.transaction.amount}} CHF
                             </li>
@@ -38,7 +42,8 @@
                 {% endfor %}
             </fieldset>
             <div class="submit-row">
-                <input type="submit" value="{% trans 'Generate Payout XML' %}" class="default" />
+                <input type="hidden" name="action" value="generate_payout_file" />
+                <input type="submit" name='apply' value="{% trans 'Generate Payout XML' %}"/>
             </div>
         </form>
     </div>

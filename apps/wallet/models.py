@@ -281,6 +281,16 @@ class Transaction(UUIDModel):
             raise ValidationError(errors)
         super(Transaction, self).clean(*args, **kwargs)
 
+    @property
+    def currency_amount(self):
+        if self.from_wallet:
+            decimals = self.from_wallet.currency.decimals
+        elif self.to_wallet:
+            decimals = self.to_wallet.currency.decimals
+        else:
+            decimals = 2
+        return self.amount / 10**decimals
+
     class Meta:
         ordering = ['-created_at']
         verbose_name = _('Transaction')

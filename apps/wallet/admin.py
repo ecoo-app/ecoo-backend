@@ -9,7 +9,7 @@ from django.shortcuts import render
 from django.conf.urls import url
 from apps.wallet.forms import GenerateWalletForm
 from django.template.response import TemplateResponse
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import FileResponse, HttpResponse, HttpResponseRedirect, StreamingHttpResponse
 import pytezos
 from django.db import IntegrityError
 import zipfile
@@ -27,6 +27,8 @@ from django.templatetags.static import static
 from django.contrib.staticfiles.storage import staticfiles_storage
 
 from weasyprint import CSS
+from django.db.models.aggregates import Sum
+from django.core.exceptions import PermissionDenied
 
 
 @admin.register(Wallet)
@@ -99,16 +101,16 @@ def get_pdf(modeladmin, request, queryset):
         qr_code = pyqrcode.create(json.dumps(payload), error='M')
 
         template = get_template('wallet/paper_wallet_pdf.html')
-        html = template.render({'image': qr_code.png_as_base64_str(), 'logo':settings.STATIC_ROOT+'/wallet/ecoo_logo_bw.png'},request)#.encode(encoding="UTF-8")
-        documents.append(weasyprint.HTML( 
+        html = template.render({'image': qr_code.png_as_base64_str(
+        ), 'logo': settings.STATIC_ROOT+'/wallet/ecoo_logo_bw.png'}, request)  # .encode(encoding="UTF-8")
+        documents.append(weasyprint.HTML(
             string=html, base_url=request.build_absolute_uri()).write_pdf(
-                target=response, 
+                target=response,
                 presentational_hints=True,
-                stylesheets=[CSS(settings.STATIC_ROOT +  '/wallet/print.css')]
-            ))
+                stylesheets=[CSS(settings.STATIC_ROOT + '/wallet/print.css')]
+        ))
 
     return response
-
 
 
 get_pdf.short_description = _('Download QR-Code pdf')
@@ -175,7 +177,7 @@ class TransactionAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
 
-    def retry_failed(modeladmin, request, queryset):
+    def retry_failed(self, request, queryset):
         queryset.filter(state=TRANSACTION_STATES.FAILED.value).update(
             state=TRANSACTION_STATES.OPEN.value)
 
@@ -222,29 +224,40 @@ class CashOutRequestAdmin(admin.ModelAdmin):
         if queryset.exclude(state=TRANSACTION_STATES.OPEN.value).exists():
             self.message_user(request, _(
                 'Only open cashout out requests can be used in this action'), messages.ERROR)
+        
         elif queryset.exclude(transaction__state=TRANSACTION_STATES.DONE.value).exists():
             self.message_user(request, _(
                 'Only settled (done) transactions can be used in this action'), messages.ERROR)
 
         elif 'apply' in request.POST:
+            if queryset[0].transaction.from_wallet:
+                currency = queryset[0].transaction.from_wallet.currency
+            else:
+                currency = queryset[0].transaction.to_wallet.currency
+
             form = PaymentDateForm(request.POST)
             if form.is_valid():
                 payment_date = form.cleaned_data['payment_date']
                 pain_payload = {
                     'from_account': {
-
+                        "name": currency.payoutaccount.name,
+                        "bank_clearing_number": currency.payoutaccount.bank_clearing_number,
+                        "iban":currency.payoutaccount.iban
                     },
-                    'transactions': map(lambda cash_out_request: {
-                        'amount': cash_out_request.transaction.amount,
-                        'payment_date': payment_date,
+                    'transactions': list(map(lambda cash_out_request: {
+                        'amount': cash_out_request.transaction.currency_amount,
+                        'payment_date': payment_date.strftime('%Y-%m-%d'),
+                        'notes': currency.payoutaccount.payout_notes,
                         'to_account': {
                             'name': cash_out_request.beneficiary_name,
-                            'iban': cash_out_request.beneficiary_iban
+                            'iban': cash_out_request.beneficiary_iban,
                         }
-                    }, queryset)
+                    }, queryset))
                 }
-                requests.post(
-                    "{}/api/v1/generate_xml/".format(settings.PAIN_SERVICE_URL), json=pain_payload)
+                response = requests.post(
+                    "{}/api/v1/generate_xml/".format(settings.PAIN_SERVICE_URL), json=pain_payload, stream=True)
+
+                return FileResponse(BytesIO(response.content), as_attachment=True, filename=f'payout_{datetime.datetime.now().strftime("%Y-%m-%d")}.xml')
             else:
                 self.message_user(request, _(
                     'Please enter a correct payment date'), messages.ERROR)
@@ -252,6 +265,6 @@ class CashOutRequestAdmin(admin.ModelAdmin):
             form = PaymentDateForm()
             return render(request,
                           'admin/generate_payout_file.html',
-                          context={'form': form, 'cash_out_requests': queryset})
+                          context={'form': form, 'cash_out_requests': queryset, 'total_amount': sum([tx.transaction.currency_amount for tx in queryset])})
 
     generate_payout_file.short_description = _('Generate Payout XML')
