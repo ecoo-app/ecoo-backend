@@ -362,3 +362,5 @@ Bitte geben Sie den folgen Code in die ecoo App ein um die Verifizerung abzuschl
 
 Wir wünschen Ihnen viel Erfolg!
 """
+
+SMS_PIN_WAIT_TIME_THRESHOLD_SECONDS = 15

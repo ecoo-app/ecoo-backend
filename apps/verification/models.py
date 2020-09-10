@@ -13,6 +13,9 @@ from requests_oauthlib import OAuth2Session
 import requests
 from django.urls import reverse
 from django.utils.html import format_html
+import datetime
+from django.utils import timezone
+from django.core.exceptions import ValidationError
 
 
 class VERIFICATION_STATES(Enum):
@@ -27,7 +30,7 @@ VERIFICATION_STATES_CHOICES = (
     (VERIFICATION_STATES.OPEN.value, _('Open')),
     (VERIFICATION_STATES.PENDING.value, _('Pending')),
     (VERIFICATION_STATES.CLAIMED.value, _('Claimed')),
-    (VERIFICATION_STATES.FAILED.value, _('Failed')),  # TODO: not used??
+    (VERIFICATION_STATES.FAILED.value, _('Failed')),
     (VERIFICATION_STATES.MAX_CLAIMS.value, _('Max Claims'))
 )
 
@@ -117,9 +120,25 @@ class AddressPinVerification(AbstractVerification):
 
 
 class SMSPinVerification(AbstractVerification):
-    user_profile = models.OneToOneField(
-        UserProfile, on_delete=models.CASCADE, related_name='sms_pin_verification')
+    user_profile = models.ForeignKey(
+        UserProfile, on_delete=models.CASCADE, related_name='sms_pin_verifications')
     pin = models.CharField(verbose_name=_('Pin'), max_length=8, blank=True)
+
+    def clean(self, *args, **kwargs):
+        super(SMSPinVerification, self).clean(*args, **kwargs)
+        errors = {}
+        if self.user_profile.sms_pin_verifications.filter(state=VERIFICATION_STATES.FAILED.value).exists():
+            last_timestamp = self.user_profile.sms_pin_verifications.filter(
+                state=VERIFICATION_STATES.FAILED.value).last().updated_at
+            exponential_threshold_delta = datetime.timedelta(seconds=settings.SMS_PIN_WAIT_TIME_THRESHOLD_SECONDS**self.user_profile.sms_pin_verifications.filter(
+                state=VERIFICATION_STATES.FAILED.value).count())
+            if timezone.now() < last_timestamp + exponential_threshold_delta:
+                seconds_left = last_timestamp + exponential_threshold_delta - timezone.now()
+                errors['pin'] = ValidationError(
+                    _('You are retrying too fast, please wait for {} seconds'.format(seconds_left.seconds)))
+
+        if len(errors) > 0:
+            raise ValidationError(errors)
 
     class Meta:
         verbose_name = _('SMS pin verification')

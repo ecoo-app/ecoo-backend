@@ -33,7 +33,7 @@ def resend_user_profile_pin(request, user_profile_uuid=None):
     user_profile = UserProfile.objects.get(uuid=user_profile_uuid)
     if user_profile.owner != request.user:
         raise PermissionDenied(_("The profile does not belong to you"))
-    if user_profile.sms_pin_verification.state == VERIFICATION_STATES.PENDING.value:
+    if user_profile.sms_pin_verification != None and user_profile.sms_pin_verification.state == VERIFICATION_STATES.PENDING.value:
         send_sms(user_profile.telephone_number,
                  user_profile.sms_pin_verification.pin)
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -48,17 +48,19 @@ def verify_user_profile_pin(request, user_profile_uuid=None):
     if user_profile.owner != request.user:
         raise PermissionDenied(_("The profile does not belong to you"))
 
-    if user_profile.sms_pin_verification.state == VERIFICATION_STATES.PENDING.value and user_profile.sms_pin_verification.pin == request.data.get('pin', 'XX'):
-        user_profile.sms_pin_verification.state = VERIFICATION_STATES.CLAIMED.value
-        user_profile.sms_pin_verification.save()
-        user_profile.user_verification.state = VERIFICATION_STATES.CLAIMED.value # does this fail if multiple profiles are created?
+    if user_profile.sms_pin_verification != None and user_profile.sms_pin_verification.state == VERIFICATION_STATES.PENDING.value and user_profile.sms_pin_verification.pin == request.data.get('pin', 'XX'):
+        user_profile.sms_pin_verifications.filter(
+            state=VERIFICATION_STATES.PENDING.value).update(state=VERIFICATION_STATES.CLAIMED.value)
+        # does this fail if multiple profiles are created?
+        user_profile.user_verification.state = VERIFICATION_STATES.CLAIMED.value
         user_profile.user_verification.save()
         user_profile.wallet.state = WALLET_STATES.VERIFIED.value
         user_profile.wallet.save()
         create_claim_transaction(user_profile.wallet)
         return Response(status=status.HTTP_204_NO_CONTENT)
     else:
-        user_profile.sms_pin_verification.delete()
+        user_profile.sms_pin_verifications.filter(
+            state=VERIFICATION_STATES.PENDING.value).update(state=VERIFICATION_STATES.FAILED.value)
         SMSPinVerification.objects.create(
             user_profile=user_profile, state=VERIFICATION_STATES.PENDING.value)
         raise_api_exception(
@@ -82,6 +84,7 @@ def verify_company_profile_pin(request, company_profile_uuid=None):
     else:
         raise_api_exception(
             422, _('PIN did not match'))
+
 
 class AutocompleteUserList(generics.ListAPIView):
     serializer_class = AutocompleteUserSerializer
@@ -123,12 +126,12 @@ def create_paper_wallet_from_userverification(request, uuid):
     user_verification = UserVerification.objects.get(uuid=uuid)
     if user_verification.state != VERIFICATION_STATES.OPEN.value:
         return redirect('admin:verification_userverification_changelist')
-    
+
     paper_wallet = PaperWallet.generate_new_wallet(
         currency=Currency.objects.all().first(), verification_data=user_verification)
     create_claim_transaction(paper_wallet)
     user_verification = UserVerification.objects.get(uuid=uuid)
     user_verification.state = VERIFICATION_STATES.CLAIMED.value
     user_verification.save()
-    
+
     return redirect('admin:wallet_paperwallet_change', paper_wallet.uuid)

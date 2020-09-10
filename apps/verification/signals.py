@@ -12,6 +12,7 @@ system_random = random.SystemRandom()
 
 @receiver(pre_save, sender=SMSPinVerification, dispatch_uid='custom_sms_pin_verification_validation')
 def custom_sms_pin_verification_validation(sender, instance, **kwargs):
+    instance.full_clean()
     if not instance.pin:
         instance.pin = ''.join(system_random.choice(
             string.digits) for x in range(6))
@@ -23,6 +24,7 @@ def custom_sms_pin_verification_validation(sender, instance, **kwargs):
 
 @receiver(pre_save, sender=AddressPinVerification, dispatch_uid='custom_address_pin_verification_validation')
 def custom_address_pin_verification_validation(sender, instance, **kwargs):
+    instance.full_clean()
     if not instance.pin:
         instance.pin = ''.join(system_random.choice(
             string.digits) for x in range(6))

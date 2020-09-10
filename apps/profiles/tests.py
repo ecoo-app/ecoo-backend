@@ -17,6 +17,7 @@ from apps.wallet.models import (WALLET_CATEGORIES, WALLET_STATES,
 from apps.profiles.models import CompanyProfile, PROFILE_VERIFICATION_STAGES, UserProfile
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
+import time
 
 
 class ProfileApiTest(APITestCase):
@@ -134,9 +135,20 @@ class ProfileApiTest(APITestCase):
             '/api/verification/verify_user_profile_pin/{}'.format(user_profile.pk), {'pin': 'WRONG'}, format='json')
         self.assertEqual(response.status_code,
                          status.HTTP_422_UNPROCESSABLE_ENTITY)
+        self.assertEqual(response.json()[
+                         'detail'][0], "You are retrying too fast, please wait for 14 seconds")
+
+        time.sleep(15)
+
+        response = self.client.post(
+            '/api/verification/verify_user_profile_pin/{}'.format(user_profile.pk), {'pin': 'WRONG'}, format='json')
+        self.assertEqual(response.status_code,
+                         status.HTTP_422_UNPROCESSABLE_ENTITY)
 
         user_profile = UserProfile.objects.get(pk=user_profile.pk)
         pin = user_profile.sms_pin_verification.pin
+        sms_pin_verification = SMSPinVerification.objects.get(
+            pk=user_profile.sms_pin_verification.pk)
 
         response = self.client.post(
             '/api/verification/verify_user_profile_pin/{}'.format(user_profile.pk), {'pin': pin}, format='json')
@@ -150,8 +162,8 @@ class ProfileApiTest(APITestCase):
         user_verification.refresh_from_db()
         self.assertEqual(user_verification.state,
                          VERIFICATION_STATES.CLAIMED.value)
-        sms_pin_verification = SMSPinVerification.objects.get(
-            pk=user_profile.sms_pin_verification.pk)
+
+        sms_pin_verification.refresh_from_db()
         self.assertEqual(sms_pin_verification.state,
                          VERIFICATION_STATES.CLAIMED.value)
 
@@ -162,7 +174,8 @@ class ProfileApiTest(APITestCase):
         # cannot reuse burned verification
         response = self.client.post(
             '/api/profiles/user_profiles/', data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
+        self.assertEqual(response.status_code,
+                         status.HTTP_422_UNPROCESSABLE_ENTITY)
 
         # cannot reuse burned verification
         # self.assertEqual(response.data['verification_stage'], 0)
@@ -340,14 +353,15 @@ class ProfileApiTest(APITestCase):
 
         response = self.client.post(
             '/api/profiles/company_profiles/', data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
+        self.assertEqual(response.status_code,
+                         status.HTTP_422_UNPROCESSABLE_ENTITY)
         # self.assertEqual(
-            # response.data['verification_stage'], PROFILE_VERIFICATION_STAGES.UNVERIFIED.value)
+        # response.data['verification_stage'], PROFILE_VERIFICATION_STAGES.UNVERIFIED.value)
         # company_profile = CompanyProfile.objects.get(pk=response.data['uuid'])
         # try:
-            # address_pin_verification = company_profile.address_pin_verification
+        # address_pin_verification = company_profile.address_pin_verification
         # except ObjectDoesNotExist:
-            # pass
+        # pass
 
     def test_company_verification_not_matching_address(self):
         company_verification = CompanyVerification.objects.create(
