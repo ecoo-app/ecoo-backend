@@ -26,9 +26,9 @@ class ProfileApiTest(APITestCase):
         self.user_2 = get_user_model().objects.create(
             username="testuser_2", password="abcd")
 
-        self.currency = Currency.objects.create(token_id=0, name="TEZ")
+        self.currency = Currency.objects.create(token_id=0, name="TEZ", symbol='tez', claim_deadline='2120-01-01', campaign_end='2120-01-01')
         self.currency_2 = Currency.objects.create(
-            token_id=1, name="TEZ2", starting_capital=22)
+            token_id=1, name="TEZ2", starting_capital=22, symbol='tez2', claim_deadline='2120-01-01', campaign_end='2120-01-01')
 
         self.wallet_1 = Wallet.objects.create(owner=self.user, wallet_id=Wallet.generate_wallet_id(
         ), public_key="edpkuWW8CKkKRD7VipUyggFFnUaCumbMKDBLzPRNtbDx9zG2PtMeRS", currency=self.currency)
