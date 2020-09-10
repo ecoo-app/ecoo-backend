@@ -5,7 +5,7 @@ from apps.currency.models import Currency, PayoutAccount
 
 class PayoutAccountInline(admin.StackedInline):
     model = PayoutAccount
-    fields = ['name', 'iban', 'bank_clearing_number',]
+    fields = ['name', 'iban', 'bank_clearing_number','payout_notes']
 
 
 @admin.register(Currency)
