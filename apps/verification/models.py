@@ -28,7 +28,7 @@ VERIFICATION_STATES_CHOICES = (
     (VERIFICATION_STATES.PENDING.value, _('Pending')),
     (VERIFICATION_STATES.CLAIMED.value, _('Claimed')),
     (VERIFICATION_STATES.FAILED.value, _('Failed')),  # TODO: not used??
-    (VERIFICATION_STATES.MAX_CLAIMS.value, _('Max Claims'))
+    (VERIFICATION_STATES.MAX_CLAIMS.value, _('Max claims'))
 )
 
 
