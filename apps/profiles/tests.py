@@ -1,38 +1,43 @@
+from unittest import skip
+
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.test import APIClient, APIRequestFactory, APITestCase
 
 from apps.currency.models import Currency
-from apps.verification.models import VERIFICATION_STATES, UserVerification, CompanyVerification, SMSPinVerification, AddressPinVerification
+from apps.profiles.models import (PROFILE_VERIFICATION_STAGES, CompanyProfile,
+                                  UserProfile)
+from apps.verification.models import AddressPinVerification, CompanyVerification, PlaceOfOrigin, SMSPinVerification, UserVerification, VERIFICATION_STATES
 from apps.wallet.models import (WALLET_CATEGORIES, WALLET_STATES,
                                 MetaTransaction, Transaction, Wallet)
-from apps.profiles.models import UserProfile, CompanyProfile
+from apps.profiles.models import CompanyProfile, PROFILE_VERIFICATION_STAGES, UserProfile
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
 
 
 class ProfileApiTest(APITestCase):
     pubkey_1 = 'edpkuvNy6TuQ2z8o9wnoaTtTXkzQk7nhegCHfxBc4ecsd4qG71KYNG'
-    pubkey_2 = 'edpkuvNy6TuQ2z8o9wnoaTtTXkzQk7nhegCHfxBc4ecsd4qG71KYNg'
+    pubkey_2 = 'edpkv75x1Rn8GZbGUU8eXqyur5sWxdJNazCq3eN4SW6J4ykp2XUNgC'
 
     def setUp(self):
-        settings.DEBUG = True
         self.user = get_user_model().objects.create(
             username="testuser", password="abcd")
         self.user_2 = get_user_model().objects.create(
             username="testuser_2", password="abcd")
 
-        self.currency = Currency.objects.create(token_id=0, name="TEZ")
+        self.currency = Currency.objects.create(token_id=0, name="TEZ", symbol='tez', claim_deadline='2120-01-01', campaign_end='2120-01-01')
         self.currency_2 = Currency.objects.create(
-            token_id=1, name="TEZ2", starting_capital=22)
+            token_id=1, name="TEZ2", starting_capital=22, symbol='tez2', claim_deadline='2120-01-01', campaign_end='2120-01-01')
 
         self.wallet_1 = Wallet.objects.create(owner=self.user, wallet_id=Wallet.generate_wallet_id(
-        ), public_key="edpku976gpuAD2bXyx1XGraeKuCo1gUZ3LAJcHM12W1ecxZwoiu22r", currency=self.currency)
+        ), public_key="edpkuWW8CKkKRD7VipUyggFFnUaCumbMKDBLzPRNtbDx9zG2PtMeRS", currency=self.currency)
 
         self.wallet_1_1 = Wallet.objects.create(owner=self.user, wallet_id=Wallet.generate_wallet_id(
-        ), public_key="edpku976gpuAD2bXyx1XGraeKuCo1gUZ3LAJcHM12W1ecxZwoiu22q", currency=self.currency)
+        ), public_key="edpkuqDMtBwt45prqmLpjUTNNKUkKvy7i1xXvEkkHkDfAq6ihzMGtX", currency=self.currency)
 
         self.wallet_1_2 = Wallet.objects.create(owner=self.user, wallet_id=Wallet.generate_wallet_id(
-        ), public_key="edpku976gpuAD2bXyx1XGraeKuCo1gUZ3LAJcHM12W1ecxZwoiu22f", currency=self.currency, category=WALLET_CATEGORIES.COMPANY.value)
+        ), public_key="edpkuUwKji4CWfQchkf2F1X8VKbYXtgjarAmg7pn4Rhydf1YYzrDka", currency=self.currency, category=WALLET_CATEGORIES.COMPANY.value)
 
         self.wallet_2 = Wallet.objects.create(owner=self.user_2, wallet_id=Wallet.generate_wallet_id(
         ), public_key=self.pubkey_2, currency=self.currency)
@@ -41,9 +46,6 @@ class ProfileApiTest(APITestCase):
             to_wallet=self.currency.owner_wallet, amount=2000)
         Transaction.objects.create(
             to_wallet=self.currency_2.owner_wallet, amount=2000)
-
-    def tearDown(self):
-        settings.DEBUG = False
 
     def test_user_profile_verification_flow(self):
         user_verification = UserVerification.objects.create(
@@ -55,6 +57,9 @@ class ProfileApiTest(APITestCase):
             date_of_birth="1989-06-24"
         )
 
+        place_of_origin = PlaceOfOrigin.objects.create(
+            place_of_origin="Baden AG", user_verification=user_verification)
+
         data = {
             "first_name": "Alessandro",
             "last_name": "De Carli",
@@ -63,7 +68,8 @@ class ProfileApiTest(APITestCase):
             "address_town": "Birr",
             "telephone_number": "+41763057500",
             "date_of_birth": "1989-06-24",
-            "wallet": self.wallet_1.wallet_id
+            "wallet": self.wallet_1.wallet_id,
+            "place_of_origin": "Baden AG"
         }
         response = self.client.post(
             '/api/profiles/user_profiles/', data, format='json')
@@ -114,6 +120,7 @@ class ProfileApiTest(APITestCase):
 
         self.client.force_authenticate(user=self.user_2)
 
+        # TODO: shouldn't test for those endpoints be inside apps.verification.tests ?
         response = self.client.post(
             '/api/verification/resend_user_profile_pin/{}'.format(user_profile.pk), data, format='json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -153,17 +160,229 @@ class ProfileApiTest(APITestCase):
         self.assertEqual(self.wallet_1.balance, 10)
         self.assertEqual(self.wallet_1.state, WALLET_STATES.VERIFIED.value)
 
+        # cannot reuse burned verification
         response = self.client.post(
             '/api/profiles/user_profiles/', data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code,
+                         status.HTTP_422_UNPROCESSABLE_ENTITY)
 
         # cannot reuse burned verification
-        self.assertEqual(response.data['verification_stage'], 0)
+        # self.assertEqual(response.data['verification_stage'], 0)
+
+    def test_company_verification_ok(self):
+        company_verification = CompanyVerification.objects.create(
+            name="Papers AG",
+            uid="12-3-4-3",
+            address_street="Sonnmattstr. 121",
+            address_postal_code="5242",
+            address_town="Birr"
+        )
+
+        data = {
+            "name": "Papers AG",
+            "uid": "12-3-4-3",
+            "address_street": "Sonnmattstr. 121",
+            "address_postal_code": "5242",
+            "address_town": "Birr",
+            "wallet": self.wallet_1_2.wallet_id
+        }
+
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(
+            '/api/profiles/company_profiles/', data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['verification_stage'],
+                         PROFILE_VERIFICATION_STAGES.PARTIALLY_VERIFIED.value)
+        # verify with pin
+        company_profile = CompanyProfile.objects.get(pk=response.data['uuid'])
+        address_pin_verification = company_profile.address_pin_verification
+        self.assertIsNotNone(address_pin_verification)
+
+        pin = company_profile.address_pin_verification.pin
+        response = self.client.post(
+            '/api/verification/verify_company_profile_pin/{}'.format(company_profile.pk), {'pin': pin}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(company_profile.verification_stage(),
+                         PROFILE_VERIFICATION_STAGES.VERIFIED.value)
+
+    def test_company_verification_not_matching_wallet(self):
+        company_verification = CompanyVerification.objects.create(
+            name="Papers AG",
+            uid="12-3-4-3",
+            address_street="Sonnmattstr. 121",
+            address_postal_code="5242",
+            address_town="Birr"
+        )
+
+        data = {
+            "name": "Papers AG",
+            "uid": "12-3-4-3",
+            "address_street": "Sonnmattstr. 121",
+            "address_postal_code": "5242",
+            "address_town": "Birr",
+            "wallet": self.wallet_1.wallet_id
+        }
+
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(
+            '/api/profiles/company_profiles/', data, format='json')
+        self.assertEqual(response.status_code,
+                         status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+    def test_company_verification_incomplete_address(self):
+        company_verification = CompanyVerification.objects.create(
+            name="Papers AG",
+            uid="12-3-4-3",
+            address_street="Sonnmattstr. 121",
+            address_postal_code="5242",
+            address_town="Birr",
+        )
+
+        data = {
+            # "name": "Papers AG",
+            "address_street": "Sonnmattstr. 121",
+            "address_postal_code": "5242",
+            "address_town": "Birr",
+            "wallet": self.wallet_1_2.wallet_id
+        }
+
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(
+            '/api/profiles/company_profiles/', data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        data = {
+            "name": "Papers AG",
+            # "address_street": "Sonnmattstr. 121",
+            "address_postal_code": "5242",
+            "address_town": "Birr",
+            "wallet": self.wallet_1_2.wallet_id
+        }
+
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(
+            '/api/profiles/company_profiles/', data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        data = {
+            "name": "Papers AG",
+            "address_street": "Sonnmattstr. 121",
+            # "address_postal_code": "5242",
+            "address_town": "Birr",
+            "wallet": self.wallet_1_2.wallet_id
+        }
+
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(
+            '/api/profiles/company_profiles/', data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        data = {
+            "name": "Papers AG",
+            "address_street": "Sonnmattstr. 121",
+            "address_postal_code": "5242",
+            # "address_town": "Birr",
+            "wallet": self.wallet_1_2.wallet_id
+        }
+
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(
+            '/api/profiles/company_profiles/', data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_company_verification_no_uid(self):
+        company_verification = CompanyVerification.objects.create(
+            name="Papers AG",
+            uid="12-3-4-3",
+            address_street="Sonnmattstr. 121",
+            address_postal_code="5242",
+            address_town="Birr"
+        )
+
+        data = {
+            "name": "Papers AG",
+            "address_street": "Sonnmattstr. 121",
+            "address_postal_code": "5242",
+            "address_town": "Birr",
+            "wallet": self.wallet_1_2.wallet_id
+        }
+
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(
+            '/api/profiles/company_profiles/', data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(
+            response.data['verification_stage'], PROFILE_VERIFICATION_STAGES.UNVERIFIED.value)
+        company_profile = CompanyProfile.objects.get(pk=response.data['uuid'])
+
+        # TODO: check that no verification data is there!!
+
+        try:
+            address_pin_verification = company_profile.address_pin_verification
+        except ObjectDoesNotExist:
+            pass
+
+        company_verification = CompanyVerification.objects.create(
+            name="Papers AG",
+            uid="12-3-4-3",
+            address_street="Sonnmattstr. 121",
+            address_postal_code="5242",
+            address_town="Birr"
+        )
+
+        # same data again
+        data = {
+            "name": "Papers AG",
+            # "uid": "",
+            "address_street": "Sonnmattstr. 121",
+            "address_postal_code": "5242",
+            "address_town": "Birr",
+            "wallet": self.wallet_1_2.wallet_id
+        }
+
+        response = self.client.post(
+            '/api/profiles/company_profiles/', data, format='json')
+        self.assertEqual(response.status_code,
+                         status.HTTP_422_UNPROCESSABLE_ENTITY)
+        # self.assertEqual(
+        # response.data['verification_stage'], PROFILE_VERIFICATION_STAGES.UNVERIFIED.value)
+        # company_profile = CompanyProfile.objects.get(pk=response.data['uuid'])
+        # try:
+        # address_pin_verification = company_profile.address_pin_verification
+        # except ObjectDoesNotExist:
+        # pass
+
+    def test_company_verification_not_matching_address(self):
+        company_verification = CompanyVerification.objects.create(
+            name="Papers AG",
+            uid="12-3-4-4",
+            address_street="Sonnmattstr. 121",
+            address_postal_code="5242",
+            address_town="Birr",
+        )
+
+        data = {
+            "name": "Papers AG",
+            "uid": "12-3-4-3",
+            "address_street": "Sonnmattstr. 121",
+            "address_postal_code": "5242",
+            "address_town": "Birr",
+            "wallet": self.wallet_1.wallet_id
+        }
+
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(
+            '/api/profiles/company_profiles/', data, format='json')
+        self.assertEqual(response.status_code,
+                         status.HTTP_422_UNPROCESSABLE_ENTITY)
 
     def test_company_profile_verification_flow(self):
         company_verification = CompanyVerification.objects.create(
             name="Papers AG",
-            uid="12-3-4-3"
+            uid="12-3-4-3",
+            address_street="Sonnmattstr. 121",
+            address_postal_code="5242",
+            address_town="Birr"
         )
 
         data = {
@@ -282,13 +501,15 @@ class ProfileApiTest(APITestCase):
             "address_town": "Birr",
             "telephone_number": "+41763057500",
             "date_of_birth": "1989-06-24",
-            "wallet": self.wallet_2.wallet_id
+            "wallet": self.wallet_2.wallet_id,
+            "place_of_origin": "Baden AG"
         }
 
         self.client.force_authenticate(user=self.user_2)
         response = self.client.post(
             '/api/profiles/user_profiles/', data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        # TODO: why is this failing
         user_2_profile_uuid = response.data['uuid']
 
         self.client.force_authenticate(user=self.user)
@@ -327,9 +548,9 @@ class ProfileApiTest(APITestCase):
         }
 
         self.client.force_authenticate(user=self.user)
-        response = self.client.post('/api/profiles/company_profiles/', data, format='json')
+        response = self.client.post(
+            '/api/profiles/company_profiles/', data, format='json')
         # the second create overrides user 2
-
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         user_1_profile_uuid = response.data['uuid']
 
@@ -347,3 +568,189 @@ class ProfileApiTest(APITestCase):
         self.assertEqual(response.status_code,
                          status.HTTP_204_NO_CONTENT)
         self.assertEqual(CompanyProfile.objects.all().count(), 0)
+
+    def test_user_verification_with_different_place_of_origin(self):
+        self.client.force_authenticate(user=self.user)
+        user_verification = UserVerification.objects.create(
+            first_name="Alessandro",
+            last_name="De Carli",
+            address_street="Sonnmattstr. 121",
+            address_postal_code="5242",
+            address_town="Birr",
+            date_of_birth="1989-06-24",
+            # place_of_origin="Baden AG"
+        )
+
+        place_of_origin = PlaceOfOrigin.objects.create(
+            user_verification=user_verification, place_of_origin="Baden AG")
+        place_of_origin = PlaceOfOrigin.objects.create(
+            user_verification=user_verification, place_of_origin="Zürich ZH")
+
+        data = {
+            "first_name": "Alessandro",
+            "last_name": "De Carli",
+            "address_street": "Sonnmattstr. 121",
+            "address_postal_code": "5242",
+            "address_town": "Birr",
+            "telephone_number": "+41763057500",
+            "date_of_birth": "1989-06-24",
+            "wallet": self.wallet_1.wallet_id,
+            "place_of_origin": "Baden ZH",
+        }
+
+        response = self.client.post(
+            '/api/profiles/user_profiles/', data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        user_profile = UserProfile.objects.get(
+            pk=response.data['uuid'])
+        with self.assertRaises(UserProfile.sms_pin_verification.RelatedObjectDoesNotExist):
+            pin = user_profile.sms_pin_verification
+
+        # correct place of origin
+        data['place_of_origin'] = "Baden AG  "
+
+        response = self.client.post(
+            '/api/profiles/user_profiles/', data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        user_profile = UserProfile.objects.get(
+            pk=response.data['uuid'])
+        pin = user_profile.sms_pin_verification
+        response = self.client.post(
+            '/api/verification/verify_user_profile_pin/{}'.format(user_profile.pk), {'pin': pin.pin}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        user_verification = UserVerification.objects.get(
+            pk=user_verification.pk)
+        self.assertEqual(user_verification.state,
+                         VERIFICATION_STATES.CLAIMED.value)
+
+    @skip
+    def test_to_many_verifications_company(self):
+        self.client.force_authenticate(user=self.user)
+
+        for i in range(5):
+            company_verification = CompanyVerification.objects.create(
+                name="Papers AG"+str(i),
+                uid="12-3-4-3"
+            )
+
+            data = {
+                "name": "Papers AG"+str(i),
+                "uid": "12-3-4-3",
+                "address_street": "Sonnmattstr. 121",
+                "address_postal_code": "5242",
+                "address_town": "Birr",
+                "wallet": self.wallet_1_2.wallet_id
+            }
+
+            response = self.client.post(
+                '/api/profiles/company_profiles/', data, format='json')
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+            company_profile = CompanyProfile.objects.get(
+                pk=response.data['uuid'])
+            pin = company_profile.address_pin_verification
+            response = self.client.post(
+                '/api/verification/verify_company_profile_pin/{}'.format(company_profile.pk), {'pin': pin.pin}, format='json')
+            self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+            company_verification = CompanyVerification.objects.get(
+                pk=company_verification.pk)
+            self.assertEqual(company_verification.state,
+                             VERIFICATION_STATES.CLAIMED.value)
+
+        company_verification = CompanyVerification.objects.create(
+            name="Papers AG",
+            uid="12-3-4-3"
+        )
+
+        data = {
+            "name": "Papers AG",
+            "uid": "12-3-4-3",
+            "address_street": "Sonnmattstr. 121",
+            "address_postal_code": "5242",
+            "address_town": "Birr",
+            "wallet": self.wallet_1_2.wallet_id
+        }
+        response = self.client.post(
+            '/api/profiles/company_profiles/', data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        company_profile = CompanyProfile.objects.get(pk=response.data['uuid'])
+        pin = company_profile.address_pin_verification
+        response = self.client.post('/api/verification/verify_company_profile_pin/{}'.format(
+            company_profile.pk), {'pin': pin.pin}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        company_verification = CompanyVerification.objects.get(
+            pk=company_verification.pk)
+        self.assertNotEqual(company_verification.state,
+                            VERIFICATION_STATES.CLAIMED.value)
+
+    @skip
+    def test_to_many_verifications_user(self):
+        self.client.force_authenticate(user=self.user)
+
+        for i in range(5):
+            user_verification = UserVerification.objects.create(
+                first_name="Alessandro"+str(i),
+                last_name="De Carli",
+                address_street="Sonnmattstr. 121",
+                address_postal_code="5242",
+                address_town="Birr",
+                date_of_birth="1989-06-24"
+            )
+
+            data = {
+                "first_name": "Alessandro"+str(i),
+                "last_name": "De Carli",
+                "address_street": "Sonnmattstr. 121",
+                "address_postal_code": "5242",
+                "address_town": "Birr",
+                "telephone_number": "+41763057500",
+                "date_of_birth": "1989-06-24",
+                "wallet": self.wallet_1.wallet_id
+            }
+
+            response = self.client.post(
+                '/api/profiles/user_profiles/', data, format='json')
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+            user_profile = UserProfile.objects.get(
+                pk=response.data['uuid'])
+            pin = user_profile.sms_pin_verification
+            response = self.client.post(
+                '/api/verification/verify_user_profile_pin/{}'.format(user_profile.pk), {'pin': pin.pin}, format='json')
+            self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+            user_verification = UserVerification.objects.get(
+                pk=user_verification.pk)
+            self.assertEqual(user_verification.state,
+                             VERIFICATION_STATES.CLAIMED.value)
+
+        user_verification = UserVerification.objects.create(
+            first_name="Alessandro",
+            last_name="De Carli",
+            address_street="Sonnmattstr. 121",
+            address_postal_code="5242",
+            address_town="Birr",
+            date_of_birth="1989-06-24"
+        )
+
+        data = {
+            "first_name": "Alessandro",
+            "last_name": "De Carli",
+            "address_street": "Sonnmattstr. 121",
+            "address_postal_code": "5242",
+            "address_town": "Birr",
+            "telephone_number": "+41763057500",
+            "date_of_birth": "1989-06-24",
+            "wallet": self.wallet_1.wallet_id
+        }
+        response = self.client.post(
+            '/api/profiles/user_profiles/', data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        user_profile = UserProfile.objects.get(pk=response.data['uuid'])
+        pin = user_profile.sms_pin_verification
+        response = self.client.post('/api/verification/verify_user_profile_pin/{}'.format(
+            user_profile.pk), {'pin': pin.pin}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        user_verification = UserVerification.objects.get(
+            pk=user_verification.pk)
+        self.assertNotEqual(user_verification.state,
+                            VERIFICATION_STATES.CLAIMED.value)

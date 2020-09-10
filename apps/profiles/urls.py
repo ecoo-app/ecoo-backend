@@ -9,6 +9,5 @@ urlpatterns = [
          name='user_profiles'),
     path('company_profiles/', CompanyProfileListCreate.as_view(),
          name='company_profiles'),
-    path('company_profiles/<uuid:pk>/',
-         CompanyProfileDestroy.as_view(), name='company_profile_destroy'),
+    path('company_profiles/<uuid:pk>/', CompanyProfileDestroy.as_view(), name='company_profile_destroy'),
 ]

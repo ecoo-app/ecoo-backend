@@ -12,8 +12,8 @@ spec:
         app: __NAMESPACE_NAME__-backend
     spec:
       containers:
-      - command: ["/bin/bash", "-c", "python /code/manage.py migrate; python /code/manage.py collectstatic --noinput; uwsgi --ini /conf/uwsgi_app.ini"]
-        image: __TO_BE_REPLACED_BY_IMAGE_TAG__
+      - image: __TO_BE_REPLACED_BY_IMAGE_TAG__
+        command: ["/bin/bash", "-c", "python /code/manage.py migrate; python /code/manage.py collectstatic --noinput; uvicorn project.asgi:application --host 0.0.0.0;"]
         imagePullPolicy: IfNotPresent
         name: __NAMESPACE_NAME__-backend
         envFrom:

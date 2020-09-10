@@ -11,7 +11,7 @@
             "program": "${workspaceFolder}/manage.py",
             "args": [
                 "test",
-                "apps.wallet.tests.BlockchainSyncTestCase.test_complex_sync"
+                "apps.wallet.tests_api_transaction"
             ],
             "django": true
         }

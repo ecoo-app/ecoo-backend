@@ -1,0 +1,43 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>ecoo print wallet</title>
+
+</head>
+<body>
+    <main>
+        <section class="top">
+            <h1>WetziKoin</h1>
+            <p>Single-origin coffee hexagon mollit lumbersexual post-ironic. Sartorial taiyaki actually blog, letterpress keffiyeh everyday carry umami ut try-hard vinyl excepteur ipsum. </p>
+        </section>
+        <section class="bottom left">
+            <h4>Quickguide</h4>
+            <ol>
+                <li>Selvage 3 wolf moon cloud bread man braid bespoke before they sold out cray semiotics butcher.</li>
+                <li>Pour-over aute ut literally poke. Organic shabby chic tempor leggings</li>
+                <li>Letterpress ramps portland celiac cupidatat kinfolk synth quinoa yr lumbersexual scenester neutra air plant occupy green juice.</li>
+            </ol>
+            <div class="ecoologo">
+                <img src="file://{{logo}}" alt="ecoo logo">
+                <a href="https://payecoo.ch">www.payecoo.ch</a>
+            </div>
+        </section>
+        <section class="bottom right">
+            <div class="badge">
+                <div class="badge__qrcode">
+                    <img src="data:;base64,{{image}}" >
+                </div>
+
+                <div class="badge__text">
+                    <h2>CHF 10.- </h2>
+                    <h3>Gutschein</h3>
+                    <p>Single-origin coffee hexagon mollit lumbersexual post-ironic. Sartorial taiyaki actually blog, letterpress keffiyeh everyday carry umami ut try-hard vinyl excepteur ipsum. </p>
+                    <h4>WetziKoin</h4>
+                </div>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

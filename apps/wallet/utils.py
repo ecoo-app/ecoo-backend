@@ -5,6 +5,7 @@ from django.conf import settings
 from django.utils.timezone import now
 from pytezos.operation.result import OperationResult
 import json
+import traceback
 
 MESSAGE_STRUCTURE = {
     "prim": "pair",
@@ -152,7 +153,7 @@ def sync_to_blockchain(is_dry_run=True, _async=False):
 
     state_update_items = []
 
-    for transaction in Transaction.objects.exclude(state=TRANSACTION_STATES.DONE.value):
+    for transaction in Transaction.objects.exclude(state=TRANSACTION_STATES.PENDING.value).exclude(state=TRANSACTION_STATES.DONE.value).order_by('created_at'):
         state_update_items.append(transaction)
         if not transaction.from_wallet:
             operation_groups.append(token_contract.mint(address=transaction.to_wallet.address,
@@ -191,26 +192,34 @@ def sync_to_blockchain(is_dry_run=True, _async=False):
             meta_transaction_payloads).operation_group.sign())
 
     # wallet public key transfers
-    wallet_public_key_transfer_requests = []
     wallet_public_key_transfer_payloads = []
-    for wallet_public_key_transfer_request in WalletPublicKeyTransferRequest.objects.exclude(state=TRANSACTION_STATES.DONE.value):
-        wallet_public_key_transfer_requests.append(
-            wallet_public_key_transfer_request)
-        state_update_items.append(wallet_public_key_transfer_request)
-        new_address = Wallet(
-            public_key=wallet_public_key_transfer_request.new_public_key).address
-        wallet_public_key_transfer_payloads.append({
-            "from_": wallet_public_key_transfer_request.wallet.address,
-            "txs": [{
-                    "to_": new_address,
-                    "token_id": wallet_public_key_transfer_request.wallet.currency.token_id,
-                    "amount": wallet_public_key_transfer_request.wallet.balance
-                    }]
-        })
-        wallet_public_key_transfer_request.old_public_key = wallet_public_key_transfer_request.wallet.public_key
-        wallet_public_key_transfer_request.save()
-    operation_groups.append(token_contract.transfer(
-        wallet_public_key_transfer_payloads).operation_group.sign())
+    wallet_public_key_transfer_requests = []
+    for wallet_public_key_transfer_request in WalletPublicKeyTransferRequest.objects.exclude(state=TRANSACTION_STATES.PENDING.value).exclude(state=TRANSACTION_STATES.DONE.value).order_by('created_at'):
+        if wallet_public_key_transfer_request.wallet.balance > 0 and wallet_public_key_transfer_request.wallet.public_key != wallet_public_key_transfer_request.new_public_key:
+            new_address = Wallet(
+                public_key=wallet_public_key_transfer_request.new_public_key).address
+            state_update_items.append(wallet_public_key_transfer_request)
+            wallet_public_key_transfer_requests.append(
+                wallet_public_key_transfer_request)
+            wallet_public_key_transfer_payloads.append({
+                "from_": wallet_public_key_transfer_request.wallet.address,
+                "txs": [{
+                        "to_": new_address,
+                        "token_id": wallet_public_key_transfer_request.wallet.currency.token_id,
+                        "amount": wallet_public_key_transfer_request.wallet.balance
+                        }]
+            })
+        else:
+            wallet_public_key_transfer_request.old_public_key = wallet_public_key_transfer_request.wallet.public_key
+            wallet_public_key_transfer_request.wallet.public_key = wallet_public_key_transfer_request.new_public_key
+            wallet_public_key_transfer_request.wallet.save()
+            wallet_public_key_transfer_request.state = TRANSACTION_STATES.DONE.value
+            wallet_public_key_transfer_request.notes = "Has no balance or was recovering to same pubkey, transferred offchain"
+            wallet_public_key_transfer_request.save()
+
+    if len(wallet_public_key_transfer_payloads) > 0:
+        operation_groups.append(token_contract.transfer(
+            wallet_public_key_transfer_payloads).operation_group.sign())
 
     # merging all operations into one single group
     final_operation_group = None
@@ -226,35 +235,53 @@ def sync_to_blockchain(is_dry_run=True, _async=False):
             final_operation_group = final_operation_group.operation(
                 operation_group.contents[0])
 
+    print(final_operation_group)
     operation_result = final_operation_group.sign().preapply()
-
+    print(operation_result)
     if is_dry_run:
         return OperationResult.is_applied(operation_result)
     elif OperationResult.is_applied(operation_result):
         def update_sync_state(items, state=TRANSACTION_STATES.PENDING.value, notes='', operation_hash=''):
-
             for item in items:
                 type(item).objects.filter(pk=item.pk).update(state=state, notes=notes,
                                                              operation_hash=operation_hash, submitted_to_chain_at=now())
         update_sync_state(state_update_items)
         try:
-            operation_inject_result = final_operation_group.sign().inject(
-                _async=_async, preapply=True, check_result=True, num_blocks_wait=settings.TEZOS_BLOCK_WAIT_TIME)
-            is_operation_applied = OperationResult.is_applied(
-                operation_inject_result)
+            is_confirmed_in_chain = False
+            try:
+                operation_inject_result = final_operation_group.sign().inject(
+                    _async=_async, preapply=True, check_result=True, num_blocks_wait=settings.TEZOS_BLOCK_WAIT_TIME)
+                is_operation_applied = OperationResult.is_applied(
+                    operation_inject_result)
+                is_confirmed_in_chain = True
+            except AssertionError:
+                # here we assume that the operation was applied even if we know the assertion failed
+                is_operation_applied = True
+
             if is_operation_applied:
-                update_sync_state(state_update_items, TRANSACTION_STATES.DONE.value, json.dumps(
-                    operation_inject_result), operation_inject_result['hash'])
                 for wallet_public_key_transfer_request in wallet_public_key_transfer_requests:
+                    wallet_public_key_transfer_request.old_public_key = wallet_public_key_transfer_request.wallet.public_key
                     wallet_public_key_transfer_request.wallet.public_key = wallet_public_key_transfer_request.new_public_key
                     wallet_public_key_transfer_request.wallet.save()
+                    wallet_public_key_transfer_request.state = TRANSACTION_STATES.DONE.value
+                    wallet_public_key_transfer_request.save()
+                if is_confirmed_in_chain:
+                    update_sync_state(state_update_items, TRANSACTION_STATES.DONE.value, json.dumps(
+                        operation_inject_result), operation_inject_result['hash'])
+                else:
+                    update_sync_state(state_update_items, TRANSACTION_STATES.DONE.value, json.dumps(
+                        operation_result), "*")
             else:
-                update_sync_state(state_update_items, TRANSACTION_STATES.FAILED.value, 'Error during sync: {}'.format(
-                    json.dumps(operation_inject_result)))
+                if operation_inject_result is None:
+                    update_sync_state(state_update_items, TRANSACTION_STATES.FAILED.value, 'Error during sync: {}'.format(
+                        json.dumps(operation_result)))
+                else:
+                    update_sync_state(state_update_items, TRANSACTION_STATES.FAILED.value, 'Error during sync: {}'.format(
+                        json.dumps(operation_inject_result)))
             return is_operation_applied
         except Exception as error:
             update_sync_state(state_update_items, TRANSACTION_STATES.FAILED.value,
-                              'Exception during sync: {}'.format(repr(error)))
+                              'Exception during sync: {}\nTraceback: {}'.format(repr(error), traceback.format_exc()))
             return False
     else:
         return OperationResult.is_applied(operation_result)

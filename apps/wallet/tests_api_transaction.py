@@ -24,14 +24,14 @@ class TransactionApiTest(APITestCase):
         self.user_2 = get_user_model().objects.create(
             username="testuser_2", password="abcd")
 
-        self.currency = Currency.objects.create(token_id=0, name="TEZ")
-        self.currency_2 = Currency.objects.create(token_id=1, name="TEZ2")
+        self.currency = Currency.objects.create(token_id=0, name="TEZ", symbol='tez', claim_deadline='2120-01-01', campaign_end='2120-01-01')
+        self.currency_2 = Currency.objects.create(token_id=1, name="TEZ2", symbol='tez2', claim_deadline='2120-01-01', campaign_end='2120-01-01')
 
         self.wallet_1 = Wallet.objects.create(owner=self.user, wallet_id=Wallet.generate_wallet_id(
-        ), public_key="edpku976gpuAD2bXyx1XGraeKuCo1gUZ3LAJcHM12W1ecxZwoiu22R", currency=self.currency)
+        ), public_key="edpku8CQWKpekx9EWYKPF3pPScPeo3acTEKdeA9vdJYU8hSgoFPq53", currency=self.currency)
 
         self.wallet_1_2 = Wallet.objects.create(owner=self.user, wallet_id=Wallet.generate_wallet_id(
-        ), public_key="edpku976gpuAD2bXyx1XGraeKuCo1gUZ3LAJcHM12W1ecxZwoiu22f", currency=self.currency, state=WALLET_STATES.VERIFIED.value)
+        ), public_key="edpkusN6THUuQ5cJV1wWGURe23Mp4G9qFVgh8Pfh8BcMLT9CziPDVx", currency=self.currency, state=WALLET_STATES.VERIFIED.value)
 
         self.wallet_2 = Wallet.objects.create(owner=self.user_2, wallet_id=Wallet.generate_wallet_id(
         ), public_key=self.pubkey_2, currency=self.currency, state=WALLET_STATES.VERIFIED.value)

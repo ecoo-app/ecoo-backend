@@ -16,13 +16,23 @@ from rest_framework.permissions import BasePermission
 
 from apps.profiles.serializers import UserProfileSerializer, CompanyProfileSerializer
 from apps.profiles.models import UserProfile, CompanyProfile
+from django.utils.translation import ugettext_lazy as _
+from apps.wallet.models import Wallet
 
+
+# TODO: add check for too many profiles per user
 
 class UserProfileListCreate(generics.ListCreateAPIView):
     serializer_class = UserProfileSerializer
 
     def get_queryset(self):
         return self.request.user.user_profiles
+
+    def create(self, request, *args, **kwargs):
+        data = request.data.copy()
+        data['wallet'] = Wallet.objects.get(wallet_id=request.data['wallet'])
+
+        return super().create(request, *args, **kwargs)
 
 
 class UserProfileDestroy(generics.DestroyAPIView):

@@ -19,6 +19,7 @@ django-otp==0.9.4
 django-phonenumber-field==3.0.1
 django-qr-code==1.2.0
 django-rest-framework-social-oauth2==1.1.0
+django-simple-task==0.1.2
 django-two-factor-auth==1.12.1
 djangorestframework==3.11.1
 djangorestframework-simplejwt==4.4.0
@@ -63,6 +64,7 @@ pytz==2020.1
 pytzdata==2020.1
 PyYAML==5.3.1
 qrcode==6.1
+raven==6.10.0
 requests==2.24.0
 requests-oauthlib==1.3.0
 rope==0.17.0
@@ -73,6 +75,7 @@ six==1.15.0
 social-auth-app-django==4.0.0
 social-auth-core==3.3.3
 sqlparse==0.3.1
+supervisor==4.2.0
 termcolor==1.1.0
 toml==0.10.1
 tqdm==4.48.2
@@ -81,4 +84,6 @@ urllib3==1.25.10
 uvicorn==0.11.8
 uvloop==0.14.0
 websockets==8.1
+whitenoise==5.2.0
 wrapt==1.12.1
+WeasyPrint==51

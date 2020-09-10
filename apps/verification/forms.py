@@ -6,7 +6,6 @@ from apps.currency.models import Currency
 
 class ImportForm(forms.Form):
     csv_file = forms.FileField(label=_('CSV file'), widget=FileInput)
-    currency = forms.ModelChoiceField(queryset=Currency.objects.all())
 
     def __init__(self, *args, **kwargs):
         super(ImportForm, self).__init__(*args, **kwargs)
