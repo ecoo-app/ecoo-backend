@@ -90,7 +90,6 @@ class AddressPinVerification(AbstractVerification):
         oauth = OAuth2Session(client=client)
         token = oauth.fetch_token(
             token_url=POST_API_CONFIG['token_url'], client_id=POST_API_CONFIG['client_id'], client_secret=POST_API_CONFIG['client_secret'])
-
         preview_url = POST_API_CONFIG['base_url'] + \
             'v1/postcards/{}/previews/{}'.format(self.external_id, side)
         response = requests.get(preview_url, headers={
@@ -124,3 +123,7 @@ class SMSPinVerification(AbstractVerification):
     class Meta:
         verbose_name = _('SMS pin verification')
         verbose_name_plural = _('SMS pin verifications')
+
+class PlaceOfOrigin(UUIDModel):
+    place_of_origin = models.CharField(max_length=128)
+    user_verification = models.ForeignKey(UserVerification, on_delete=models.CASCADE, related_name='places_of_origin')

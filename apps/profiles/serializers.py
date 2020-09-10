@@ -50,7 +50,10 @@ class UserProfileSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(_('Does not belong to user'))
         return value
 
+    def validate_place_of_origin(self,value):
+        return value.strip()
+
     class Meta:
         model = UserProfile
         fields = ['owner', 'uuid', 'first_name', 'last_name', 'address_street', 'address_town',
-                  'address_postal_code', 'telephone_number', 'verification_stage', 'wallet', 'date_of_birth']
+                  'address_postal_code', 'telephone_number', 'verification_stage', 'wallet', 'date_of_birth', 'place_of_origin']
