@@ -2,7 +2,8 @@ from django.test import TestCase
 from apps.currency.models import Currency
 from apps.wallet.models import WALLET_STATES, Wallet, MetaTransaction, Transaction, WalletPublicKeyTransferRequest, TRANSACTION_STATES
 from apps.wallet.signals import custom_meta_transaction_validation
-from pytezos import pytezos, crypto
+# from pytezos import pytezos, crypto
+import pytezos
 
 from apps.wallet.utils import sync_to_blockchain, pack_meta_transaction, read_nonce_from_chain
 import time
@@ -36,57 +37,81 @@ class WalletTestCase(TestCase):
 
     def test_nonce_calculation(self):
         currency = Currency.objects.create(token_id=0, name="test", symbol='test', claim_deadline='2120-01-01', campaign_end='2120-01-01')
+        key1 = pytezos.crypto.Key.generate()
+        key2 = pytezos.crypto.Key.generate()
         wallet1 = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
-        ), public_key="edpku976gpuAD2bXyx1XGraeKuCo1gUZ3LAJcHM12W1ecxZwoiu22R", currency=currency, state=WALLET_STATES.VERIFIED.value)
+        ), public_key=key1.public_key(), currency=currency, state=WALLET_STATES.VERIFIED.value)
         wallet2 = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
-        ), public_key="edpku3g7CeTEvSKhxipD4Q2B6EiEP8cR323u8PFmGFgKRVRvCneEmT", currency=currency, state=WALLET_STATES.VERIFIED.value)
+        ), public_key=key2.public_key(), currency=currency, state=WALLET_STATES.VERIFIED.value)
         Transaction.objects.create(to_wallet=wallet1, amount=100)
-        # FIXME: metatransaction needs correct signature
-        # MetaTransaction.objects.create(
-        #     from_wallet=wallet1, to_wallet=wallet2, amount=10, nonce=1)
-        # self.assertEqual(
-        #     wallet1.nonce, 1)
-        # self.assertEqual(
-        #     wallet2.nonce, 0)
-        # MetaTransaction.objects.create(
-        #     from_wallet=wallet2, to_wallet=wallet1, amount=1, nonce=1)
-        # self.assertEqual(
-        #     wallet1.nonce, 1)
-        # self.assertEqual(
-        #     wallet2.nonce, 1)
-        # MetaTransaction.objects.create(
-        #     from_wallet=wallet1, to_wallet=wallet2, amount=1, nonce=2)
-        # self.assertEqual(
-        #     wallet1.nonce, 2)
-        # self.assertEqual(
-        #     wallet2.nonce, 1)
+        
+        meta_transaction1 = MetaTransaction(from_wallet=wallet1, to_wallet=wallet2, amount=10, nonce=1)
+        signature1 = key1.sign(pack_meta_transaction(meta_transaction1.to_meta_transaction_dictionary()))
+        meta_transaction1.signature = signature1
+        meta_transaction1.save()
+        self.assertEqual(
+            wallet1.nonce, 1)
+        self.assertEqual(
+            wallet2.nonce, 0)
+
+        meta_transaction2 = MetaTransaction(from_wallet=wallet2, to_wallet=wallet1, amount=1, nonce=1)
+        signature2 = key2.sign(pack_meta_transaction(meta_transaction2.to_meta_transaction_dictionary()))
+        meta_transaction2.signature = signature2
+        meta_transaction2.save()
+
+        self.assertEqual(
+            wallet1.nonce, 1)
+        self.assertEqual(
+            wallet2.nonce, 1)
+
+        meta_transaction1 = MetaTransaction(from_wallet=wallet1, to_wallet=wallet2, amount=1, nonce=2)
+        signature1 = key1.sign(pack_meta_transaction(meta_transaction1.to_meta_transaction_dictionary()))
+        meta_transaction1.signature = signature1
+        meta_transaction1.save()
+        self.assertEqual(
+            wallet1.nonce, 2)
+        self.assertEqual(
+            wallet2.nonce, 1)
 
     def test_balance_calculation(self):
         currency = Currency.objects.create(token_id=0, name="test", symbol='test', claim_deadline='2120-01-01', campaign_end='2120-01-01')
+        key1 = pytezos.crypto.Key.generate()
+        key2 = pytezos.crypto.Key.generate()
         wallet1 = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
-        ), public_key="edpku976gpuAD2bXyx1XGraeKuCo1gUZ3LAJcHM12W1ecxZwoiu22R", currency=currency, state=WALLET_STATES.VERIFIED.value)
+        ), public_key=key1.public_key(), currency=currency, state=WALLET_STATES.VERIFIED.value)
         wallet2 = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
-        ), public_key="edpku3g7CeTEvSKhxipD4Q2B6EiEP8cR323u8PFmGFgKRVRvCneEmT", currency=currency, state=WALLET_STATES.VERIFIED.value)
+        ), public_key=key2.public_key(), currency=currency, state=WALLET_STATES.VERIFIED.value)
         Transaction.objects.create(to_wallet=wallet1, amount=100)
-        # FIXME: metatransaction needs correct signature
-        # MetaTransaction.objects.create(
-        #     from_wallet=wallet1, to_wallet=wallet2, amount=10, nonce=1)
-        # self.assertEqual(
-        #     wallet1.balance, 90)
-        # self.assertEqual(
-        #     wallet2.balance, 10)
-        # MetaTransaction.objects.create(
-        #     from_wallet=wallet2, to_wallet=wallet1, amount=1, nonce=2)
-        # self.assertEqual(
-        #     wallet1.balance, 91)
-        # self.assertEqual(
-        #     wallet2.balance, 9)
-        # MetaTransaction.objects.create(
-        #     from_wallet=wallet1, to_wallet=wallet2, amount=1, nonce=3)
-        # self.assertEqual(
-        #     wallet1.balance, 90)
-        # self.assertEqual(
-        #     wallet2.balance, 10)
+        
+        meta_transaction1 = MetaTransaction(from_wallet=wallet1, to_wallet=wallet2, amount=10, nonce=1)
+        signature1 = key1.sign(pack_meta_transaction(meta_transaction1.to_meta_transaction_dictionary()))
+        meta_transaction1.signature = signature1
+        meta_transaction1.save()
+            
+        self.assertEqual(
+            wallet1.balance, 90)
+        self.assertEqual(
+            wallet2.balance, 10)
+
+        meta_transaction2 = MetaTransaction(from_wallet=wallet2, to_wallet=wallet1, amount=1, nonce=1)
+        signature2 = key2.sign(pack_meta_transaction(meta_transaction2.to_meta_transaction_dictionary()))
+        meta_transaction2.signature = signature2
+        meta_transaction2.save()
+        
+        self.assertEqual(
+            wallet1.balance, 91)
+        self.assertEqual(
+            wallet2.balance, 9)
+
+        meta_transaction1 = MetaTransaction(from_wallet=wallet1, to_wallet=wallet2, amount=1, nonce=2)
+        signature1 = key1.sign(pack_meta_transaction(meta_transaction1.to_meta_transaction_dictionary()))
+        meta_transaction1.signature = signature1
+        meta_transaction1.save()
+        
+        self.assertEqual(
+            wallet1.balance, 90)
+        self.assertEqual(
+            wallet2.balance, 10)
 
 
 class MetaTransactionTestCase(TestCase):
@@ -140,7 +165,7 @@ class TransactionTestCase(TestCase):
 class BlockchainSyncTestCase(TestCase):
     def setUp(self):
         self.currency = Currency.objects.create(token_id=0, name="TEZ", symbol='test', claim_deadline='2120-01-01', campaign_end='2120-01-01')
-        self.pytezos_client = pytezos.using(
+        self.pytezos_client = pytezos.pytezos.using(
             key=settings.TEZOS_ADMIN_ACCOUNT_PRIVATE_KEY, shell=settings.TEZOS_NODE)
         self.last_nonce = read_nonce_from_chain(
             self.pytezos_client.key.public_key_hash())
@@ -202,7 +227,7 @@ class BlockchainSyncTestCase(TestCase):
 
     def test_complex_sync(self):
         for i in range(40):
-            key = crypto.Key.generate()
+            key = pytezos.crypto.Key.generate()
             private_key = key.secret_key()
             public_key = key.public_key()
             user_wallet = Wallet.objects.create(
@@ -217,7 +242,7 @@ class BlockchainSyncTestCase(TestCase):
             MetaTransaction.objects.create(
                 from_wallet=user_wallet, to_wallet=self.wallet1, signature=signature, nonce=1, amount=1)
 
-            key = crypto.Key.generate()
+            key = pytezos.crypto.Key.generate()
             public_key = key.public_key()
 
             WalletPublicKeyTransferRequest.objects.create(

@@ -322,7 +322,7 @@ class MetaTransaction(Transaction):
                                  self.nonce, self.from_wallet.currency.token_id, self.amount)
         except:
             pass
-        if self.from_wallet:
+        if self.from_wallet and self.to_wallet:
             key = pytezos.Key.from_encoded_key(self.from_wallet.public_key)
             try:
                 key.verify(self.signature, message)
