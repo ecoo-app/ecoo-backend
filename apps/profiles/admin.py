@@ -1,5 +1,5 @@
 from django.contrib import admin, messages
-from apps.profiles.models import UserProfile, CompanyProfile
+from apps.profiles.models import CompanyProfile, PROFILE_VERIFICATION_STAGES, UserProfile
 from django.utils.translation import ugettext_lazy as _
 import requests
 from django.conf import settings
@@ -13,7 +13,9 @@ from apps.wallet.models import Wallet
 def verify_users(modeladmin, request, queryset):
 
     modified = 0
-    for user_profile in queryset.exclude(user_verification__isnull=False).exclude(sms_pin_verification__isnull=False):
+    for user_profile in queryset.exclude(sms_pin_verification__isnull=False):
+        if not user_profile.verification_stage in [PROFILE_VERIFICATION_STAGES.UNVERIFIED.value, PROFILE_VERIFICATION_STAGES.MAX_CLAIMS.value ]:
+            continue
         user_verification = UserVerification.objects.create(
             user_profile=user_profile,
             state=VERIFICATION_STATES.CLAIMED.value,
