@@ -27,7 +27,8 @@ class ProfileApiTest(APITestCase):
         self.user_2 = get_user_model().objects.create(
             username="testuser_2", password="abcd")
 
-        self.currency = Currency.objects.create(token_id=0, name="TEZ", symbol='tez', claim_deadline='2120-01-01', campaign_end='2120-01-01')
+        self.currency = Currency.objects.create(
+            token_id=0, name="TEZ", symbol='tez', claim_deadline='2120-01-01', campaign_end='2120-01-01')
         self.currency_2 = Currency.objects.create(
             token_id=1, name="TEZ2", starting_capital=22, symbol='tez2', claim_deadline='2120-01-01', campaign_end='2120-01-01')
 
@@ -615,8 +616,6 @@ class ProfileApiTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         user_profile = UserProfile.objects.get(
             pk=response.data['uuid'])
-        with self.assertRaises(UserProfile.sms_pin_verification.RelatedObjectDoesNotExist):
-            pin = user_profile.sms_pin_verification
 
         # correct place of origin
         data['place_of_origin'] = "Baden AG  "
