@@ -389,9 +389,9 @@ class CashOutRequest(UUIDModel):
             errors['to_wallet'] = ValidationError(
                 _('Cash out only possible with transactions going to the owner wallet of the currency'))
         
-        if self.transaction.from_wallet.category != WALLET_CATEGORIES.COMPANY.value:
-            errors['from_wallet'] = ValidationError(
-                _('Cash out only possible from a company wallet'))
+        # if self.transaction.from_wallet.category != WALLET_CATEGORIES.COMPANY.value:
+        #     errors['from_wallet'] = ValidationError(
+        #         _('Cash out only possible from a company wallet'))
 
         if len(errors)>0:
             raise ValidationError(errors)
