@@ -10,7 +10,7 @@ from rest_framework.response import Response
 
 from apps.currency.models import Currency
 from apps.profiles.models import CompanyProfile, UserProfile
-from apps.verification.models import (VERIFICATION_STATES, CompanyVerification,
+from apps.verification.models import (VERIFICATION_STATES, CompanyVerification, PlaceOfOrigin,
                                       SMSPinVerification, UserVerification, AddressPinVerification)
 
 from apps.verification.serializers import (AutocompleteCompanySerializer,
@@ -126,8 +126,8 @@ def create_paper_wallet_from_userverification(request, uuid):
     user_verification = UserVerification.objects.get(uuid=uuid)
     if user_verification.state != VERIFICATION_STATES.OPEN.value:
         return redirect('admin:verification_userverification_changelist')
-
-    paper_wallet = PaperWallet.generate_new_wallet(
+    place_of_origin = PlaceOfOrigin.objects.filter(user_verification=user_verification).first()
+    paper_wallet = PaperWallet.generate_new_wallet(place_of_origin=place_of_origin,
         currency=Currency.objects.all().first(), verification_data=user_verification)
     create_claim_transaction(paper_wallet)
     user_verification = UserVerification.objects.get(uuid=uuid)

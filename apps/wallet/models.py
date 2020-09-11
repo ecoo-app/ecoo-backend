@@ -140,7 +140,7 @@ class PaperWallet(Wallet):
     private_key = models.CharField(unique=True, max_length=128)
 
     @staticmethod
-    def generate_new_wallet(currency, verification_data, category=WALLET_CATEGORIES.CONSUMER.value, state=WALLET_STATES.VERIFIED.value):
+    def generate_new_wallet(currency, place_of_origin, verification_data, category=WALLET_CATEGORIES.CONSUMER.value, state=WALLET_STATES.VERIFIED.value):
         with transaction.atomic():
             while True:
                 wallet_id = Wallet.generate_wallet_id()
@@ -151,40 +151,33 @@ class PaperWallet(Wallet):
                     private_key = key.secret_key()
                     public_key = key.public_key()
 
-                    paper_wallet = PaperWallet.objects.create(
-                        wallet_id=wallet_id, private_key=private_key, public_key=public_key, currency=currency, state=state, category=category)
-
-                    from apps.profiles.models import CompanyProfile, UserProfile
-
-                    if category == WALLET_CATEGORIES.CONSUMER.value:
+                    from apps.profiles.models import UserProfile
+                    username = slugify('%s %s %s' % (
+                        verification_data.first_name, verification_data.last_name, get_random_string(10)))
+                    while get_user_model().objects.filter(username=username).exists():
                         username = slugify('%s %s %s' % (
                             verification_data.first_name, verification_data.last_name, get_random_string(10)))
-                        while get_user_model().objects.filter(username=username).exists():
-                            username = slugify('%s %s %s' % (
-                                verification_data.first_name, verification_data.last_name, get_random_string(10)))
 
-                        user = get_user_model().objects.create(
-                            username=username, password=get_user_model().objects.make_random_password())
-                        raw_data = verification_data.__dict__
-                        raw_data.pop('_state', None)
-                        raw_data.pop('state', None)
-                        raw_data.pop('user_profile_id', None)
-                        raw_data.pop('uuid', None)
+                    user = get_user_model().objects.create(
+                        username=username, password=get_user_model().objects.make_random_password())
 
-                        profile = UserProfile(**raw_data)
-                        profile.telephone_number = '+417'
-                    else:
-                        user = get_user_model().objects.create(username=verification_data.name,
-                                                               password=get_user_model().objects.make_random_password())
-                        profile = CompanyProfile(**verification_data.__dict__)
+                    profile = UserProfile(
+                        owner=user,
+                        first_name=verification_data.first_name,
+                        last_name=verification_data.last_name,
+                        address_street=verification_data.address_street,
+                        address_town=verification_data.address_town,
+                        address_postal_code=verification_data.address_postal_code,
+                        telephone_number='+417',
+                        date_of_birth=verification_data.date_of_birth,
+                        place_of_origin=place_of_origin
+                    )
+                    
+                    paper_wallet = PaperWallet.objects.create(user_verification=verification_data, owner=user,
+                        wallet_id=wallet_id, private_key=private_key, public_key=public_key, currency=currency, state=WALLET_STATES.VERIFIED.value, category=category)
 
-                    profile._state
-                    profile.owner = user
                     profile.wallet = paper_wallet
                     profile.save()
-                    paper_wallet.owner = user
-                    paper_wallet.save()
-
                     return paper_wallet
 
     def save(self, *args, **kwargs):

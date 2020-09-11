@@ -16,6 +16,8 @@ import csv
 from django.urls import reverse
 from apps.wallet.models import PaperWallet, WALLET_CATEGORIES, WALLET_STATES
 from django.core.exceptions import PermissionDenied
+from django import forms
+from django.forms.models import BaseInlineFormSet
 
 # TODO: ths isn't used anymore, should it be fixed and used or removed?
 def approve_verification(modeladmin, request, queryset):
@@ -107,10 +109,19 @@ class ImportMixin:
                 self.admin_site.admin_view(self.import_csv), name=self.import_name),
         ]
 
+class AtLeastOneRequiredInlineFormSet(BaseInlineFormSet):
+    def clean(self):
+        super(AtLeastOneRequiredInlineFormSet, self).clean()
+        if any(self.errors):
+            return
+        if not any(cleaned_data and not cleaned_data.get('DELETE', False)
+            for cleaned_data in self.cleaned_data):
+            raise forms.ValidationError(_('At least one item required.'))    
 
 class PlaceOfOriginInline(admin.TabularInline):
     model = PlaceOfOrigin
     extra = 1
+    formset = AtLeastOneRequiredInlineFormSet
 
 @admin.register(UserVerification)
 class UserVerificationAdmin(ImportMixin, admin.ModelAdmin):
