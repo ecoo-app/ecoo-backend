@@ -6,7 +6,7 @@ from django.conf import settings
 from django import forms
 import datetime
 from django.shortcuts import render
-from apps.profiles.filters import VerificationLevelFilter
+from apps.profiles.filters import UserVerificationLevelFilter, CompanyVerificationLevelFilter
 from apps.verification.models import CompanyVerification, PlaceOfOrigin, UserVerification, VERIFICATION_STATES
 from apps.wallet.models import Wallet
 
@@ -75,7 +75,7 @@ class UserProfile(PreventDeleteWhenVerifiedMixin, admin.ModelAdmin):
     list_display = ['first_name', 'last_name', 'address_street', 'telephone_number', 'date_of_birth', 'verification_stage_display','created_at']
     search_fields = ['first_name', 'last_name',
                      'address_street', 'telephone_number', 'date_of_birth']
-    list_filter = [VerificationLevelFilter,'created_at']
+    list_filter = [UserVerificationLevelFilter,'created_at']
     actions = [verify_users]
     readonly_fields=['created_at',]
 
@@ -89,7 +89,7 @@ class CompanyProfile(PreventDeleteWhenVerifiedMixin, admin.ModelAdmin):
     list_display = ['name', 'uid', 'address_street', 'verification_stage_display', 'created_at']
     search_fields = ['name', 'uid',
                      'address_street']
-    list_filter = [VerificationLevelFilter,'created_at']
+    list_filter = [CompanyVerificationLevelFilter,'created_at']
     actions = [verify_companies]
     readonly_fields=['created_at',]
 
