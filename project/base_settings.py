@@ -364,3 +364,5 @@ Wir wünschen Ihnen viel Erfolg!
 """
 
 SMS_PIN_WAIT_TIME_THRESHOLD_SECONDS = 15
+
+FULLCLEAN_WHITELIST = ['apps']
