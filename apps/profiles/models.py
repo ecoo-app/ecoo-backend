@@ -9,6 +9,7 @@ from django.db import models
 from django.db.models import Max, Q, Sum
 from django.db.models.signals import pre_save
 from django.utils.crypto import get_random_string
+from django.core.validators import RegexValidator
 
 from project.mixins import UUIDModel
 from django.utils.translation import ugettext_lazy as _
@@ -40,11 +41,14 @@ class CompanyProfile(UUIDModel):
     uid = models.CharField(max_length=15, blank=True, verbose_name=_('uid'),)
 
     address_street = models.CharField(
-        max_length=128, blank=True, verbose_name=_('Street'),)
+        max_length=128, blank=False, verbose_name=_('Street'),)
     address_town = models.CharField(
-        max_length=128, blank=True, verbose_name=_('Town'),)
+        max_length=128, blank=False, verbose_name=_('Town'),)
     address_postal_code = models.CharField(
-        max_length=128, blank=True, verbose_name=_('Postal code'),)
+        max_length=128, blank=False, verbose_name=_('Postal code'),)
+
+    phone_number = models.CharField(
+        max_length=128, blank=True, validators=[RegexValidator(r'(\b(0041|0)|\B\+41)(\s?\(0\))?(\s)?[1-9]{2}(\s)?[0-9]{3}(\s)?[0-9]{2}(\s)?[0-9]{2}\b', _('Not a valid swiss phone number'))])
 
     wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE,
                                related_name='company_profiles', verbose_name=_('Wallet'),)
@@ -73,10 +77,6 @@ class CompanyProfile(UUIDModel):
         if self.wallet.owner is not None and self.owner.pk != self.wallet.owner.pk:
             errors['wallet'] = ValidationError(
                 _('You can only attach a wallet you own to this profile'))
-        
-        if not self.address_street or not self.address_postal_code or not self.address_town or not self.name:
-            errors['address_street'] = ValidationError(
-                _('Address needs to be filled out completely'))
         
         if len(errors) > 0:
             raise ValidationError(errors)
