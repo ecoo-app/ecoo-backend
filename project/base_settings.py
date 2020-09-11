@@ -327,24 +327,24 @@ POST_API_CONFIG = {
     'sender': {
         'firstname': '',
         'lastname': '',
-        'company': 'Papers AG',
-        'street': 'Dammstrasse',
-        'houseNr': '16',
-        'zip': '6300',
-        'city': 'Zug'
+        'company': 'Stadt Wetzikon',
+        'street': 'Bahnhofstrasse',
+        'houseNr': '167',
+        'zip': '8620',
+        'city': 'Wetzikon'
     },
 
     'branding': {
         'brandingText': {
-            'text': 'test',
-            'blockColor': '#FFFFFF',
-            'textColor': '#000000'
+            'text': 'Diese Kampagne ist finanziert durch die Stadt Wetzikon und wird in Zusammenarbeit mit dem Gewerbeverein durchgeführt.\nMehr dazu: wetzikon.ch/ecoupon',
+            'blockColor': '#EE0000',
+            'textColor': '#FFFFFF'
         },
         'brandingQRCode': {
-            'encodedText': 'test',
-            'accompanyingText': 'test',
-            'blockColor': '#FFFFFF',
-            'textColor': '#000000'
+            'encodedText': 'https://www.wetzikon.ch/ecoupon',
+            'accompanyingText': 'Diese Kampagne ist finanziert durch die Stadt Wetzikon und wird in Zusammenarbeit mit dem Gewerbeverein durchgeführt.\nMehr dazu: wetzikon.ch/ecoupon',
+            'blockColor': '#EE0000',
+            'textColor': '#FFFFFF'
         }
     }
 
