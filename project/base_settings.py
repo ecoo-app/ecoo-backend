@@ -141,7 +141,7 @@ AUTH_USER_MODEL = 'custom_auth.User'
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
 
-LANGUAGE_CODE = 'de-CH'
+LANGUAGE_CODE = 'de'
 
 LANGUAGE_CHOICES = (
     ('en', _('English')),

@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-09-10 12:00+0000\n"
-"PO-Revision-Date: 2020-08-14 17:28+0200\n"
+"POT-Creation-Date: 2020-09-10 21:57+0000\n"
+"PO-Revision-Date: 2020-09-10 23:59+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: de\n"
@@ -129,6 +129,10 @@ msgstr "Verifiziert (PIN Verifizierung ausstehend)"
 msgid "Verified"
 msgstr "Verifiziert"
 
+#: apps/profiles/filters.py:27
+msgid "Company Verification Level"
+msgstr "Firmenverifikation"
+
 #: apps/profiles/models.py:31
 msgid "Max Claims"
 msgstr "Maximale Anzahl Einlösungen"
@@ -167,7 +171,7 @@ msgstr "Verifizierungsstatus"
 
 #: apps/profiles/models.py:71
 msgid "Only company wallets can be attached to company profiles"
-msgstr ""
+msgstr "Nur Firmenwallets können mit Firmenprofilen verknüpft werden"
 
 #: apps/profiles/models.py:75 apps/profiles/models.py:161
 msgid "You can only attach a wallet you own to this profile"

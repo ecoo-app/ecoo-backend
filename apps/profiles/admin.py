@@ -14,7 +14,7 @@ def verify_users(modeladmin, request, queryset):
 
     modified = 0
     for user_profile in queryset.exclude(sms_pin_verification__isnull=False):
-        if not user_profile.verification_stage in [PROFILE_VERIFICATION_STAGES.UNVERIFIED.value, PROFILE_VERIFICATION_STAGES.MAX_CLAIMS.value ]:
+        if not user_profile.verification_stage() in [PROFILE_VERIFICATION_STAGES.UNVERIFIED.value, PROFILE_VERIFICATION_STAGES.MAX_CLAIMS.value ]:
             continue
         user_verification = UserVerification.objects.create(
             user_profile=user_profile,
