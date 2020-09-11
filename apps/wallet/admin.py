@@ -172,7 +172,7 @@ class TransactionAdmin(admin.ModelAdmin):
                     'amount', 'state', 'created_at']
     list_filter = ['from_wallet__currency', 'state', 'created_at']
     search_fields = ['from_wallet__wallet_id', 'to_wallet__wallet_id']
-    actions = ['retry_failed']
+    actions = ['retry_failed', 'force_done']
 
     def has_delete_permission(self, request, obj=None):
         return False
@@ -182,6 +182,12 @@ class TransactionAdmin(admin.ModelAdmin):
             state=TRANSACTION_STATES.OPEN.value)
 
     retry_failed.short_description = _('Retry failed transactions')
+
+    def force_done(modeladmin, request, queryset):
+        queryset.update(
+            state=TRANSACTION_STATES.DONE.value)
+
+    force_done.short_description = _('Force transaction to done')
 
 
 @admin.register(MetaTransaction)

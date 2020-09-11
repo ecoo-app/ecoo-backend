@@ -14,6 +14,7 @@ from apps.wallet.models import (WALLET_CATEGORIES, WALLET_STATES,
 from apps.profiles.models import CompanyProfile, PROFILE_VERIFICATION_STAGES, UserProfile
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
+import time
 
 
 class ProfileApiTest(APITestCase):
@@ -26,7 +27,8 @@ class ProfileApiTest(APITestCase):
         self.user_2 = get_user_model().objects.create(
             username="testuser_2", password="abcd")
 
-        self.currency = Currency.objects.create(token_id=0, name="TEZ", symbol='tez', claim_deadline='2120-01-01', campaign_end='2120-01-01')
+        self.currency = Currency.objects.create(
+            token_id=0, name="TEZ", symbol='tez', claim_deadline='2120-01-01', campaign_end='2120-01-01')
         self.currency_2 = Currency.objects.create(
             token_id=1, name="TEZ2", starting_capital=22, symbol='tez2', claim_deadline='2120-01-01', campaign_end='2120-01-01')
 
@@ -135,9 +137,20 @@ class ProfileApiTest(APITestCase):
             '/api/verification/verify_user_profile_pin/{}'.format(user_profile.pk), {'pin': 'WRONG'}, format='json')
         self.assertEqual(response.status_code,
                          status.HTTP_422_UNPROCESSABLE_ENTITY)
+        self.assertEqual(response.json()[
+                         'detail'][0], "You are retrying too fast, please wait for 14 seconds")
+
+        time.sleep(15)
+
+        response = self.client.post(
+            '/api/verification/verify_user_profile_pin/{}'.format(user_profile.pk), {'pin': 'WRONG'}, format='json')
+        self.assertEqual(response.status_code,
+                         status.HTTP_422_UNPROCESSABLE_ENTITY)
 
         user_profile = UserProfile.objects.get(pk=user_profile.pk)
         pin = user_profile.sms_pin_verification.pin
+        sms_pin_verification = SMSPinVerification.objects.get(
+            pk=user_profile.sms_pin_verification.pk)
 
         response = self.client.post(
             '/api/verification/verify_user_profile_pin/{}'.format(user_profile.pk), {'pin': pin}, format='json')
@@ -151,8 +164,8 @@ class ProfileApiTest(APITestCase):
         user_verification.refresh_from_db()
         self.assertEqual(user_verification.state,
                          VERIFICATION_STATES.CLAIMED.value)
-        sms_pin_verification = SMSPinVerification.objects.get(
-            pk=user_profile.sms_pin_verification.pk)
+
+        sms_pin_verification.refresh_from_db()
         self.assertEqual(sms_pin_verification.state,
                          VERIFICATION_STATES.CLAIMED.value)
 
@@ -603,8 +616,6 @@ class ProfileApiTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         user_profile = UserProfile.objects.get(
             pk=response.data['uuid'])
-        with self.assertRaises(UserProfile.sms_pin_verification.RelatedObjectDoesNotExist):
-            pin = user_profile.sms_pin_verification
 
         # correct place of origin
         data['place_of_origin'] = "Baden AG  "

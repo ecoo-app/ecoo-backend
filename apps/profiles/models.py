@@ -127,6 +127,12 @@ class UserProfile(UUIDModel):
     place_of_origin = models.CharField(
         max_length=128, verbose_name=_('Place of origin'))
 
+    @property
+    def sms_pin_verification(self):
+        from apps.verification.models import VERIFICATION_STATES
+        if self.sms_pin_verifications.filter(state=VERIFICATION_STATES.PENDING.value).exists():
+            return self.sms_pin_verifications.filter(state=VERIFICATION_STATES.PENDING.value).last()
+
     def verification_stage(self):
         if hasattr(self, 'user_verification'):
             from apps.verification.models import VERIFICATION_STATES
