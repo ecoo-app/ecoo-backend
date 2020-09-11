@@ -127,11 +127,9 @@ def create_paper_wallet_from_userverification(request, uuid):
     if user_verification.state != VERIFICATION_STATES.OPEN.value:
         return redirect('admin:verification_userverification_changelist')
     place_of_origin = PlaceOfOrigin.objects.filter(user_verification=user_verification).first()
+    
     paper_wallet = PaperWallet.generate_new_wallet(place_of_origin=place_of_origin,
-        currency=Currency.objects.all().first(), verification_data=user_verification)
+        currency=Currency.objects.all().first(), user_verification=user_verification)
     create_claim_transaction(paper_wallet)
-    user_verification = UserVerification.objects.get(uuid=uuid)
-    user_verification.state = VERIFICATION_STATES.CLAIMED.value
-    user_verification.save()
 
     return redirect('admin:wallet_paperwallet_change', paper_wallet.uuid)
