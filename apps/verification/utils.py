@@ -58,12 +58,13 @@ def send_postcard(message='', firstname=' ', lastname=' ', company='', street=''
                                                             'poBox': po_box,
                                                             'additionalAdrInfo': additional_address_info
                                                         },
-                                                        'senderText': message
+                                                        'senderText': message,
+                                                        'branding': POST_API_CONFIG['branding']
                                                     })
 
         post_card_key = post_card_creation_response.json()['cardKey']
         post_card_stamp_image = open(
-            "static/post_card_stamp.jpeg", "rb")
+            "static/post_card_stamp.png", "rb")
         stamp_set_url = POST_API_CONFIG['base_url'] + \
             'v1/postcards/{}/branding/stamp'.format(post_card_key)
         requests.put(
