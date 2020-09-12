@@ -16,18 +16,19 @@
                 <h2>{% trans 'Generate Payout XML' %}</h2>
                 <div class="description">
                     {% with total_requests=cash_out_requests.count %}
+                    {% with total_amount_formatted=total_amount|floatformat:2 %}     
                     {% blocktrans %}
                         You are about to generate a payout XML containing {{ total_requests }} transactions. 
-                        The total amount is going to be {{ total_amount }}. The actual beneficiaries are:
-                        
+                        The total amount is going to be {{ total_amount_formatted }} CHF. The actual beneficiaries are:
                     {% endblocktrans %}
+                    {% endwith %}
                     {% endwith %}
                     <ul>
                         {% for cash_out_request in cash_out_requests %}
                         <input type="hidden" name="_selected_action" value="{{ cash_out_request.uuid }}" />
 
                             <li>
-                               {{cash_out_request.beneficiary_name}} ({{cash_out_request.beneficiary_iban}}): {{cash_out_request.transaction.amount}} CHF
+                               {{cash_out_request.beneficiary_name}} ({{cash_out_request.beneficiary_iban}}): {{cash_out_request.transaction.amount|floatformat:2}} CHF
                             </li>
                         {% endfor %}
                     </ul>
