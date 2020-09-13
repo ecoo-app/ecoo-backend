@@ -28,7 +28,7 @@
                         <input type="hidden" name="_selected_action" value="{{ cash_out_request.uuid }}" />
 
                             <li>
-                               {{cash_out_request.beneficiary_name}} ({{cash_out_request.beneficiary_iban}}): {{cash_out_request.transaction.amount|floatformat:2}} CHF
+                               {{cash_out_request.beneficiary_name}} ({{cash_out_request.beneficiary_iban}}): {{ cash_out_request.transaction.currency_amount|floatformat:2 }} CHF
                             </li>
                         {% endfor %}
                     </ul>
