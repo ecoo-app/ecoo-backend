@@ -81,7 +81,15 @@ def send_postcard(message='', firstname=' ', lastname=' ', company='', street=''
                 'Authorization': token['token_type'] + ' ' + token['access_token']
             }, files={'image': post_card_front_image})
 
-        return post_card_key
+        approval_url = POST_API_CONFIG['base_url'] + \
+            'v1/postcards/{}/approval'.format(post_card_key)
+
+        approval_response = requests.post(image_set_url)
+
+        if approval_response.status_code == 200 and "successMessage" in approval_response.json():
+            return (approval_response.ok, post_card_key)
+        else:
+            return (False, approval_response.text)
     else:
         print('sending immaginary POSTCARD to {}:"{}"'.format(company, message))
-        return "dummy"
+        return (True, "dummy")
