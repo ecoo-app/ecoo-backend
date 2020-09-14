@@ -16,18 +16,24 @@ def verify_users(modeladmin, request, queryset):
     for user_profile in queryset.exclude(sms_pin_verifications__isnull=False):
         if not user_profile.verification_stage() in [PROFILE_VERIFICATION_STAGES.UNVERIFIED.value, PROFILE_VERIFICATION_STAGES.MAX_CLAIMS.value ]:
             continue
-        user_verification = UserVerification.objects.create(
-            user_profile=user_profile,
-            state=VERIFICATION_STATES.CLAIMED.value,
-            first_name=user_profile.first_name,
-            last_name=user_profile.last_name,
-            address_street=user_profile.address_street,
-            address_town=user_profile.address_town,
-            address_postal_code=user_profile.address_postal_code,
-            date_of_birth=user_profile.date_of_birth,
-        )
-        PlaceOfOrigin.objects.create(place_of_origin=user_profile.place_of_origin, user_verification=user_verification)
-        user_profile.save()
+        
+        if hasattr(user_profile, 'user_verification'):
+            user_profile.user_verification.state=VERIFICATION_STATES.CLAIMED.value
+            user_profile.user_verification.save()
+        else:
+            user_verification = UserVerification.objects.create(
+                user_profile=user_profile,
+                state=VERIFICATION_STATES.CLAIMED.value,
+                first_name=user_profile.first_name,
+                last_name=user_profile.last_name,
+                address_street=user_profile.address_street,
+                address_town=user_profile.address_town,
+                address_postal_code=user_profile.address_postal_code,
+                date_of_birth=user_profile.date_of_birth,
+            )
+            PlaceOfOrigin.objects.create(place_of_origin=user_profile.place_of_origin, user_verification=user_verification)
+            user_profile.save()
+            
 
         from apps.wallet.utils import create_claim_transaction
         create_claim_transaction(user_profile.wallet)
