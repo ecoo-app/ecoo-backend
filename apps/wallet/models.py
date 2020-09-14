@@ -76,7 +76,7 @@ class Wallet(CurrencyOwnedMixin):
         if self.from_metatransactions.count() == 0:
             return 0
         else:
-            return self.from_metatransactions.last().nonce
+            return self.from_metatransactions.aggregate(Max('nonce'))['nonce__max']
 
     @property
     def is_in_public_key_transfer(self):
@@ -365,7 +365,7 @@ class WalletPublicKeyTransferRequest(UUIDModel):
     notes = models.TextField(blank=True, editable=False)
 
     class Meta:
-        ordering = ['-created_at']
+        ordering = ['created_at']
 
 
 class CashOutRequest(UUIDModel):
@@ -399,6 +399,6 @@ class CashOutRequest(UUIDModel):
         super(CashOutRequest, self).clean(*args, **kwargs)
 
     class Meta:
-        ordering = ['-created_at']
+        ordering = ['created_at']
         verbose_name = _('Cash out request')
         verbose_name_plural = _('Cash out requests')

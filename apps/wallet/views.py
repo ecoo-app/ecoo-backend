@@ -53,7 +53,7 @@ class TransactionList(generics.ListAPIView):
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
 
     def get_queryset(self):
-        return Transaction.objects.filter(Q(from_wallet__owner=self.request.user) | Q(to_wallet__owner=self.request.user)).order_by('-create_at')
+        return Transaction.objects.filter(Q(from_wallet__owner=self.request.user) | Q(to_wallet__owner=self.request.user)).order_by('-created_at')
 
 
 class MetaTransactionListCreate(generics.ListCreateAPIView):
@@ -65,7 +65,7 @@ class MetaTransactionListCreate(generics.ListCreateAPIView):
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
 
     def get_queryset(self):
-        return MetaTransaction.objects.filter(Q(from_wallet__owner=self.request.user) | Q(to_wallet__owner=self.request.user)).order_by('-create_at')
+        return MetaTransaction.objects.filter(Q(from_wallet__owner=self.request.user) | Q(to_wallet__owner=self.request.user)).order_by('-created_at')
 
 
 class WalletPublicKeyTransferRequestListCreate(generics.ListCreateAPIView):

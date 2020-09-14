@@ -64,10 +64,10 @@ class WalletTestCase(TestCase):
         self.assertEqual(
             wallet2.nonce, 1)
 
-        meta_transaction1 = MetaTransaction(from_wallet=wallet1, to_wallet=wallet2, amount=1, nonce=2)
-        signature1 = key1.sign(pack_meta_transaction(meta_transaction1.to_meta_transaction_dictionary()))
-        meta_transaction1.signature = signature1
-        meta_transaction1.save()
+        meta_transaction3 = MetaTransaction(from_wallet=wallet1, to_wallet=wallet2, amount=1, nonce=2)
+        signature3 = key1.sign(pack_meta_transaction(meta_transaction3.to_meta_transaction_dictionary()))
+        meta_transaction3.signature = signature3
+        meta_transaction3.save()
         self.assertEqual(
             wallet1.nonce, 2)
         self.assertEqual(
