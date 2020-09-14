@@ -318,8 +318,8 @@ PUSH_NOTIFICATION_TITLE = 'ecoo'
 POST_API_CONFIG = {
     'client_id': os.environ.get('POST_CLIENT_ID'),
     'client_secret': os.environ.get('POST_CLIENT_SECRET'),
-    'base_url': 'https://apiint.post.ch/pcc/api/',
-    'token_url': 'https://apiint.post.ch/OAuth/token',
+    'base_url': 'https://api.post.ch/pcc/api/',
+    'token_url': 'https://api.post.ch/OAuth/token',
     'scope': 'PCCAPI',
 
     'campaign_key': os.environ.get('POST_CAMPAIGN_KEY'),

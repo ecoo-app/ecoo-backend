@@ -38,6 +38,7 @@ VERIFICATION_STATES_CHOICES = (
 class AbstractVerification(UUIDModel):
     state = models.IntegerField(verbose_name=_(
         'State'), choices=VERIFICATION_STATES_CHOICES, default=VERIFICATION_STATES.OPEN.value)
+    notes = models.TextField(editable=False, blank=True)
 
     class Meta:
         abstract = True
@@ -87,17 +88,18 @@ class AddressPinVerification(AbstractVerification):
     external_id = models.CharField(max_length=36, editable=False, blank=True)
 
     def preview_image(self, side="front"):
-        POST_API_CONFIG = settings.POST_API_CONFIG
-        client = BackendApplicationClient(
-            client_id=POST_API_CONFIG['client_id'], scope=POST_API_CONFIG['scope'])
-        oauth = OAuth2Session(client=client)
-        token = oauth.fetch_token(
-            token_url=POST_API_CONFIG['token_url'], client_id=POST_API_CONFIG['client_id'], client_secret=POST_API_CONFIG['client_secret'])
-        preview_url = POST_API_CONFIG['base_url'] + \
-            'v1/postcards/{}/previews/{}'.format(self.external_id, side)
-        response = requests.get(preview_url, headers={
-            'Authorization': token['token_type'] + ' ' + token['access_token']})
-        return "data:{};base64,{}".format(response.json()['fileType'], response.json()['imagedata'])
+        if self.external_id:
+            POST_API_CONFIG = settings.POST_API_CONFIG
+            client = BackendApplicationClient(
+                client_id=POST_API_CONFIG['client_id'], scope=POST_API_CONFIG['scope'])
+            oauth = OAuth2Session(client=client)
+            token = oauth.fetch_token(
+                token_url=POST_API_CONFIG['token_url'], client_id=POST_API_CONFIG['client_id'], client_secret=POST_API_CONFIG['client_secret'])
+            preview_url = POST_API_CONFIG['base_url'] + \
+                'v1/postcards/{}/previews/{}'.format(self.external_id, side)
+            response = requests.get(preview_url, headers={
+                'Authorization': token['token_type'] + ' ' + token['access_token']})
+            return "data:{};base64,{}".format(response.json()['fileType'], response.json()['imagedata'])
 
     @property
     def preview_back_image(self):
@@ -108,7 +110,10 @@ class AddressPinVerification(AbstractVerification):
         return self.preview_image(side="front")
 
     def preview_link(self):
-        return format_html('<a href="{}">Preview</a>'.format(reverse('verification:addresspinverification_detail', args=(self.pk,))))
+        if self.external_id:
+            return format_html('<a href="{}">Preview</a>'.format(reverse('verification:addresspinverification_detail', args=(self.pk,))))
+        else:
+            return '-'
 
     preview_link.allow_tags = True
     preview_link.short_description = _('Preview')
@@ -143,6 +148,8 @@ class SMSPinVerification(AbstractVerification):
         verbose_name = _('SMS pin verification')
         verbose_name_plural = _('SMS pin verifications')
 
+
 class PlaceOfOrigin(UUIDModel):
     place_of_origin = models.CharField(max_length=128)
-    user_verification = models.ForeignKey(UserVerification, on_delete=models.CASCADE, related_name='places_of_origin')
+    user_verification = models.ForeignKey(
+        UserVerification, on_delete=models.CASCADE, related_name='places_of_origin')
