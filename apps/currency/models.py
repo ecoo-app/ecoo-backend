@@ -32,7 +32,7 @@ class PayoutAccount(UUIDModel):
     currency = models.OneToOneField(Currency, null=True, on_delete=models.CASCADE)
     name = models.CharField(verbose_name=_('Account name'), max_length=32)
     bank_clearing_number = models.CharField(verbose_name=_('clearing number'), max_length=32)
-    iban = models.CharField(verbose_name=_('IBAN'), max_length=16)
+    iban = models.CharField(verbose_name=_('IBAN'), max_length=255)
     payout_notes = models.CharField(max_length=64, verbose_name=_('Notes for payout'))
 
     class Meta:
