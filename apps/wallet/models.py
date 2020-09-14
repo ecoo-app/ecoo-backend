@@ -346,7 +346,7 @@ class MetaTransaction(Transaction):
         super(MetaTransaction, self).clean(*args, **kwargs)
 
     class Meta:
-        ordering = ['created_at']
+        ordering = ['-created_at']
         verbose_name = _('Meta transaction')
         verbose_name_plural = _('Meta transactions')
 
@@ -365,7 +365,7 @@ class WalletPublicKeyTransferRequest(UUIDModel):
     notes = models.TextField(blank=True, editable=False)
 
     class Meta:
-        ordering = ['created_at']
+        ordering = ['-created_at']
 
 
 class CashOutRequest(UUIDModel):
@@ -399,6 +399,6 @@ class CashOutRequest(UUIDModel):
         super(CashOutRequest, self).clean(*args, **kwargs)
 
     class Meta:
-        ordering = ['created_at']
+        ordering = ['-created_at']
         verbose_name = _('Cash out request')
         verbose_name_plural = _('Cash out requests')
