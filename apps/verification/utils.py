@@ -84,7 +84,8 @@ def send_postcard(message='', firstname=' ', lastname=' ', company='', street=''
         approval_url = POST_API_CONFIG['base_url'] + \
             'v1/postcards/{}/approval'.format(post_card_key)
 
-        approval_response = requests.post(image_set_url)
+        approval_response = requests.post(approval_url, headers={
+                                          'Authorization': token['token_type'] + ' ' + token['access_token']})
 
         if approval_response.status_code == 200 and "successMessage" in approval_response.json():
             return (approval_response.ok, post_card_key)
