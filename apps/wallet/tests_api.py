@@ -139,7 +139,7 @@ class WalletApiTest(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['results'], [WalletSerializer(
-            self.wallet_1).data, WalletSerializer(self.wallet_1_2).data])
+            self.wallet_1_2).data, WalletSerializer(self.wallet_1).data])
 
         self.client.force_authenticate(user=None)
 
