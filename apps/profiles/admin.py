@@ -57,9 +57,12 @@ def verify_companies(modeladmin, request, queryset):
             state=VERIFICATION_STATES.CLAIMED.value,
             name=company_profile.name,
             uid=company_profile.uid,
+            address_street=company_profile.address_street,
+            address_town=company_profile.address_town,
+            address_postal_code=company_profile.address_postal_code
         )
-
         company_profile.save()
+
         modified += 1
 
     if modified > 0:
