@@ -29,6 +29,6 @@ def custom_exception_handler(exc, context):
 
 
 class CustomCursorPagination(CursorPagination):
-    ordering = 'created_at'
+    ordering = '-created_at'
     page_size = 10
     page_size_query_param = 'page_size'
