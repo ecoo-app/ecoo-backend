@@ -335,11 +335,6 @@ POST_API_CONFIG = {
     },
 
     'branding': {
-        'brandingText': {
-            'text': 'Diese Kampagne ist finanziert durch die Stadt Wetzikon und wird in Zusammenarbeit mit dem Gewerbeverein durchgeführt.\nMehr dazu: wetzikon.ch/ecoupon',
-            'blockColor': '#EE0000',
-            'textColor': '#FFFFFF'
-        },
         'brandingQRCode': {
             'encodedText': 'https://www.wetzikon.ch/ecoupon',
             'accompanyingText': 'Diese Kampagne ist finanziert durch die Stadt Wetzikon und wird in Zusammenarbeit mit dem Gewerbeverein durchgeführt.\nMehr dazu: wetzikon.ch/ecoupon',
