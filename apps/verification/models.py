@@ -48,14 +48,14 @@ class CompanyVerification(AbstractVerification):
     company_profile = models.OneToOneField(
         CompanyProfile, on_delete=models.SET_NULL, related_name='company_verification', blank=True, null=True)
     name = models.CharField(verbose_name=_('Name'), max_length=128)
-    uid = models.CharField(verbose_name=_('Uid'), max_length=15, null=True)
+    uid = models.CharField(verbose_name=_('Uid'), max_length=15, blank=True, null=True)
 
     address_street = models.CharField(verbose_name=_(
-        'Street'), max_length=128, blank=True, null=True)
+        'Street'), max_length=128)
     address_town = models.CharField(verbose_name=_(
-        'Town'), max_length=128, blank=True, null=True)
+        'Town'), max_length=128)
     address_postal_code = models.CharField(verbose_name=_(
-        'Postal code'), max_length=128, blank=True, null=True)
+        'Postal code'), max_length=128)
 
     class Meta:
         verbose_name = _('Company verification')
