@@ -219,7 +219,7 @@ class CashOutRequestAdmin(admin.ModelAdmin):
     actions = ['generate_payout_file']
     list_display = ['transaction', 'beneficiary_name',
                     'beneficiary_iban', 'state', 'created_at']
-    list_filter = ['transaction__state', 'state', 'created_at']
+    list_filter = ['state', 'created_at']
     search_fields = [
         'transaction__from_wallet__wallet_id', 'beneficiary_name', ]
 

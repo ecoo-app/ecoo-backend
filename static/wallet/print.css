@@ -9,7 +9,6 @@ body {
 div, section, main {
     box-sizing: border-box;
 }
-
 @page {
     size: a3 portrait;  
 }
@@ -65,6 +64,11 @@ main {
     border-bottom: 1px dotted #979797;
 }
 
+.top .provider-logo {
+    margin-top: 0.5cm;
+    max-width: 8cm;
+    max-height: 3cm;
+}
 
 .bottom.left {
     width: 50%;
