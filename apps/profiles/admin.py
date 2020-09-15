@@ -52,20 +52,16 @@ def verify_companies(modeladmin, request, queryset):
 
     modified = 0
     for company_profile in queryset.exclude(company_verification__isnull=False):
-        if hasattr(company_profile, 'company_verification'):
-            company_profile.company_verification.sate=VERIFICATION_STATES.CLAIMED.value
-            company_profile.company_verification.save()
-        else:
-            CompanyVerification.objects.create(
-                company_profile=company_profile,
-                state=VERIFICATION_STATES.CLAIMED.value,
-                name=company_profile.name,
-                uid=company_profile.uid,
-                address_street=company_profile.address_street,
-                address_town=company_profile.address_town,
-                address_postal_code=company_profile.address_postal_code
-            )
-            company_profile.save()
+        CompanyVerification.objects.create(
+            company_profile=company_profile,
+            state=VERIFICATION_STATES.CLAIMED.value,
+            name=company_profile.name,
+            uid=company_profile.uid,
+            address_street=company_profile.address_street,
+            address_town=company_profile.address_town,
+            address_postal_code=company_profile.address_postal_code
+        )
+        company_profile.save()
 
         modified += 1
 
