@@ -22,7 +22,8 @@ class WalletApiTest(APITestCase):
             username="testuser", password="abcd")
         self.user_2 = get_user_model().objects.create(
             username="testuser_2", password="abcd")
-        self.currency = Currency.objects.create(token_id=0, name="TEZ", symbol='tez', claim_deadline='2120-01-01', campaign_end='2120-01-01')
+        self.currency = Currency.objects.create(
+            token_id=0, name="TEZ", symbol='tez', claim_deadline='2120-01-01', campaign_end='2120-01-01')
         self.wallet_1 = Wallet.objects.create(owner=self.user, wallet_id=Wallet.generate_wallet_id(
         ), public_key="edpku976gpuAD2bXyx1XGraeKuCo1gUZ3LAJcHM12W1ecxZwoiu22R", currency=self.currency, state=WALLET_STATES.VERIFIED.value)
 
@@ -31,7 +32,8 @@ class WalletApiTest(APITestCase):
 
         self.wallet_2 = Wallet.objects.create(owner=self.user_2, wallet_id=Wallet.generate_wallet_id(
         ), public_key="edpkuqw4KyJAsjSyn7Ca67Mc6GLpQxTMb6CLPQj8H8KZYdKDeBkC2v", currency=self.currency, state=WALLET_STATES.VERIFIED.value)
-
+        self.currency.cashout_wallet = self.wallet_1
+        self.currency.save()
         # self.currency = Currency.objects.create(token_id=0, name="TEZ")
 
     # TODO: create test to check the wallet category
@@ -153,7 +155,8 @@ class WalletPublicKeyTransferRequestApiTest(APITestCase):
             username="testuser", password="abcd")
         self.user_2 = get_user_model().objects.create(
             username="testuser_2", password="abcd")
-        self.currency = Currency.objects.create(token_id=0, name="TEZ", symbol='tez', claim_deadline='2120-01-01', campaign_end='2120-01-01')
+        self.currency = Currency.objects.create(
+            token_id=0, name="TEZ", symbol='tez', claim_deadline='2120-01-01', campaign_end='2120-01-01')
         self.wallet_1 = Wallet.objects.create(owner=self.user, wallet_id=Wallet.generate_wallet_id(
         ), public_key="edpkvMcoG5ASY8JK7CLaMKMQYx4nUhB3KfrurpuvM6VjJ25H4sbKqq", currency=self.currency)
 
@@ -235,7 +238,8 @@ class CashOutRequestApiTest(APITestCase):
             username="testuser", password="abcd")
         self.user_2 = get_user_model().objects.create(
             username="testuser_2", password="abcd")
-        self.currency = Currency.objects.create(token_id=0, name="TEZ",symbol='tez', claim_deadline='2120-01-01', campaign_end='2120-01-01')
+        self.currency = Currency.objects.create(
+            token_id=0, name="TEZ", symbol='tez', claim_deadline='2120-01-01', campaign_end='2120-01-01')
         self.wallet_1 = Wallet.objects.create(owner=self.user, wallet_id=Wallet.generate_wallet_id(
         ), public_key="edpku976gpuAD2bXyx1XGraeKuCo1gUZ3LAJcHM12W1ecxZwoiu22R", currency=self.currency, state=WALLET_STATES.VERIFIED.value)
 
