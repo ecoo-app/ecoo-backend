@@ -4,7 +4,7 @@ metadata:
   name: __NAMESPACE_NAME__-backend
   namespace: __NAMESPACE_NAME__
 spec:
-  replicas: 3
+  replicas: 2
   strategy:
     type: RollingUpdate
   template:
