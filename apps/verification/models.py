@@ -48,7 +48,8 @@ class CompanyVerification(AbstractVerification):
     company_profile = models.OneToOneField(
         CompanyProfile, on_delete=models.SET_NULL, related_name='company_verification', blank=True, null=True)
     name = models.CharField(verbose_name=_('Name'), max_length=128)
-    uid = models.CharField(verbose_name=_('Uid'), max_length=15, blank=True, null=True)
+    uid = models.CharField(verbose_name=_(
+        'Uid'), max_length=15, blank=True, null=True)
 
     address_street = models.CharField(verbose_name=_(
         'Street'), max_length=128)
