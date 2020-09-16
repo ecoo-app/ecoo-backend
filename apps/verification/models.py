@@ -132,7 +132,7 @@ class SMSPinVerification(AbstractVerification):
     def clean(self, *args, **kwargs):
         super(SMSPinVerification, self).clean(*args, **kwargs)
         errors = {}
-        if self.user_profile.sms_pin_verifications.filter(state=VERIFICATION_STATES.FAILED.value).exists():
+        if hasattr(self,'user_profile') and self.user_profile.sms_pin_verifications.filter(state=VERIFICATION_STATES.FAILED.value).exists():
             last_timestamp = self.user_profile.sms_pin_verifications.filter(
                 state=VERIFICATION_STATES.FAILED.value).last().updated_at
             exponential_threshold_delta = datetime.timedelta(seconds=settings.SMS_PIN_WAIT_TIME_THRESHOLD_SECONDS**self.user_profile.sms_pin_verifications.filter(
