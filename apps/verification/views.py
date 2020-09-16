@@ -3,7 +3,7 @@ from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.shortcuts import redirect
 
-from django.utils.translation import gettext as _
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import generics, status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response

@@ -9,7 +9,7 @@ from django.template.response import TemplateResponse
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from apps.verification.filters import VerificaitonFilter
-from django.utils.translation import gettext as _, ngettext
+from django.utils.translation import ugettext_lazy as _, ngettext
 from django.utils.safestring import mark_safe
 
 import csv
@@ -113,14 +113,16 @@ class ImportMixin:
                 self.admin_site.admin_view(self.import_csv), name=self.import_name),
         ]
 
+
 class AtLeastOneRequiredInlineFormSet(BaseInlineFormSet):
     def clean(self):
         super(AtLeastOneRequiredInlineFormSet, self).clean()
         if any(self.errors):
             return
         if not any(cleaned_data and not cleaned_data.get('DELETE', False)
-            for cleaned_data in self.cleaned_data):
-            raise forms.ValidationError(_('At least one item required.'))    
+                   for cleaned_data in self.cleaned_data):
+            raise forms.ValidationError(_('At least one item required.'))
+
 
 class PlaceOfOriginInline(admin.TabularInline):
     model = PlaceOfOrigin
@@ -155,7 +157,7 @@ class UserVerificationAdmin(ImportMixin, admin.ModelAdmin):
             return mark_safe(u"<a class='button btn-success' href='{}'>{}</a>".format(reverse('verification:generate_paper_wallet', args=(obj.uuid,)), _('create paper wallet')))
         return mark_safe(u"<a class='btn-info'>{}</a>".format(_('cannot create paper wallet')))
 
-    create_paper_wallet.short_description = _('paper wallet')
+    create_paper_wallet.short_description = _('Paper wallet')
     create_paper_wallet.allow_tags = True
 
 
@@ -179,19 +181,26 @@ class CompanyVerificationAdmin(ImportMixin, admin.ModelAdmin):
 
 @admin.register(SMSPinVerification)
 class SMSPinVerificationAdmin(admin.ModelAdmin):
-    readonly_fields = ['user_profile', 'pin', 'created_at']
+    readonly_fields = ['user_profile', 'pin', 'created_at', 'notes']
     list_display = ['user_profile', 'pin', 'state', 'created_at']
+    search_fields = ['user_profile__first_name', 'user_profile__last_name']
+    list_filter = ['state']
 
-    readonly_fields = ['created_at', 'notes']
+    def has_add_permission(self, request):
+        return False
 
 
 @admin.register(AddressPinVerification)
 class AddressPinVerificationAdmin(admin.ModelAdmin):
-    readonly_fields = ['company_profile', 'pin', 'created_at']
+    # readonly_fields = ['company_profile', 'pin', 'created_at', 'external_id', 'notes']
+    readonly_fields = ['company_profile', ]
     list_display = ['company_profile', 'pin',
                     'state', 'preview_link', 'created_at']
+    search_fields = ['company_profile__name']
+    list_filter = ['state']
 
-    readonly_fields = ['created_at', 'external_id', 'notes']
+    def has_add_permission(self, request):
+        return False
 
 
 @admin.register(PlaceOfOrigin)

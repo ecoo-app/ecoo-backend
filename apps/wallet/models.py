@@ -116,9 +116,10 @@ class Wallet(CurrencyOwnedMixin):
         try:
             self.address
         except:
-            errors['public_key'] = ValidationError(_('Public key is not in valid format'))
+            errors['public_key'] = ValidationError(
+                _('Public key is not in valid format'))
 
-        if len(errors)>0:
+        if len(errors) > 0:
             raise ValidationError(errors)
 
     class Meta:
@@ -161,8 +162,10 @@ class PaperWallet(Wallet):
                     user = get_user_model().objects.create(
                         username=username, password=get_user_model().objects.make_random_password())
 
-                    from apps.verification.models import (VERIFICATION_STATES, UserVerification)
-                    user_verification.state = VERIFICATION_STATES.CLAIMED.value # if we do not change the state here and save before we save the new user profile, then we trigger an SMS verification
+                    from apps.verification.models import (
+                        VERIFICATION_STATES, UserVerification)
+                    # if we do not change the state here and save before we save the new user profile, then we trigger an SMS verification
+                    user_verification.state = VERIFICATION_STATES.CLAIMED.value
                     user_verification.save()
 
                     profile = UserProfile(
@@ -176,9 +179,9 @@ class PaperWallet(Wallet):
                         date_of_birth=user_verification.date_of_birth,
                         place_of_origin=place_of_origin.place_of_origin
                     )
-                    
+
                     paper_wallet = PaperWallet.objects.create(user_verification=user_verification, owner=user,
-                        wallet_id=wallet_id, private_key=private_key, public_key=public_key, currency=currency, state=WALLET_STATES.VERIFIED.value, category=category)
+                                                              wallet_id=wallet_id, private_key=private_key, public_key=public_key, currency=currency, state=WALLET_STATES.VERIFIED.value, category=category)
 
                     profile.wallet = paper_wallet
                     profile.save()
@@ -191,6 +194,10 @@ class PaperWallet(Wallet):
     def save(self, *args, **kwargs):
         self.state = WALLET_STATES.VERIFIED.value
         super(PaperWallet, self).save(*args, **kwargs)
+
+    class Meta:
+        verbose_name = _('Paper wallet')
+        verbose_name_plural = _('Paper wallets')
 
 
 class TRANSACTION_STATES(Enum):
@@ -255,30 +262,33 @@ class Transaction(UUIDModel):
     def clean(self, *args, **kwargs):
         errors = {}
 
-        if self.to_wallet.transfer_requests.exclude(state=TRANSACTION_STATES.DONE.value).exists():
-            errors['wallet'] = ValidationError(
-                _('Wallet transfer ongoing for destination wallet, cannot send funds to this wallet at the moment.'))
-        
-        if self.amount <= 0:
+        if hasattr(self, 'to_wallet'):
+            if self.to_wallet.transfer_requests.exclude(state=TRANSACTION_STATES.DONE.value).exists():
+                errors['wallet'] = ValidationError(
+                    _('Wallet transfer ongoing for destination wallet, cannot send funds to this wallet at the moment.'))
+            if self.is_mint_transaction and not self.to_wallet.currency.allow_minting:
+                errors['to_wallet'] = ValidationError(
+                    _('Currency must allow minting if you want to mint'))
+
+        if self.amount is not None and self.amount <= 0:
             errors['amount'] = ValidationError(_('Amount must be > 0'))
-        
-        if self.is_mint_transaction and not self.to_wallet.currency.allow_minting:
-            errors['to_wallet'] = ValidationError(_('Currency must allow minting if you want to mint'))
 
         if not self.is_mint_transaction:
-            if self.from_wallet.balance < self.amount:
-                errors['from_wallet'] = ValidationError(
-                    _('Balance of from_wallet must be greater than amount'))
-            if self.from_wallet.currency != self.to_wallet.currency:
-                errors['from_wallet'] = ValidationError(
-                    _('"From wallet" and "to wallet" need to use same currency'))
-            if self.from_wallet.transfer_requests.exclude(state=TRANSACTION_STATES.DONE.value).exists():
-                errors['from_wallet'] = ValidationError(
-                    _('Wallet transfer ongoing for source wallet, cannot send funds from this wallet at the moment.'))
-            if self.from_wallet.state != WALLET_STATES.VERIFIED.value:
-                errors['from_wallet'] = ValidationError(
-                    _('Only verified addresses can send money'))
-        if len(errors)>0:
+            if hasattr(self,'from_wallet'):
+                if self.amount and self.from_wallet.balance < self.amount:
+                    errors['from_wallet'] = ValidationError(
+                        _('Balance of from_wallet must be greater than amount'))
+                
+                if hasattr(self,'to_wallet') and self.from_wallet.currency != self.to_wallet.currency:
+                    errors['from_wallet'] = ValidationError(
+                        _('"From wallet" and "to wallet" need to use same currency'))
+                if self.from_wallet.transfer_requests.exclude(state=TRANSACTION_STATES.DONE.value).exists():
+                    errors['from_wallet'] = ValidationError(
+                        _('Wallet transfer ongoing for source wallet, cannot send funds from this wallet at the moment.'))
+                if self.from_wallet.state != WALLET_STATES.VERIFIED.value:
+                    errors['from_wallet'] = ValidationError(
+                        _('Only verified addresses can send money'))
+        if len(errors) > 0:
             raise ValidationError(errors)
         super(Transaction, self).clean(*args, **kwargs)
 
@@ -316,21 +326,25 @@ class MetaTransaction(Transaction):
     def clean(self, *args, **kwargs):
         errors = {}
         if self.is_mint_transaction:
-            errors['from_wallet'] = ValidationError(_('Metatransaction always must have from'))
+            errors['from_wallet'] = ValidationError(
+                _('Metatransaction always must have from'))
         if not self.nonce or self.nonce <= 0:
             errors['nonce'] = ValidationError(_('Nonce must be > 0'))
 
-        if self.from_wallet and self.nonce != self.from_wallet.nonce+1:
-            errors['nonce'] = ValidationError(
-                _('Nonce must be 1 higher than from_wallet\'s last meta transaction nonce'))
-        if self.to_wallet and self.from_wallet and self.from_wallet.currency != self.to_wallet.currency:
-            errors['from_wallet'] = ValidationError(
-                _('"From wallet" and "to wallet" need to use same currency'))
-            errors['to_wallet'] = ValidationError(
-                _('"From wallet" and "to wallet" need to use same currency'))
+        if hasattr(self, 'from_wallet'):
+
+            if self.from_wallet and self.nonce != self.from_wallet.nonce+1:
+                errors['nonce'] = ValidationError(
+                    _('Nonce must be 1 higher than from_wallet\'s last meta transaction nonce'))
+            if hasattr(self, 'to_wallet'):
+                if self.to_wallet and self.from_wallet and self.from_wallet.currency != self.to_wallet.currency:
+                    errors['from_wallet'] = ValidationError(
+                        _('"From wallet" and "to wallet" need to use same currency'))
+                    errors['to_wallet'] = ValidationError(
+                        _('"From wallet" and "to wallet" need to use same currency'))
         try:
             message = create_message(self.from_wallet, self.to_wallet,
-                                 self.nonce, self.from_wallet.currency.token_id, self.amount)
+                                     self.nonce, self.from_wallet.currency.token_id, self.amount)
         except:
             pass
         if self.from_wallet and self.to_wallet:
@@ -338,9 +352,10 @@ class MetaTransaction(Transaction):
             try:
                 key.verify(self.signature, message)
             except ValueError:
-                errors['signature'] = ValidationError(_('Signature is invalid'))
+                errors['signature'] = ValidationError(
+                    _('Signature is invalid'))
 
-        if len(errors)>0:
+        if len(errors) > 0:
             raise ValidationError(errors)
 
         super(MetaTransaction, self).clean(*args, **kwargs)
@@ -383,17 +398,19 @@ class CashOutRequest(UUIDModel):
         try:
             IBAN(self.beneficiary_iban)
         except:
-            errors['beneficiary_iban'] = ValidationError(_('Iban is incorrect'))
+            errors['beneficiary_iban'] = ValidationError(
+                _('Iban is incorrect'))
 
-        if self.transaction.to_wallet.uuid != self.transaction.to_wallet.currency.owner_wallet.uuid:
-            errors['to_wallet'] = ValidationError(
-                _('Cash out only possible with transactions going to the owner wallet of the currency'))
-        
+        if hasattr(self, 'to_wallet'):
+            if self.transaction.to_wallet.uuid != self.transaction.to_wallet.currency.cashout_wallet.uuid:
+                errors['to_wallet'] = ValidationError(
+                    _('Cash out only possible with transactions going to the owner wallet of the currency'))
+
         # if self.transaction.from_wallet.category != WALLET_CATEGORIES.COMPANY.value:
         #     errors['from_wallet'] = ValidationError(
         #         _('Cash out only possible from a company wallet'))
 
-        if len(errors)>0:
+        if len(errors) > 0:
             raise ValidationError(errors)
 
         super(CashOutRequest, self).clean(*args, **kwargs)

@@ -548,7 +548,10 @@ class ProfileApiTest(APITestCase):
     def test_company_profile_verification_flow(self):
         company_verification = CompanyVerification.objects.create(
             name="Papers AG",
-            uid="12-3-4-3"
+            uid="12-3-4-3",
+            address_street="Sonnmattstr. 121",
+            address_town="Birr",
+            address_postal_code="5242"
         )
 
         data = {

@@ -6,7 +6,7 @@ from apps.currency.mixins import CurrencyOwnedMixin
 from apps.wallet.models import Wallet
 from apps.profiles.models import CompanyProfile, UserProfile
 from project.mixins import UUIDModel
-from django.utils.translation import gettext as _
+from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
 from oauthlib.oauth2 import BackendApplicationClient
 from requests_oauthlib import OAuth2Session
@@ -48,14 +48,15 @@ class CompanyVerification(AbstractVerification):
     company_profile = models.OneToOneField(
         CompanyProfile, on_delete=models.SET_NULL, related_name='company_verification', blank=True, null=True)
     name = models.CharField(verbose_name=_('Name'), max_length=128)
-    uid = models.CharField(verbose_name=_('Uid'), max_length=15, null=True)
+    uid = models.CharField(verbose_name=_(
+        'Uid'), max_length=15, blank=True, null=True)
 
     address_street = models.CharField(verbose_name=_(
-        'Street'), max_length=128, blank=True, null=True)
+        'Street'), max_length=128)
     address_town = models.CharField(verbose_name=_(
-        'Town'), max_length=128, blank=True, null=True)
+        'Town'), max_length=128)
     address_postal_code = models.CharField(verbose_name=_(
-        'Postal code'), max_length=128, blank=True, null=True)
+        'Postal code'), max_length=128)
 
     class Meta:
         verbose_name = _('Company verification')
@@ -119,8 +120,8 @@ class AddressPinVerification(AbstractVerification):
     preview_link.short_description = _('Preview')
 
     class Meta:
-        verbose_name = _('Adress pin verification')
-        verbose_name_plural = _('Adress pin verifications')
+        verbose_name = _('Address pin verification')
+        verbose_name_plural = _('Address pin verifications')
 
 
 class SMSPinVerification(AbstractVerification):
@@ -129,9 +130,8 @@ class SMSPinVerification(AbstractVerification):
     pin = models.CharField(verbose_name=_('Pin'), max_length=8, blank=True)
 
     def clean(self, *args, **kwargs):
-        super(SMSPinVerification, self).clean(*args, **kwargs)
         errors = {}
-        if self.user_profile.sms_pin_verifications.filter(state=VERIFICATION_STATES.FAILED.value).exists():
+        if hasattr(self,'user_profile') and self.user_profile.sms_pin_verifications.filter(state=VERIFICATION_STATES.FAILED.value).exists():
             last_timestamp = self.user_profile.sms_pin_verifications.filter(
                 state=VERIFICATION_STATES.FAILED.value).last().updated_at
             exponential_threshold_delta = datetime.timedelta(seconds=settings.SMS_PIN_WAIT_TIME_THRESHOLD_SECONDS**self.user_profile.sms_pin_verifications.filter(
@@ -143,6 +143,8 @@ class SMSPinVerification(AbstractVerification):
 
         if len(errors) > 0:
             raise ValidationError(errors)
+        super(SMSPinVerification, self).clean(*args, **kwargs)
+        
 
     class Meta:
         verbose_name = _('SMS pin verification')

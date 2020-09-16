@@ -22,7 +22,8 @@ class WalletApiTest(APITestCase):
             username="testuser", password="abcd")
         self.user_2 = get_user_model().objects.create(
             username="testuser_2", password="abcd")
-        self.currency = Currency.objects.create(token_id=0, name="TEZ", symbol='tez', claim_deadline='2120-01-01', campaign_end='2120-01-01')
+        self.currency = Currency.objects.create(
+            token_id=0, name="TEZ", symbol='tez', claim_deadline='2120-01-01', campaign_end='2120-01-01')
         self.wallet_1 = Wallet.objects.create(owner=self.user, wallet_id=Wallet.generate_wallet_id(
         ), public_key="edpku976gpuAD2bXyx1XGraeKuCo1gUZ3LAJcHM12W1ecxZwoiu22R", currency=self.currency, state=WALLET_STATES.VERIFIED.value)
 
@@ -31,7 +32,8 @@ class WalletApiTest(APITestCase):
 
         self.wallet_2 = Wallet.objects.create(owner=self.user_2, wallet_id=Wallet.generate_wallet_id(
         ), public_key="edpkuqw4KyJAsjSyn7Ca67Mc6GLpQxTMb6CLPQj8H8KZYdKDeBkC2v", currency=self.currency, state=WALLET_STATES.VERIFIED.value)
-
+        self.currency.cashout_wallet = self.wallet_1
+        self.currency.save()
         # self.currency = Currency.objects.create(token_id=0, name="TEZ")
 
     # TODO: create test to check the wallet category
@@ -139,7 +141,7 @@ class WalletApiTest(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['results'], [WalletSerializer(
-            self.wallet_1).data, WalletSerializer(self.wallet_1_2).data])
+            self.wallet_1_2).data, WalletSerializer(self.wallet_1).data])
 
         self.client.force_authenticate(user=None)
 
@@ -153,7 +155,8 @@ class WalletPublicKeyTransferRequestApiTest(APITestCase):
             username="testuser", password="abcd")
         self.user_2 = get_user_model().objects.create(
             username="testuser_2", password="abcd")
-        self.currency = Currency.objects.create(token_id=0, name="TEZ", symbol='tez', claim_deadline='2120-01-01', campaign_end='2120-01-01')
+        self.currency = Currency.objects.create(
+            token_id=0, name="TEZ", symbol='tez', claim_deadline='2120-01-01', campaign_end='2120-01-01')
         self.wallet_1 = Wallet.objects.create(owner=self.user, wallet_id=Wallet.generate_wallet_id(
         ), public_key="edpkvMcoG5ASY8JK7CLaMKMQYx4nUhB3KfrurpuvM6VjJ25H4sbKqq", currency=self.currency)
 
@@ -235,7 +238,8 @@ class CashOutRequestApiTest(APITestCase):
             username="testuser", password="abcd")
         self.user_2 = get_user_model().objects.create(
             username="testuser_2", password="abcd")
-        self.currency = Currency.objects.create(token_id=0, name="TEZ",symbol='tez', claim_deadline='2120-01-01', campaign_end='2120-01-01')
+        self.currency = Currency.objects.create(
+            token_id=0, name="TEZ", symbol='tez', claim_deadline='2120-01-01', campaign_end='2120-01-01')
         self.wallet_1 = Wallet.objects.create(owner=self.user, wallet_id=Wallet.generate_wallet_id(
         ), public_key="edpku976gpuAD2bXyx1XGraeKuCo1gUZ3LAJcHM12W1ecxZwoiu22R", currency=self.currency, state=WALLET_STATES.VERIFIED.value)
 
@@ -244,6 +248,9 @@ class CashOutRequestApiTest(APITestCase):
 
         self.wallet_2 = Wallet.objects.create(owner=self.user_2, wallet_id=Wallet.generate_wallet_id(
         ), public_key="edpkutu49fgbHxV6vdVRBLbvCLpuq7CmSR6pnowxZRFcY7c76wUqHT", currency=self.currency, state=WALLET_STATES.VERIFIED.value)
+
+        self.currency.cashout_wallet = self.wallet_2
+        self.currency.save()
 
         self.key = pytezos.Key.from_encoded_key(
             settings.TEZOS_ADMIN_ACCOUNT_PRIVATE_KEY)
@@ -254,7 +261,7 @@ class CashOutRequestApiTest(APITestCase):
             to_wallet=self.wallet_pk, amount=100)
 
         self.token_transaction = MetaTransaction(
-            from_wallet=self.wallet_pk, to_wallet=self.currency.owner_wallet, nonce=self.wallet_pk.nonce+1, amount=10)
+            from_wallet=self.wallet_pk, to_wallet=self.currency.cashout_wallet, nonce=self.wallet_pk.nonce+1, amount=10)
         signature = self.key.sign(pack_meta_transaction(
             self.token_transaction.to_meta_transaction_dictionary()))
         self.token_transaction.signature = signature

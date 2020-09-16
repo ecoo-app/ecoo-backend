@@ -39,6 +39,7 @@ class WalletAdmin(admin.ModelAdmin):
     list_display = ['wallet_id', 'owner', 'balance',
                     'nonce', 'state', 'category', 'address', 'currency', 'created_at']
     list_filter = ['currency', 'category', 'state', 'created_at']
+    search_fields = ['wallet_id', 'owner__username']
 
 
 @admin.register(OwnerWallet)
@@ -102,7 +103,7 @@ def get_pdf(modeladmin, request, queryset):
 
         template = get_template('wallet/paper_wallet_pdf.html')
         html = template.render({'image': qr_code.png_as_base64_str(
-        ), 'logo': settings.STATIC_ROOT+'/wallet/ecoo_logo_bw.png'}, request)  # .encode(encoding="UTF-8")
+        ), 'logo': settings.STATIC_ROOT+'/wallet/ecoo_logo_bw.png', 'wetzikon_bw':settings.STATIC_ROOT+'/wallet/wetzikon_bw.png'}, request)  # .encode(encoding="UTF-8")
         documents.append(weasyprint.HTML(
             string=html, base_url=request.build_absolute_uri()).write_pdf(
                 target=response,
@@ -120,11 +121,6 @@ get_pdf.short_description = _('Download QR-Code pdf')
 class PaperWalletAdmin(WalletAdmin):
     actions = [download_zip, get_pdf]
 
-    def get_urls(self):
-        return [
-            url(r'^generate-wallets/$', self.admin_site.admin_view(
-                self.generate_wallets), name='generate_wallets'),
-        ] + super(PaperWalletAdmin, self).get_urls()
 
     def generate_wallets(self, request):
         if not request.user.is_superuser:
@@ -206,7 +202,7 @@ class WalletPublicKeyTransferRequestAdmin(admin.ModelAdmin):
                        'operation_hash', 'notes', 'created_at']
     list_display = ['wallet', 'old_public_key',
                     'new_public_key', 'state', 'created_at']
-    list_filter = ['wallet', 'state', 'created_at']
+    list_filter = ['state', 'created_at']
     search_fields = ['wallet__wallet_id']
 
 
@@ -219,7 +215,7 @@ class CashOutRequestAdmin(admin.ModelAdmin):
     actions = ['generate_payout_file']
     list_display = ['transaction', 'beneficiary_name',
                     'beneficiary_iban', 'state', 'created_at']
-    list_filter = ['transaction__state', 'state', 'created_at']
+    list_filter = ['state', 'created_at']
     search_fields = [
         'transaction__from_wallet__wallet_id', 'beneficiary_name', ]
 
