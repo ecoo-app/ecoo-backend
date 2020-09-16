@@ -34,7 +34,7 @@ def verify_users(modeladmin, request, queryset):
             PlaceOfOrigin.objects.create(place_of_origin=user_profile.place_of_origin, user_verification=user_verification) 
             user_profile.save()
         
-        if user_profile.wallet.state is not WALLET_STATES.VERIFIED.value:
+        if user_profile.wallet.state != WALLET_STATES.VERIFIED.value:
             user_profile.wallet.state=WALLET_STATES.VERIFIED.value
             user_profile.wallet.save()
 
@@ -67,7 +67,7 @@ def verify_companies(modeladmin, request, queryset):
 
         company_profile.save()
 
-        if company_profile.wallet.state is not WALLET_STATES.VERIFIED.value:
+        if company_profile.wallet.state != WALLET_STATES.VERIFIED.value:
             company_profile.wallet.state=WALLET_STATES.VERIFIED.value
             company_profile.wallet.save()
 
