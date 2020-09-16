@@ -112,14 +112,16 @@ class ImportMixin:
                 self.admin_site.admin_view(self.import_csv), name=self.import_name),
         ]
 
+
 class AtLeastOneRequiredInlineFormSet(BaseInlineFormSet):
     def clean(self):
         super(AtLeastOneRequiredInlineFormSet, self).clean()
         if any(self.errors):
             return
         if not any(cleaned_data and not cleaned_data.get('DELETE', False)
-            for cleaned_data in self.cleaned_data):
-            raise forms.ValidationError(_('At least one item required.'))    
+                   for cleaned_data in self.cleaned_data):
+            raise forms.ValidationError(_('At least one item required.'))
+
 
 class PlaceOfOriginInline(admin.TabularInline):
     model = PlaceOfOrigin
@@ -183,14 +185,21 @@ class SMSPinVerificationAdmin(admin.ModelAdmin):
     search_fields = ['user_profile__first_name', 'user_profile__last_name']
     list_filter = ['state']
 
+    def has_add_permission(self, request):
+        return False
+
 
 @admin.register(AddressPinVerification)
 class AddressPinVerificationAdmin(admin.ModelAdmin):
-    readonly_fields = ['company_profile', 'pin', 'created_at', 'external_id', 'notes']
+    # readonly_fields = ['company_profile', 'pin', 'created_at', 'external_id', 'notes']
+    readonly_fields = ['company_profile', ]
     list_display = ['company_profile', 'pin',
                     'state', 'preview_link', 'created_at']
     search_fields = ['company_profile__name']
     list_filter = ['state']
+
+    def has_add_permission(self, request):
+        return False
 
 
 @admin.register(PlaceOfOrigin)

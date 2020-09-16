@@ -70,14 +70,16 @@ class CompanyProfile(UUIDModel):
     def clean(self, *args, **kwargs):
         # TODO: do we need to clean the data? (eg. strip() on strings)
         errors = {}
-        if self.wallet.category != WALLET_CATEGORIES.COMPANY.value:
-            errors['wallet'] = ValidationError(
-                _('Only company wallets can be attached to company profiles'))
-        
-        if self.wallet.owner is not None and self.owner.pk != self.wallet.owner.pk:
-            errors['wallet'] = ValidationError(
-                _('You can only attach a wallet you own to this profile'))
-        
+        if hasattr(self,'wallet'):
+            if self.wallet.category != WALLET_CATEGORIES.COMPANY.value:
+                errors['wallet'] = ValidationError(
+                    _('Only company wallets can be attached to company profiles'))
+            
+            if hasattr(self,'owner'):
+                if self.wallet.owner is not None and self.owner.pk != self.wallet.owner.pk:
+                    errors['wallet'] = ValidationError(
+                        _('You can only attach a wallet you own to this profile'))
+                
         if len(errors) > 0:
             raise ValidationError(errors)
 
@@ -158,13 +160,15 @@ class UserProfile(UUIDModel):
             errors['telephone_number'] = ValidationError(
                 _('Only Swiss mobile numbers are allowed'))
 
-        if self.wallet.category != WALLET_CATEGORIES.CONSUMER.value:
-            errors['wallet'] = ValidationError(
-                _('Only consumer wallets can be attached to user profiles'))
+        if hasattr(self,'wallet'):
+            if self.wallet.category != WALLET_CATEGORIES.CONSUMER.value:
+                errors['wallet'] = ValidationError(
+                    _('Only consumer wallets can be attached to user profiles'))
 
-        if self.wallet.owner is not None and self.owner.pk != self.wallet.owner.pk:
-            errors['wallet'] = ValidationError(
-                _('You can only attach a wallet you own to this profile'))
+            if hasattr(self,'owner'):
+                if self.wallet.owner is not None and self.owner.pk != self.wallet.owner.pk:
+                    errors['wallet'] = ValidationError(
+                        _('You can only attach a wallet you own to this profile'))
 
         if len(errors) > 0:
             raise ValidationError(errors)
