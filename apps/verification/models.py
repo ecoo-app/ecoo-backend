@@ -6,7 +6,7 @@ from apps.currency.mixins import CurrencyOwnedMixin
 from apps.wallet.models import Wallet
 from apps.profiles.models import CompanyProfile, UserProfile
 from project.mixins import UUIDModel
-from django.utils.translation import gettext as _
+from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
 from oauthlib.oauth2 import BackendApplicationClient
 from requests_oauthlib import OAuth2Session

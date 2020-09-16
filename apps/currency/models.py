@@ -3,7 +3,7 @@ from enum import Enum
 from django.db import models
 
 from project.mixins import UUIDModel
-from django.utils.translation import gettext as _
+from django.utils.translation import ugettext_lazy as _
 
 
 class Currency(UUIDModel):

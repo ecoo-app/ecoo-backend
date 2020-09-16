@@ -195,6 +195,10 @@ class PaperWallet(Wallet):
         self.state = WALLET_STATES.VERIFIED.value
         super(PaperWallet, self).save(*args, **kwargs)
 
+    class Meta:
+        verbose_name = _('Paper wallet')
+        verbose_name_plural = _('Paper wallets')
+
 
 class TRANSACTION_STATES(Enum):
     OPEN = 1

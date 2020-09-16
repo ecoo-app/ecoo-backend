@@ -9,7 +9,7 @@ from django.template.response import TemplateResponse
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from apps.verification.filters import VerificaitonFilter
-from django.utils.translation import gettext as _, ngettext
+from django.utils.translation import ugettext_lazy as _, ngettext
 from django.utils.safestring import mark_safe
 
 import csv
@@ -156,7 +156,7 @@ class UserVerificationAdmin(ImportMixin, admin.ModelAdmin):
             return mark_safe(u"<a class='button btn-success' href='{}'>{}</a>".format(reverse('verification:generate_paper_wallet', args=(obj.uuid,)), _('create paper wallet')))
         return mark_safe(u"<a class='btn-info'>{}</a>".format(_('cannot create paper wallet')))
 
-    create_paper_wallet.short_description = _('paper wallet')
+    create_paper_wallet.short_description = _('Paper wallet')
     create_paper_wallet.allow_tags = True
 
 

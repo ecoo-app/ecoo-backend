@@ -1,5 +1,5 @@
 from django.contrib.admin.filters import SimpleListFilter
-from django.utils.translation import gettext as _
+from django.utils.translation import ugettext_lazy as _
 from apps.verification.models import VERIFICATION_STATES
 from django.db.models import Q
 
