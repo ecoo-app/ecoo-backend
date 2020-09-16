@@ -8,7 +8,7 @@ import datetime
 from django.shortcuts import render
 from apps.profiles.filters import UserVerificationLevelFilter, CompanyVerificationLevelFilter
 from apps.verification.models import CompanyVerification, PlaceOfOrigin, UserVerification, VERIFICATION_STATES
-from apps.wallet.models import Wallet
+from apps.wallet.models import Wallet, WALLET_STATES
 
 def verify_users(modeladmin, request, queryset):
 
@@ -31,9 +31,12 @@ def verify_users(modeladmin, request, queryset):
                 address_postal_code=user_profile.address_postal_code,
                 date_of_birth=user_profile.date_of_birth,
             )
-            PlaceOfOrigin.objects.create(place_of_origin=user_profile.place_of_origin, user_verification=user_verification)
+            PlaceOfOrigin.objects.create(place_of_origin=user_profile.place_of_origin, user_verification=user_verification) 
             user_profile.save()
-            
+        
+        if user_profile.wallet.state is not WALLET_STATES.VERIFIED.value:
+            user_profile.wallet.state=WALLET_STATES.VERIFIED.value
+            user_profile.wallet.save()
 
         from apps.wallet.utils import create_claim_transaction
         create_claim_transaction(user_profile.wallet)
@@ -61,7 +64,12 @@ def verify_companies(modeladmin, request, queryset):
             address_town=company_profile.address_town,
             address_postal_code=company_profile.address_postal_code
         )
+
         company_profile.save()
+
+        if company_profile.wallet.state is not WALLET_STATES.VERIFIED.value:
+            company_profile.wallet.state=WALLET_STATES.VERIFIED.value
+            company_profile.wallet.save()
 
         modified += 1
 
