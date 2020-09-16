@@ -10,15 +10,16 @@ from apps.profiles.filters import UserVerificationLevelFilter, CompanyVerificati
 from apps.verification.models import CompanyVerification, PlaceOfOrigin, UserVerification, VERIFICATION_STATES
 from apps.wallet.models import Wallet, WALLET_STATES
 
+
 def verify_users(modeladmin, request, queryset):
 
     modified = 0
     for user_profile in queryset.exclude(sms_pin_verifications__isnull=False):
-        if not user_profile.verification_stage() in [PROFILE_VERIFICATION_STAGES.UNVERIFIED.value, PROFILE_VERIFICATION_STAGES.MAX_CLAIMS.value ]:
+        if not user_profile.verification_stage() in [PROFILE_VERIFICATION_STAGES.UNVERIFIED.value, PROFILE_VERIFICATION_STAGES.MAX_CLAIMS.value]:
             continue
-        
+
         if hasattr(user_profile, 'user_verification'):
-            user_profile.user_verification.state=VERIFICATION_STATES.CLAIMED.value
+            user_profile.user_verification.state = VERIFICATION_STATES.CLAIMED.value
             user_profile.user_verification.save()
         else:
             user_verification = UserVerification.objects.create(
@@ -37,16 +38,20 @@ def verify_users(modeladmin, request, queryset):
         if user_profile.wallet.state != WALLET_STATES.VERIFIED.value:
             user_profile.wallet.state=WALLET_STATES.VERIFIED.value
             user_profile.wallet.save()
+       
 
         from apps.wallet.utils import create_claim_transaction
         create_claim_transaction(user_profile.wallet)
 
         modified += 1
-        
+
     if modified > 0:
-        messages.add_message(request, messages.SUCCESS, _('{} User Profiles verified').format(modified))
+        messages.add_message(request, messages.SUCCESS, _(
+            '{} User Profiles verified').format(modified))
     else:
-        messages.add_message(request, messages.WARNING, _('All User Profiles were already verified'))
+        messages.add_message(request, messages.WARNING, _(
+            'All User Profiles were already verified'))
+
 
 verify_users.short_description = _('Verify users')
 
@@ -74,11 +79,15 @@ def verify_companies(modeladmin, request, queryset):
         modified += 1
 
     if modified > 0:
-        messages.add_message(request, messages.SUCCESS, _('{} Company Profiles verified').format(modified))
+        messages.add_message(request, messages.SUCCESS, _(
+            '{} Company Profiles verified').format(modified))
     else:
-        messages.add_message(request, messages.WARNING, _('All Company Profiles were already verified'))
+        messages.add_message(request, messages.WARNING, _(
+            'All Company Profiles were already verified'))
+
 
 verify_companies.short_description = _('Verify companies')
+
 
 class PreventDeleteWhenVerifiedMixin:
     def has_delete_permission(self, request, obj=None):
@@ -87,29 +96,34 @@ class PreventDeleteWhenVerifiedMixin:
             return obj.verification_stage() == 0
         return True
 
+
 @admin.register(UserProfile)
 class UserProfile(PreventDeleteWhenVerifiedMixin, admin.ModelAdmin):
-    list_display = ['first_name', 'last_name', 'address_street', 'telephone_number', 'date_of_birth', 'verification_stage_display','created_at']
+    list_display = ['first_name', 'last_name', 'address_street', 'telephone_number',
+                    'date_of_birth', 'owner', 'verification_stage_display', 'created_at']
     search_fields = ['first_name', 'last_name',
-                     'address_street', 'telephone_number', 'date_of_birth']
-    list_filter = [UserVerificationLevelFilter,'created_at']
+                     'address_street', 'telephone_number', 'date_of_birth', 'owner__username']
+    list_filter = [UserVerificationLevelFilter, 'created_at']
     actions = [verify_users]
-    readonly_fields=['created_at',]
-
+    readonly_fields = ['created_at', ]
 
     def render_change_form(self, request, context, *args, **kwargs):
-        context['adminform'].form.fields['wallet'].queryset = Wallet.objects.filter(category=0)
+        context['adminform'].form.fields['wallet'].queryset = Wallet.objects.filter(
+            category=0)
         return super(UserProfile, self).render_change_form(request, context, *args, **kwargs)
+
 
 @admin.register(CompanyProfile)
 class CompanyProfile(PreventDeleteWhenVerifiedMixin, admin.ModelAdmin):
-    list_display = ['name', 'uid', 'address_street', 'verification_stage_display', 'created_at']
+    list_display = ['name', 'uid', 'address_street',
+                    'owner', 'verification_stage_display', 'created_at']
     search_fields = ['name', 'uid',
-                     'address_street']
-    list_filter = [CompanyVerificationLevelFilter,'created_at']
+                     'address_street', 'owner__username']
+    list_filter = [CompanyVerificationLevelFilter, 'created_at']
     actions = [verify_companies]
-    readonly_fields=['created_at',]
+    readonly_fields = ['created_at', ]
 
     def render_change_form(self, request, context, *args, **kwargs):
-        context['adminform'].form.fields['wallet'].queryset = Wallet.objects.filter(category=1)
+        context['adminform'].form.fields['wallet'].queryset = Wallet.objects.filter(
+            category=1)
         return super(CompanyProfile, self).render_change_form(request, context, *args, **kwargs)

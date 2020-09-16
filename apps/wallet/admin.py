@@ -39,6 +39,7 @@ class WalletAdmin(admin.ModelAdmin):
     list_display = ['wallet_id', 'owner', 'balance',
                     'nonce', 'state', 'category', 'address', 'currency', 'created_at']
     list_filter = ['currency', 'category', 'state', 'created_at']
+    search_fields = ['wallet_id', 'owner__username']
 
 
 @admin.register(OwnerWallet)
@@ -206,7 +207,7 @@ class WalletPublicKeyTransferRequestAdmin(admin.ModelAdmin):
                        'operation_hash', 'notes', 'created_at']
     list_display = ['wallet', 'old_public_key',
                     'new_public_key', 'state', 'created_at']
-    list_filter = ['wallet', 'state', 'created_at']
+    list_filter = ['state', 'created_at']
     search_fields = ['wallet__wallet_id']
 
 
