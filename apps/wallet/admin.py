@@ -121,11 +121,6 @@ get_pdf.short_description = _('Download QR-Code pdf')
 class PaperWalletAdmin(WalletAdmin):
     actions = [download_zip, get_pdf]
 
-    def get_urls(self):
-        return [
-            url(r'^generate-wallets/$', self.admin_site.admin_view(
-                self.generate_wallets), name='generate_wallets'),
-        ] + super(PaperWalletAdmin, self).get_urls()
 
     def generate_wallets(self, request):
         if not request.user.is_superuser:
