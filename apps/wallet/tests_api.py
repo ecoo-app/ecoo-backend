@@ -249,6 +249,9 @@ class CashOutRequestApiTest(APITestCase):
         self.wallet_2 = Wallet.objects.create(owner=self.user_2, wallet_id=Wallet.generate_wallet_id(
         ), public_key="edpkutu49fgbHxV6vdVRBLbvCLpuq7CmSR6pnowxZRFcY7c76wUqHT", currency=self.currency, state=WALLET_STATES.VERIFIED.value)
 
+        self.currency.cashout_wallet = self.wallet_2
+        self.currency.save()
+
         self.key = pytezos.Key.from_encoded_key(
             settings.TEZOS_ADMIN_ACCOUNT_PRIVATE_KEY)
         self.wallet_pk = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
@@ -258,7 +261,7 @@ class CashOutRequestApiTest(APITestCase):
             to_wallet=self.wallet_pk, amount=100)
 
         self.token_transaction = MetaTransaction(
-            from_wallet=self.wallet_pk, to_wallet=self.currency.owner_wallet, nonce=self.wallet_pk.nonce+1, amount=10)
+            from_wallet=self.wallet_pk, to_wallet=self.currency.cashout_wallet, nonce=self.wallet_pk.nonce+1, amount=10)
         signature = self.key.sign(pack_meta_transaction(
             self.token_transaction.to_meta_transaction_dictionary()))
         self.token_transaction.signature = signature
