@@ -266,12 +266,12 @@ class Transaction(UUIDModel):
                 errors['to_wallet'] = ValidationError(
                     _('Currency must allow minting if you want to mint'))
 
-        if self.amount <= 0:
+        if self.amount is not None and self.amount <= 0:
             errors['amount'] = ValidationError(_('Amount must be > 0'))
 
         if not self.is_mint_transaction:
             if hasattr(self,'from_wallet'):
-                if self.from_wallet.balance < self.amount:
+                if self.amount and self.from_wallet.balance < self.amount:
                     errors['from_wallet'] = ValidationError(
                         _('Balance of from_wallet must be greater than amount'))
                 
