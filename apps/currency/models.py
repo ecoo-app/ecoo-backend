@@ -26,7 +26,7 @@ class Currency(UUIDModel):
         "wallet.OwnerWallet", null=True, editable=False, on_delete=models.DO_NOTHING, related_name="owner_currencies")
 
     cashout_wallet = models.ForeignKey(
-        "wallet.Wallet", null=True, editable=False, on_delete=models.DO_NOTHING, related_name="cashout_currencies")
+        "wallet.Wallet", null=True, blank=True, editable=True, on_delete=models.DO_NOTHING, related_name="cashout_currencies")
 
     class Meta:
         verbose_name = _('Currency')
