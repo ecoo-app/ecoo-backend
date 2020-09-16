@@ -10,13 +10,6 @@ class MyAdminSite(AdminSite):
             (m for m in app_list if m['app_label'] == 'wallet' and m['has_module_perms']), None)
         if wallet_menu is not None:
             extra_items = []
-            extra_items.append(
-                {
-                    "name": "Generate Wallets",
-                    "admin_url": '/admin/wallet/paperwallet/generate-wallets/',
-                    'perms': {'add': False, 'change': False, 'delete': False, 'view': True}
-                }
-            )
             wallet_menu['models'] += extra_items
 
         verification_menu = next(
