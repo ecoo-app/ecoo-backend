@@ -178,19 +178,19 @@ class CompanyVerificationAdmin(ImportMixin, admin.ModelAdmin):
 
 @admin.register(SMSPinVerification)
 class SMSPinVerificationAdmin(admin.ModelAdmin):
-    readonly_fields = ['user_profile', 'pin', 'created_at']
+    readonly_fields = ['user_profile', 'pin', 'created_at', 'notes']
     list_display = ['user_profile', 'pin', 'state', 'created_at']
-
-    readonly_fields = ['created_at', 'notes']
+    search_fields = ['user_profile__first_name', 'user_profile__last_name']
+    list_filter = ['state']
 
 
 @admin.register(AddressPinVerification)
 class AddressPinVerificationAdmin(admin.ModelAdmin):
-    readonly_fields = ['company_profile', 'pin', 'created_at']
+    readonly_fields = ['company_profile', 'pin', 'created_at', 'external_id', 'notes']
     list_display = ['company_profile', 'pin',
                     'state', 'preview_link', 'created_at']
-
-    readonly_fields = ['created_at', 'external_id', 'notes']
+    search_fields = ['company_profile__name']
+    list_filter = ['state']
 
 
 @admin.register(PlaceOfOrigin)
