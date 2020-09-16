@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-09-16 10:54+0000\n"
+"POT-Creation-Date: 2020-09-16 11:30+0000\n"
 "PO-Revision-Date: 2020-09-10 23:59+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -87,27 +87,27 @@ msgstr "Auszahlungskonto"
 msgid "PayoutAccounts"
 msgstr "Auszahlungskontos"
 
-#: apps/profiles/admin.py:47
+#: apps/profiles/admin.py:50
 msgid "{} User Profiles verified"
 msgstr "{} Benutzerprofile verifiziert"
 
-#: apps/profiles/admin.py:49
+#: apps/profiles/admin.py:53
 msgid "All User Profiles were already verified"
 msgstr "Alle Benutzerprofile waren bereits verifiziert"
 
-#: apps/profiles/admin.py:51
+#: apps/profiles/admin.py:56
 msgid "Verify users"
 msgstr "Benutzerprofile verifizieren"
 
-#: apps/profiles/admin.py:77
+#: apps/profiles/admin.py:83
 msgid "{} Company Profiles verified"
 msgstr "{} Firmenprofile verifiziert"
 
-#: apps/profiles/admin.py:79
+#: apps/profiles/admin.py:86
 msgid "All Company Profiles were already verified"
 msgstr "Alle Firmenprofile waren bereits verifiziert"
 
-#: apps/profiles/admin.py:81
+#: apps/profiles/admin.py:89
 msgid "Verify companies"
 msgstr "Firmenprofile verifizieren"
 
@@ -355,7 +355,8 @@ msgstr "Adresspin Verifikationen"
 
 #: apps/verification/models.py:143
 msgid "You are retrying too fast, please wait for {} seconds"
-msgstr "Sie wiederholen den Versuch zu schnell, bitte warten Sie für {} Sekunden"
+msgstr ""
+"Sie wiederholen den Versuch zu schnell, bitte warten Sie für {} Sekunden"
 
 #: apps/verification/models.py:149
 msgid "SMS pin verification"
@@ -392,41 +393,41 @@ msgstr "Der PIN ist nicht korrekt, ein neuer wurde versendet."
 msgid "PIN did not match"
 msgstr "Pin passt nicht"
 
-#: apps/wallet/admin.py:80
+#: apps/wallet/admin.py:81
 msgid "Download QR-Code Zip"
-msgstr "QR-Codes Herunterladen"
+msgstr "QR-Codes als Zip herunterladen"
 
-#: apps/wallet/admin.py:116
+#: apps/wallet/admin.py:117
 msgid "Download QR-Code pdf"
-msgstr "QR-Codes Herunterladen"
+msgstr "QR-Codes als PDF herunterladen"
 
-#: apps/wallet/admin.py:147
+#: apps/wallet/admin.py:148
 msgid "{} Wallets generated"
 msgstr "{} Wallets generiert"
 
-#: apps/wallet/admin.py:184
+#: apps/wallet/admin.py:185
 msgid "Retry failed transactions"
 msgstr "Neuversuch von zurückgewiesenen Transaktionen"
 
-#: apps/wallet/admin.py:190
+#: apps/wallet/admin.py:191
 #, fuzzy
 #| msgid "Meta transaction"
 msgid "Force transaction to done"
 msgstr "Zwinge Transaktion zu gemacht"
 
-#: apps/wallet/admin.py:232
+#: apps/wallet/admin.py:233
 msgid "Only open cashout out requests can be used in this action"
 msgstr "Nur offene Auszahlungsanfragen können diese Aktion durchführen"
 
-#: apps/wallet/admin.py:236
+#: apps/wallet/admin.py:237
 msgid "Only settled (done) transactions can be used in this action"
 msgstr "Nur abgeschlossene Transaktionen können diese Aktion durchführen"
 
-#: apps/wallet/admin.py:269
+#: apps/wallet/admin.py:270
 msgid "Please enter a correct payment date"
 msgstr "Bitte korrektes Zahlungsdatum angeben"
 
-#: apps/wallet/admin.py:276
+#: apps/wallet/admin.py:277
 #: apps/wallet/templates/admin/generate_payout_file.html:16
 #: apps/wallet/templates/admin/generate_payout_file.html:47
 msgid "Generate Payout XML"
@@ -577,6 +578,14 @@ msgid "Cash out requests"
 msgstr "Auszahlungsanfragen"
 
 #: apps/wallet/templates/admin/generate_payout_file.html:20
+#, fuzzy, python-format
+#| msgid ""
+#| "\n"
+#| "                        You are about to generate a payout XML containing "
+#| "%(total_requests)s transactions. \n"
+#| "                        The total amount is going to be "
+#| "%(total_amount_formatted)s CHF. The actual beneficiaries are:\n"
+#| "                    "
 msgid ""
 "\n"
 "                        You are about to generate a payout XML containing "
