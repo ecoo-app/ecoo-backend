@@ -74,7 +74,7 @@ class ImportMixin:
                 def is_row_valid(x): return all((row.get(x) != None and row.get(
                     x) != '') for x in self.import_validate_fields)
                 csv_reader = csv.DictReader(
-                    StringIO(form.cleaned_data['csv_file'].read().decode('UTF-8')))
+                    StringIO(form.cleaned_data['csv_file'].read().decode('UTF-8-sig')))
                 created, line_number = 0, 1
                 with transaction.atomic():
                     for row in csv_reader:
@@ -86,10 +86,11 @@ class ImportMixin:
                             break
 
                         places_of_origin = []
-                        for k in ['place_of_origin1', 'place_of_origin2', 'place_of_origin3']:
+                        for k in ['place_of_origin1', 'place_of_origin2', 'place_of_origin3', 'place_of_origin4']:
                             if row.get(k) != None:
-                                places_of_origin.append(
-                                    PlaceOfOrigin(place_of_origin=row.get(k)))
+                                if row.get(k) != '':
+                                    places_of_origin.append(
+                                        PlaceOfOrigin(place_of_origin=row.get(k)))
                                 del(row[k])
 
                         entry = self.model(**row)
