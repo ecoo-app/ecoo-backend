@@ -120,8 +120,8 @@ class AddressPinVerification(AbstractVerification):
     preview_link.short_description = _('Preview')
 
     class Meta:
-        verbose_name = _('Adress pin verification')
-        verbose_name_plural = _('Adress pin verifications')
+        verbose_name = _('Address pin verification')
+        verbose_name_plural = _('Address pin verifications')
 
 
 class SMSPinVerification(AbstractVerification):
