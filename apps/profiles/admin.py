@@ -92,8 +92,7 @@ verify_companies.short_description = _('Verify companies')
 class PreventDeleteWhenVerifiedMixin:
     def has_delete_permission(self, request, obj=None):
         if obj is not None:
-            # disallow delete if state != unverified
-            return obj.verification_stage() == 0
+            return obj.verification_stage() == PROFILE_VERIFICATION_STAGES.UNVERIFIED.value
         return True
 
 
