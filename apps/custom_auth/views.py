@@ -10,6 +10,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from oauth2_provider.models import Application
 from rest_framework.pagination import PageNumberPagination
 from social_django.utils import psa
+from django.utils.translation import ugettext_lazy as _
 
 from apps.custom_auth.serializers import SocialSerializer, UserSerializer, ApplicationSerializer
 
@@ -48,7 +49,7 @@ def exchange_token(request, backend):
 
         else:
             return Response(
-                {'errors': {'token': 'Invalid token'}},
+                {'errors': {'token': _('Invalid token')}},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 

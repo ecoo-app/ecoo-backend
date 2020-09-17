@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-09-16 15:56+0000\n"
+"POT-Creation-Date: 2020-09-17 07:38+0000\n"
 "PO-Revision-Date: 2020-09-10 23:59+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -86,6 +86,10 @@ msgstr "Auszahlungskonto"
 #: apps/currency/models.py:52
 msgid "PayoutAccounts"
 msgstr "Auszahlungskontos"
+
+#: apps/custom_auth/views.py:52
+msgid "Invalid token"
+msgstr "ungültiges Token"
 
 #: apps/profiles/admin.py:50
 msgid "{} User Profiles verified"
@@ -622,6 +626,14 @@ msgstr "Wallets generieren"
 msgid "Generate"
 msgstr "Generieren"
 
+#: project/admin.py:21
+msgid "Import Users"
+msgstr "Benutzer importieren"
+
+#: project/admin.py:27
+msgid "Import Companies"
+msgstr "Firmen importieren"
+
 #: project/base_settings.py:147
 msgid "English"
 msgstr "Englisch"
@@ -719,12 +731,6 @@ msgstr "Ausloggen"
 
 #~ msgid "You are not the owner of the company"
 #~ msgstr "Sie sind nicht der Besitzer der Firma"
-
-#~ msgid "Import Users"
-#~ msgstr "Benutzer importieren"
-
-#~ msgid "Import Companies"
-#~ msgstr "Firmen importieren"
 
 #~ msgid "View site"
 #~ msgstr "Seite Ansehen"
