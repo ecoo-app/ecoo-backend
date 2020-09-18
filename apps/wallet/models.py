@@ -53,7 +53,7 @@ class Wallet(CurrencyOwnedMixin):
     wallet_id = models.CharField(
         _('Wallet Id'), unique=True, blank=True, editable=False, max_length=128)
     public_key = models.CharField(
-        _('Publickey'), unique=True, max_length=60)  # encoded public_key
+        _('Publickey'), unique=True, blank=True, editable=True, max_length=60)  # encoded public_key
     category = models.IntegerField(
         _('Category'), default=WALLET_CATEGORIES.CONSUMER.value, choices=WALLET_CATEGORY_CHOICES)
     state = models.IntegerField(
@@ -128,11 +128,19 @@ class Wallet(CurrencyOwnedMixin):
 
 class OwnerWallet(Wallet):
     private_key = models.CharField(
-        _('Privatekey'), unique=True, max_length=128)
+        _('Privatekey'), unique=True, blank=True, editable=False, max_length=128)
 
     def save(self, *args, **kwargs):
         self.state = WALLET_CATEGORIES.OWNER.value
+        self.category = WALLET_CATEGORIES.OWNER.value
         super(OwnerWallet, self).save(*args, **kwargs)
+    
+    def clean(self, *args, **kwargs):
+        if self.private_key is None or len(self.private_key) <= 0:
+            key = pytezos.crypto.Key.generate()
+            self.private_key = key.secret_key()
+            self.public_key = key.public_key()
+        super(Wallet, self).clean(*args, **kwargs)
 
 
 class PaperWallet(Wallet):
