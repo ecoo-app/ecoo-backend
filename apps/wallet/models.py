@@ -131,7 +131,7 @@ class OwnerWallet(Wallet):
         _('Privatekey'), unique=True, blank=True, editable=False, max_length=128)
 
     def save(self, *args, **kwargs):
-        self.state = WALLET_CATEGORIES.OWNER.value
+        self.state = WALLET_STATES.VERIFIED.value
         self.category = WALLET_CATEGORIES.OWNER.value
         super(OwnerWallet, self).save(*args, **kwargs)
     
