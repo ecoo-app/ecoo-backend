@@ -5,6 +5,7 @@ from fcm_django.models import FCMDevice
 
 from apps.wallet.models import WALLET_STATES, Wallet, WALLET_CATEGORIES
 from django.conf import settings 
+from apps.currency.models import Currency
 
 class Command(BaseCommand):
     help = 'Notifies all wallet users which have not verified yet'
