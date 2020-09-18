@@ -18,12 +18,20 @@ from apps.profiles.serializers import UserProfileSerializer, CompanyProfileSeria
 from apps.profiles.models import UserProfile, CompanyProfile
 from django.utils.translation import ugettext_lazy as _
 from apps.wallet.models import Wallet
-
+from rest_framework.pagination import CursorPagination
 
 # TODO: add check for too many profiles per user
 
+
+class ProfileCursorPagination(CursorPagination):
+    ordering = 'created_at'
+    page_size = 10
+    page_size_query_param = 'page_size'
+
+
 class UserProfileListCreate(generics.ListCreateAPIView):
     serializer_class = UserProfileSerializer
+    pagination_class = ProfileCursorPagination
 
     def get_queryset(self):
         return self.request.user.user_profiles
@@ -37,6 +45,7 @@ class UserProfileListCreate(generics.ListCreateAPIView):
 
 class UserProfileDestroy(generics.DestroyAPIView):
     serializer_class = UserProfileSerializer
+    pagination_class = ProfileCursorPagination
 
     def get_queryset(self):
         return self.request.user.user_profiles
@@ -44,6 +53,7 @@ class UserProfileDestroy(generics.DestroyAPIView):
 
 class CompanyProfileListCreate(generics.ListCreateAPIView):
     serializer_class = CompanyProfileSerializer
+    pagination_class = ProfileCursorPagination
 
     def get_queryset(self):
         return self.request.user.company_profiles
@@ -51,6 +61,7 @@ class CompanyProfileListCreate(generics.ListCreateAPIView):
 
 class CompanyProfileDestroy(generics.DestroyAPIView):
     serializer_class = CompanyProfileSerializer
+    pagination_class = ProfileCursorPagination
 
     def get_queryset(self):
         return self.request.user.company_profiles
