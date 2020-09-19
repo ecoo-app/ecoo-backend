@@ -36,20 +36,6 @@ spec:
             port: 8000
           initialDelaySeconds: 30
           timeoutSeconds: 30
-        volumeMounts:
-          - mountPath: "/code/smedia"
-            name: __NAMESPACE_NAME__-pv
-            subPath: "smedia"
-          - mountPath: "/code/media"
-            name: __NAMESPACE_NAME__-pv
-            subPath: "media"
-          - mountPath: "/code/logs/"
-            name: __NAMESPACE_NAME__-pv
-            subPath: "logs"
       restartPolicy: Always
-      volumes:
-        - name: __NAMESPACE_NAME__-pv
-          persistentVolumeClaim:
-            claimName: __NAMESPACE_NAME__-pvc
 
 status: {}
