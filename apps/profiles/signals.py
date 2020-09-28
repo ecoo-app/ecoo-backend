@@ -26,19 +26,19 @@ def custom_company_profile_validation(sender, instance, **kwargs):
 
 @receiver(post_save, sender=UserProfile, dispatch_uid='custom_user_profile_validation')
 def custom_user_profile_validation(sender, instance, **kwargs):
-    if instance.user_verification == None:
+    if not hasattr(instance, 'user_verification'):
         user_verifications = UserVerification.objects.exclude(state=VERIFICATION_STATES.CLAIMED.value).filter(first_name__iexact=instance.first_name, last_name__iexact=instance.last_name,
-                                                                                                            address_street__iexact=instance.address_street, address_town__iexact=instance.address_town,
-                                                                                                            address_postal_code=instance.address_postal_code, date_of_birth=instance.date_of_birth, places_of_origin__place_of_origin=instance.place_of_origin)
+                                                                                                              address_street__iexact=instance.address_street, address_town__iexact=instance.address_town,
+                                                                                                              address_postal_code=instance.address_postal_code, date_of_birth=instance.date_of_birth, places_of_origin__place_of_origin=instance.place_of_origin)
         if user_verifications.exists():
             user_verification = user_verifications[0]
             user_verification.user_profile = instance
             if instance.owner.user_profiles.filter(user_verification__state=VERIFICATION_STATES.CLAIMED.value).count() >= instance.wallet.currency.max_claims:
-                    user_verification.state = VERIFICATION_STATES.MAX_CLAIMS.value
-                    user_verification.save()
-                else:
-                    user_verification.state = VERIFICATION_STATES.PENDING.value
+                user_verification.state = VERIFICATION_STATES.MAX_CLAIMS.value
+                user_verification.save()
+            else:
+                user_verification.state = VERIFICATION_STATES.PENDING.value
 
-                    SMSPinVerification.objects.create(
-                        user_profile=instance, state=VERIFICATION_STATES.PENDING.value)
-                    user_verification.save()
+                SMSPinVerification.objects.create(
+                    user_profile=instance, state=VERIFICATION_STATES.PENDING.value)
+                user_verification.save()
