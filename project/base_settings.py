@@ -351,7 +351,7 @@ Liebes Wetziker Gewerbe,
 
 Es freut uns dass Sie an dieser Aktion mitmachen!
 
-Bitte geben Sie den folgen Code in die ecoo App ein um die Verifizerung abzuschliesen:
+Bitte geben Sie den nachfolgenden Code mit erneutem Klick auf den Button "Einlösen" in der ecoo App ein um die Verifizierung abzuschliessen:
 
 {}
 
