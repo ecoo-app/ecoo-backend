@@ -5,7 +5,8 @@ metadata:
   namespace: __NAMESPACE_NAME__
 spec:
   selector:
-    app: __NAMESPACE_NAME__-backend
+    matchLabels:
+      app: __NAMESPACE_NAME__-backend
   replicas: 2
   strategy:
     type: RollingUpdate
