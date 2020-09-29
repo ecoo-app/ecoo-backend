@@ -12,6 +12,8 @@ spec:
       labels:
         app: __NAMESPACE_NAME__-backend
     spec:
+      selector:
+        app: __NAMESPACE_NAME__-backend
       containers:
       - image: __TO_BE_REPLACED_BY_IMAGE_TAG__
         command: ["/bin/bash", "-c", "python /code/manage.py migrate; python /code/manage.py collectstatic --noinput; python /code/manage.py compilemessages -l de; uvicorn project.asgi:application --host 0.0.0.0;"]
