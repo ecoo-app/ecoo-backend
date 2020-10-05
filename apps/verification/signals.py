@@ -37,7 +37,8 @@ def custom_address_pin_verification_validation(sender, instance, **kwargs):
             string.digits) for x in range(6))
         try:
             success, payload = send_postcard(
-                message=settings.POST_CARD_TEXT.format(instance.pin),
+                message=settings.POST_CARD_TEXT.format(
+                    instance.company_profile.wallet.wallet_id, instance.pin),
                 company=instance.company_profile.name,
                 street=instance.company_profile.address_street,
                 zip=instance.company_profile.address_postal_code,
