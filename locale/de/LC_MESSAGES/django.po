@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-09-17 07:38+0000\n"
+"POT-Creation-Date: 2020-10-09 11:44+0000\n"
 "PO-Revision-Date: 2020-09-10 23:59+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -71,7 +71,7 @@ msgstr "Kontoname"
 msgid "clearing number"
 msgstr "Clearingnummer"
 
-#: apps/currency/models.py:46 apps/wallet/models.py:394
+#: apps/currency/models.py:46 apps/wallet/models.py:404
 msgid "IBAN"
 msgstr "IBAN"
 
@@ -120,7 +120,7 @@ msgid "User Verification Level"
 msgstr "Benutzerverifikation"
 
 #: apps/profiles/filters.py:13 apps/profiles/models.py:28
-#: apps/wallet/models.py:38
+#: apps/wallet/models.py:39
 msgid "Unverified"
 msgstr "Unverifiziert"
 
@@ -129,7 +129,7 @@ msgid "Verified (PIN verification pending)"
 msgstr "Verifiziert (PIN Verifizierung ausstehend)"
 
 #: apps/profiles/filters.py:15 apps/profiles/models.py:31
-#: apps/wallet/models.py:40
+#: apps/wallet/models.py:41
 msgid "Verified"
 msgstr "Verifiziert"
 
@@ -142,7 +142,7 @@ msgid "Max Claims"
 msgstr "Maximale Anzahl Einlösungen"
 
 #: apps/profiles/models.py:38 apps/profiles/models.py:110
-#: apps/wallet/models.py:46
+#: apps/wallet/models.py:48
 msgid "Owner"
 msgstr "Besitzer"
 
@@ -276,19 +276,19 @@ msgstr "Bestätige ausgewählte Verifikationen und sende Geld"
 msgid "Line Nr {} is invalid:{}"
 msgstr "Zeile {} ist ungültig:{}"
 
-#: apps/verification/admin.py:123
+#: apps/verification/admin.py:124
 msgid "At least one item required."
 msgstr "Mindestens ein Eintrag ist erforderlich."
 
-#: apps/verification/admin.py:156
+#: apps/verification/admin.py:157
 msgid "create paper wallet"
 msgstr "Papier Wallet erstellen"
 
-#: apps/verification/admin.py:157
+#: apps/verification/admin.py:158
 msgid "cannot create paper wallet"
 msgstr "Papier Wallet kann nicht erstellt werden"
 
-#: apps/verification/admin.py:159 apps/wallet/models.py:199
+#: apps/verification/admin.py:160 apps/wallet/models.py:209
 msgid "Paper wallet"
 msgstr "Papier Wallet"
 
@@ -304,7 +304,7 @@ msgstr "CSV Datei"
 msgid "Open"
 msgstr "Offen"
 
-#: apps/verification/models.py:31 apps/wallet/models.py:39
+#: apps/verification/models.py:31 apps/wallet/models.py:40
 msgid "Pending"
 msgstr "Ausstehend"
 
@@ -316,8 +316,8 @@ msgstr "Eingelöst"
 msgid "Failed"
 msgstr "Fehlgeschlagen"
 
-#: apps/verification/models.py:40 apps/wallet/models.py:60
-#: apps/wallet/models.py:226 apps/wallet/models.py:390
+#: apps/verification/models.py:40 apps/wallet/models.py:62
+#: apps/wallet/models.py:236 apps/wallet/models.py:400
 msgid "State"
 msgstr "Status"
 
@@ -441,63 +441,67 @@ msgstr "Bitte korrektes Zahlungsdatum angeben"
 msgid "Generate Payout XML"
 msgstr "Auszahlungsdatei (XML) generieren"
 
-#: apps/wallet/forms.py:8 apps/wallet/models.py:223
+#: apps/wallet/forms.py:8 apps/wallet/models.py:233
 msgid "Amount"
 msgstr "Anzahl"
 
-#: apps/wallet/models.py:44
+#: apps/wallet/models.py:42
+msgid "Deactivated"
+msgstr "Deaktiviert"
+
+#: apps/wallet/models.py:46
 msgid "Consumer"
 msgstr "Konsument"
 
-#: apps/wallet/models.py:45
+#: apps/wallet/models.py:47
 msgid "Company"
 msgstr "Firma"
 
-#: apps/wallet/models.py:54
+#: apps/wallet/models.py:56
 msgid "Wallet Id"
 msgstr "Wallet Id"
 
-#: apps/wallet/models.py:56
+#: apps/wallet/models.py:58
 msgid "Publickey"
 msgstr "Publickey"
 
-#: apps/wallet/models.py:58
+#: apps/wallet/models.py:60
 msgid "Category"
 msgstr "Kategorie"
 
-#: apps/wallet/models.py:120
+#: apps/wallet/models.py:122
 msgid "Public key is not in valid format"
 msgstr "Das Format des Public Key ist nicht korrekt"
 
-#: apps/wallet/models.py:131
+#: apps/wallet/models.py:133
 msgid "Privatekey"
 msgstr "Privatekey"
 
-#: apps/wallet/models.py:200
+#: apps/wallet/models.py:210
 msgid "Paper wallets"
 msgstr "Papier Wallets"
 
-#: apps/wallet/models.py:220
+#: apps/wallet/models.py:230
 msgid "From Wallet"
 msgstr "Sender Wallet"
 
-#: apps/wallet/models.py:222
+#: apps/wallet/models.py:232
 msgid "To Wallet"
 msgstr "Empfänger Wallet"
 
-#: apps/wallet/models.py:229
+#: apps/wallet/models.py:239
 msgid "Submitted to chain"
 msgstr "An Blockchain gesendet"
 
-#: apps/wallet/models.py:232
+#: apps/wallet/models.py:242
 msgid "Operation hash"
 msgstr "Blockchain Transaktionshash"
 
-#: apps/wallet/models.py:235
+#: apps/wallet/models.py:245
 msgid "Notes"
 msgstr "Notizen"
 
-#: apps/wallet/models.py:268
+#: apps/wallet/models.py:278
 msgid ""
 "Wallet transfer ongoing for destination wallet, cannot send funds to this "
 "wallet at the moment."
@@ -505,25 +509,25 @@ msgstr ""
 "Es gibt nicht abgeschlossene Transaktionen zum Ziel Wallet, bitte später "
 "nochmals versuchen."
 
-#: apps/wallet/models.py:271
+#: apps/wallet/models.py:281
 msgid "Currency must allow minting if you want to mint"
 msgstr "Währung erlaubt kein minting"
 
-#: apps/wallet/models.py:274
+#: apps/wallet/models.py:284
 msgid "Amount must be > 0"
 msgstr "Anzahl muss grösser als 0 sein"
 
-#: apps/wallet/models.py:280
+#: apps/wallet/models.py:290
 msgid "Balance of from_wallet must be greater than amount"
 msgstr ""
 "Kontostand vom Sender Wallet muss grösser als der zu sendende Betrag sein"
 
-#: apps/wallet/models.py:284 apps/wallet/models.py:342
-#: apps/wallet/models.py:344
+#: apps/wallet/models.py:294 apps/wallet/models.py:352
+#: apps/wallet/models.py:354
 msgid "\"From wallet\" and \"to wallet\" need to use same currency"
 msgstr "Sender und Empfänger Wallet müssen die gleiche Währung haben"
 
-#: apps/wallet/models.py:287
+#: apps/wallet/models.py:297
 msgid ""
 "Wallet transfer ongoing for source wallet, cannot send funds from this "
 "wallet at the moment."
@@ -531,61 +535,61 @@ msgstr ""
 "Das Sender Wallet hat offene Transaktionen, bitte versuchen Sie es später "
 "nochmals."
 
-#: apps/wallet/models.py:290
+#: apps/wallet/models.py:300
 msgid "Only verified addresses can send money"
 msgstr "Nur verifizierte Adressen können Geld senden"
 
-#: apps/wallet/models.py:307 apps/wallet/models.py:388
+#: apps/wallet/models.py:317 apps/wallet/models.py:398
 msgid "Transaction"
 msgstr "Transaktion"
 
-#: apps/wallet/models.py:308
+#: apps/wallet/models.py:318
 msgid "Transactions"
 msgstr "Transaktionen"
 
-#: apps/wallet/models.py:330
+#: apps/wallet/models.py:340
 msgid "Metatransaction always must have from"
 msgstr "Transaktion muss ein Sender haben"
 
-#: apps/wallet/models.py:332
+#: apps/wallet/models.py:342
 msgid "Nonce must be > 0"
 msgstr "Nonce muss grösser als 0 sein"
 
-#: apps/wallet/models.py:338
+#: apps/wallet/models.py:348
 msgid "Nonce must be 1 higher than from_wallet's last meta transaction nonce"
 msgstr "Nonce muss grösser als die letzte Nonce des Sender Wallets sein"
 
-#: apps/wallet/models.py:356
+#: apps/wallet/models.py:366
 msgid "Signature is invalid"
 msgstr "Signatur ist invalid"
 
-#: apps/wallet/models.py:365
+#: apps/wallet/models.py:375
 msgid "Meta transaction"
 msgstr "Meta Transaktion"
 
-#: apps/wallet/models.py:366
+#: apps/wallet/models.py:376
 msgid "Meta transactions"
 msgstr "Meta Transaktionen"
 
-#: apps/wallet/models.py:392
+#: apps/wallet/models.py:402
 msgid "Beneficiary name"
 msgstr "Name des Begünstigten"
 
-#: apps/wallet/models.py:402
+#: apps/wallet/models.py:412
 msgid "Iban is incorrect"
 msgstr "IBAN ist inkorrekt"
 
-#: apps/wallet/models.py:407
+#: apps/wallet/models.py:417
 msgid ""
 "Cash out only possible with transactions going to the owner wallet of the "
 "currency"
 msgstr "Auszahlung nur möglich zur Besitzer Wallet der Währung"
 
-#: apps/wallet/models.py:420
+#: apps/wallet/models.py:430
 msgid "Cash out request"
 msgstr "Auszahlungsanfrage"
 
-#: apps/wallet/models.py:421
+#: apps/wallet/models.py:431
 msgid "Cash out requests"
 msgstr "Auszahlungsanfragen"
 

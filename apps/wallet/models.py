@@ -39,6 +39,7 @@ WALLET_STATE_CHOICES = (
     (WALLET_STATES.UNVERIFIED.value, _('Unverified')),
     (WALLET_STATES.PENDING.value, _('Pending')),
     (WALLET_STATES.VERIFIED.value, _('Verified')),
+    (WALLET_STATES.DEACTIVATED.value, _('Deactivated')),
 )
 
 WALLET_CATEGORY_CHOICES = (
