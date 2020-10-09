@@ -26,6 +26,7 @@ class WALLET_STATES(Enum):
     UNVERIFIED = 0
     PENDING = 1
     VERIFIED = 2
+    DEACTIVATED = 3
 
 
 class WALLET_CATEGORIES(Enum):
@@ -134,7 +135,7 @@ class OwnerWallet(Wallet):
         self.state = WALLET_STATES.VERIFIED.value
         self.category = WALLET_CATEGORIES.OWNER.value
         super(OwnerWallet, self).save(*args, **kwargs)
-    
+
     def clean(self, *args, **kwargs):
         if self.private_key is None or len(self.private_key) <= 0:
             key = pytezos.crypto.Key.generate()
@@ -282,12 +283,12 @@ class Transaction(UUIDModel):
             errors['amount'] = ValidationError(_('Amount must be > 0'))
 
         if not self.is_mint_transaction:
-            if hasattr(self,'from_wallet'):
+            if hasattr(self, 'from_wallet'):
                 if self.amount and self.from_wallet.balance < self.amount:
                     errors['from_wallet'] = ValidationError(
                         _('Balance of from_wallet must be greater than amount'))
-                
-                if hasattr(self,'to_wallet') and self.from_wallet.currency != self.to_wallet.currency:
+
+                if hasattr(self, 'to_wallet') and self.from_wallet.currency != self.to_wallet.currency:
                     errors['from_wallet'] = ValidationError(
                         _('"From wallet" and "to wallet" need to use same currency'))
                 if self.from_wallet.transfer_requests.exclude(state=TRANSACTION_STATES.DONE.value).exists():

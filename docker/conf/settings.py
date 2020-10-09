@@ -58,7 +58,7 @@ FCM_DJANGO_SETTINGS["FCM_SERVER_KEY"] = os.environ.get('FCM_KEY', '?')
 
 # SENTRY
 RAVEN_CONFIG = {
-    'dsn': 'https://8b98001b655b4257b1c3872c886dc8c3:ebb447ab9c654a21ab88cd3aae68aab0@sentry.papers.tech/176',
+    'dsn': os.environ.get('SENTRY_DSN', '')
 }
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

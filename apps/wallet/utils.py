@@ -6,6 +6,7 @@ from django.utils.timezone import now
 from pytezos.operation.result import OperationResult
 import json
 import traceback
+import time
 
 MESSAGE_STRUCTURE = {
     "prim": "pair",
@@ -140,6 +141,7 @@ def read_nonce_from_chain(address):
 
 def sync_to_blockchain(is_dry_run=True, _async=False):
     print('starting sync')
+    time.sleep(settings.BLOCKCHAIN_SYNC_WAIT_TIME)
     from apps.wallet.models import Wallet, MetaTransaction, Transaction, WalletPublicKeyTransferRequest, TRANSACTION_STATES
 
     pytezos_client = pytezos.using(

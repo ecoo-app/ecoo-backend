@@ -99,6 +99,8 @@ k8s-deploy-development:
     - find k8s -type f -name \*.yaml -exec sed -i "s|__ENCRYPTION_KEY__|"$ENCRYPTION_KEY"|g" {} +
     - find k8s -type f -name \*.yaml -exec sed -i "s|__MAILJET_SMS_TOKEN__|"$MAILJET_SMS_TOKEN"|g" {} +
 
+    # SENTRY
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__SENTRY_DSN__|"$SENTRY_DSN_DEV"|g" {} +
 
     - kubectl apply -f k8s/common/namespace.yaml
     - kubectl apply -f k8s/common/secret.yaml
@@ -158,6 +160,9 @@ k8s-deploy-production:
     # MAILJET
     - find k8s -type f -name \*.yaml -exec sed -i "s|__ENCRYPTION_KEY__|"$ENCRYPTION_KEY"|g" {} +
     - find k8s -type f -name \*.yaml -exec sed -i "s|__MAILJET_SMS_TOKEN__|"$MAILJET_SMS_TOKEN"|g" {} +
+
+    # SENTRY
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__SENTRY_DSN__|"$SENTRY_DSN_PROD"|g" {} +
 
     - kubectl apply -f k8s/common/namespace.yaml
     - kubectl apply -f k8s/common/secret.yaml

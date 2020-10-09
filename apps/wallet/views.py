@@ -41,7 +41,7 @@ class WalletListCreate(generics.ListCreateAPIView):
     filterset_fields = ['currency']
 
     def get_queryset(self):
-        return self.request.user.wallets
+        return self.request.user.wallets.exclude(state=WALLET_STATES.DEACTIVATED.value)
 
 
 class TransactionList(generics.ListAPIView):
