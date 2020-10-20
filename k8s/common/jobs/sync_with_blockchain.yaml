@@ -1,0 +1,24 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: ecoupon-blockchain-sync
+  namespace: __NAMESPACE_NAME__
+spec:
+  schedule: "10 3 * * *"
+  concurrencyPolicy: Replace
+  jobTemplate:
+    spec:
+      parallelism: 1
+      template:
+        spec:
+          containers:
+            - name: ecoupon-blockchain-sync
+              image: __TO_BE_REPLACED_BY_IMAGE_TAG__
+              imagePullPolicy: IfNotPresent
+              command: ["/bin/bash", "-c", "python /code/manage.py sync_with_blockchain"]
+              envFrom:
+                - configMapRef:
+                    name:  __NAMESPACE_NAME__-config-map
+                - secretRef:
+                    name:  __NAMESPACE_NAME__-secret
+          restartPolicy: Never

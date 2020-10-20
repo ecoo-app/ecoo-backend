@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: __NAMESPACE_NAME__-backend
+  namespace: __NAMESPACE_NAME__
+spec:
+  selector:
+    matchLabels:
+      app: __NAMESPACE_NAME__-backend
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: __NAMESPACE_NAME__-backend
+    spec:
+      containers:
+      - image: __TO_BE_REPLACED_BY_IMAGE_TAG__
+        command: ["/bin/bash", "-c", "python /code/manage.py migrate; python /code/manage.py collectstatic --noinput; python /code/manage.py compilemessages -l de; uvicorn project.asgi:application --host 0.0.0.0;"]
+        imagePullPolicy: IfNotPresent
+        name: __NAMESPACE_NAME__-backend
+        envFrom:
+        - configMapRef:
+            name: __NAMESPACE_NAME__-config-map
+        - secretRef:
+            name: __NAMESPACE_NAME__-secret  
+        ports:
+          - containerPort: 8000
+        readinessProbe:
+          httpGet:
+            path: /admin/
+            port: 8000
+          initialDelaySeconds: 30
+          timeoutSeconds: 30
+        livenessProbe:
+          httpGet:
+            path: /admin/
+            port: 8000
+          initialDelaySeconds: 30
+          timeoutSeconds: 30
+      restartPolicy: Always
+
+status: {}

@@ -1,0 +1,740 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-10-09 11:44+0000\n"
+"PO-Revision-Date: 2020-09-10 23:59+0200\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 2.3\n"
+
+#: apps/currency/apps.py:7 apps/currency/models.py:32 apps/wallet/forms.py:9
+msgid "Currency"
+msgstr "Währung"
+
+#: apps/currency/models.py:10 apps/profiles/models.py:40
+#: apps/verification/models.py:50
+msgid "Name"
+msgstr "Name"
+
+#: apps/currency/models.py:12
+msgid "Symbol"
+msgstr "Symbol"
+
+#: apps/currency/models.py:13
+msgid "Token Id"
+msgstr "Token ID"
+
+#: apps/currency/models.py:14
+msgid "Decimals"
+msgstr "Dezimalstellen"
+
+#: apps/currency/models.py:17
+msgid "Allow minting"
+msgstr "Minting zulassen"
+
+#: apps/currency/models.py:18
+msgid "Campaign end"
+msgstr "Kampagne start"
+
+#: apps/currency/models.py:20
+msgid "Claim deadline"
+msgstr "Spätestes Einlösungsdatum"
+
+#: apps/currency/models.py:22
+msgid "Starting capital"
+msgstr "Startbetrag"
+
+#: apps/currency/models.py:23 apps/profiles/filters.py:16
+msgid "Max claims"
+msgstr "Maximale Anzahl Einlösungen"
+
+#: apps/currency/models.py:33
+msgid "Currencies"
+msgstr "Währungen"
+
+#: apps/currency/models.py:43
+msgid "Account name"
+msgstr "Kontoname"
+
+#: apps/currency/models.py:45
+msgid "clearing number"
+msgstr "Clearingnummer"
+
+#: apps/currency/models.py:46 apps/wallet/models.py:404
+msgid "IBAN"
+msgstr "IBAN"
+
+#: apps/currency/models.py:48
+msgid "Notes for payout"
+msgstr "Auszahlungsmitteilung"
+
+#: apps/currency/models.py:51
+msgid "PayoutAccount"
+msgstr "Auszahlungskonto"
+
+#: apps/currency/models.py:52
+msgid "PayoutAccounts"
+msgstr "Auszahlungskontos"
+
+#: apps/custom_auth/views.py:52
+msgid "Invalid token"
+msgstr "ungültiges Token"
+
+#: apps/profiles/admin.py:50
+msgid "{} User Profiles verified"
+msgstr "{} Benutzerprofile verifiziert"
+
+#: apps/profiles/admin.py:53
+msgid "All User Profiles were already verified"
+msgstr "Alle Benutzerprofile waren bereits verifiziert"
+
+#: apps/profiles/admin.py:56
+msgid "Verify users"
+msgstr "Benutzerprofile verifizieren"
+
+#: apps/profiles/admin.py:83
+msgid "{} Company Profiles verified"
+msgstr "{} Firmenprofile verifiziert"
+
+#: apps/profiles/admin.py:86
+msgid "All Company Profiles were already verified"
+msgstr "Alle Firmenprofile waren bereits verifiziert"
+
+#: apps/profiles/admin.py:89
+msgid "Verify companies"
+msgstr "Firmenprofile verifizieren"
+
+#: apps/profiles/filters.py:8
+msgid "User Verification Level"
+msgstr "Benutzerverifikation"
+
+#: apps/profiles/filters.py:13 apps/profiles/models.py:28
+#: apps/wallet/models.py:39
+msgid "Unverified"
+msgstr "Unverifiziert"
+
+#: apps/profiles/filters.py:14 apps/profiles/models.py:30
+msgid "Verified (PIN verification pending)"
+msgstr "Verifiziert (PIN Verifizierung ausstehend)"
+
+#: apps/profiles/filters.py:15 apps/profiles/models.py:31
+#: apps/wallet/models.py:41
+msgid "Verified"
+msgstr "Verifiziert"
+
+#: apps/profiles/filters.py:31
+msgid "Company Verification Level"
+msgstr "Firmenverifikation"
+
+#: apps/profiles/models.py:32 apps/verification/models.py:34
+msgid "Max Claims"
+msgstr "Maximale Anzahl Einlösungen"
+
+#: apps/profiles/models.py:38 apps/profiles/models.py:110
+#: apps/wallet/models.py:48
+msgid "Owner"
+msgstr "Besitzer"
+
+#: apps/profiles/models.py:41
+msgid "uid"
+msgstr "Uid"
+
+#: apps/profiles/models.py:44 apps/profiles/models.py:117
+#: apps/verification/models.py:55 apps/verification/models.py:73
+msgid "Street"
+msgstr "Strasse"
+
+#: apps/profiles/models.py:46 apps/verification/models.py:57
+#: apps/verification/models.py:74
+msgid "Town"
+msgstr "Stadt"
+
+#: apps/profiles/models.py:48 apps/verification/models.py:59
+#: apps/verification/models.py:76
+msgid "Postal code"
+msgstr "Postleitzahl"
+
+#: apps/profiles/models.py:51
+msgid "Not a valid swiss phone number"
+msgstr "Keine korrekte schweizer Telephonnummer"
+
+#: apps/profiles/models.py:54
+msgid "Wallet"
+msgstr "Wallet Id"
+
+#: apps/profiles/models.py:68 apps/profiles/models.py:152
+msgid "Verification status"
+msgstr "Verifizierungsstatus"
+
+#: apps/profiles/models.py:76
+msgid "Only company wallets can be attached to company profiles"
+msgstr "Nur Firmenwallets können mit Firmenprofilen verknüpft werden"
+
+#: apps/profiles/models.py:81 apps/profiles/models.py:171
+msgid "You can only attach a wallet you own to this profile"
+msgstr "Nur eigene Wallets können verbunden werden mit dem Profil"
+
+#: apps/profiles/models.py:97
+msgid "Cannot generate same companyprofile twice"
+msgstr "Ein identisches companyprofile existiert schon"
+
+#: apps/profiles/models.py:102
+msgid "Company Profile"
+msgstr "Firmenprofil"
+
+#: apps/profiles/models.py:103
+msgid "Company Profiles"
+msgstr "Firmenprofile"
+
+#: apps/profiles/models.py:113 apps/verification/models.py:70
+msgid "Firstname"
+msgstr "Vorname"
+
+#: apps/profiles/models.py:114 apps/verification/models.py:71
+msgid "Lastname"
+msgstr "Nachname"
+
+#: apps/profiles/models.py:119
+msgid "City"
+msgstr "Stadt"
+
+#: apps/profiles/models.py:121
+msgid "Postcode"
+msgstr "Postleitzahl"
+
+#: apps/profiles/models.py:124
+msgid "Phonenumber"
+msgstr "Telefonnummer"
+
+#: apps/profiles/models.py:124
+msgid "Format: +41 7X XXX XX XX"
+msgstr "Format: +41 7X XXX XX XX"
+
+#: apps/profiles/models.py:125
+msgid "Birthdate"
+msgstr "Geburtsdatum"
+
+#: apps/profiles/models.py:130
+msgid "Place of origin"
+msgstr "Heimatort"
+
+#: apps/profiles/models.py:161
+msgid "Only Swiss mobile numbers are allowed"
+msgstr "Nur Schweizer Nummern sind erlaubt"
+
+#: apps/profiles/models.py:166
+msgid "Only consumer wallets can be attached to user profiles"
+msgstr ""
+"Nur Konsumenten Wallets können mit einem Benutzerprofil verknüpft werden."
+
+#: apps/profiles/models.py:186
+msgid "Cannot generate same userprofile twice"
+msgstr "Ein identisches userprofile existiert schon"
+
+#: apps/profiles/models.py:191
+msgid "User Profile"
+msgstr "Benutzerprofil"
+
+#: apps/profiles/models.py:192
+msgid "User Profiles"
+msgstr "Benutzerprofile"
+
+#: apps/profiles/serializers.py:21 apps/profiles/serializers.py:45
+msgid "Currency deadline in the past"
+msgstr "Der Rückforderungszeitraum ist abgelaufen."
+
+#: apps/profiles/serializers.py:26 apps/profiles/serializers.py:50
+msgid "Does not belong to user"
+msgstr "Das Profil gehört nicht Ihnen."
+
+#: apps/verification/admin.py:47 apps/verification/admin.py:53
+#, python-format
+msgid "%d entry updated."
+msgstr "%d Eintrag aktualisiert."
+
+#: apps/verification/admin.py:48 apps/verification/admin.py:54
+#, python-format
+msgid "%d entries updated."
+msgstr "%d Einträge aktualisiert."
+
+#: apps/verification/admin.py:60
+msgid "Approve selected verification entries and transfer money"
+msgstr "Bestätige ausgewählte Verifikationen und sende Geld"
+
+#: apps/verification/admin.py:84
+msgid "Line Nr {} is invalid:{}"
+msgstr "Zeile {} ist ungültig:{}"
+
+#: apps/verification/admin.py:124
+msgid "At least one item required."
+msgstr "Mindestens ein Eintrag ist erforderlich."
+
+#: apps/verification/admin.py:157
+msgid "create paper wallet"
+msgstr "Papier Wallet erstellen"
+
+#: apps/verification/admin.py:158
+msgid "cannot create paper wallet"
+msgstr "Papier Wallet kann nicht erstellt werden"
+
+#: apps/verification/admin.py:160 apps/wallet/models.py:209
+msgid "Paper wallet"
+msgstr "Papier Wallet"
+
+#: apps/verification/apps.py:7
+msgid "Verification"
+msgstr "Verifikation"
+
+#: apps/verification/forms.py:8
+msgid "CSV file"
+msgstr "CSV Datei"
+
+#: apps/verification/models.py:30
+msgid "Open"
+msgstr "Offen"
+
+#: apps/verification/models.py:31 apps/wallet/models.py:40
+msgid "Pending"
+msgstr "Ausstehend"
+
+#: apps/verification/models.py:32
+msgid "Claimed"
+msgstr "Eingelöst"
+
+#: apps/verification/models.py:33
+msgid "Failed"
+msgstr "Fehlgeschlagen"
+
+#: apps/verification/models.py:40 apps/wallet/models.py:62
+#: apps/wallet/models.py:236 apps/wallet/models.py:400
+msgid "State"
+msgstr "Status"
+
+#: apps/verification/models.py:52
+msgid "Uid"
+msgstr "Uid"
+
+#: apps/verification/models.py:62
+msgid "Company verification"
+msgstr "Firmenverifikation"
+
+#: apps/verification/models.py:63
+msgid "Company verifications"
+msgstr "Firmenverifikationen"
+
+#: apps/verification/models.py:78
+msgid "Date of birth"
+msgstr "Geburtsdatum"
+
+#: apps/verification/models.py:81
+msgid "User verification"
+msgstr "Benutzerverifikation"
+
+#: apps/verification/models.py:82
+msgid "User verifications"
+msgstr "Benutzerverifikationen"
+
+#: apps/verification/models.py:88 apps/verification/models.py:130
+msgid "Pin"
+msgstr "Pin"
+
+#: apps/verification/models.py:120
+msgid "Preview"
+msgstr "Vorschau"
+
+#: apps/verification/models.py:123
+msgid "Address pin verification"
+msgstr "Adresspin Verifikation"
+
+#: apps/verification/models.py:124
+msgid "Address pin verifications"
+msgstr "Adresspin Verifikationen"
+
+#: apps/verification/models.py:142
+msgid "You are retrying too fast, please wait for {} seconds"
+msgstr ""
+"Sie wiederholen den Versuch zu schnell, bitte warten Sie für {} Sekunden"
+
+#: apps/verification/models.py:150
+msgid "SMS pin verification"
+msgstr "SMS Verifikation"
+
+#: apps/verification/models.py:151
+msgid "SMS pin verifications"
+msgstr "SMS Verifikationen"
+
+#: apps/verification/templates/admin/import_csv.html:16
+#: apps/verification/templates/admin/import_csv.html:38
+msgid "Import"
+msgstr "Import"
+
+#: apps/verification/templates/admin/import_csv.html:27
+msgid "Template"
+msgstr "Vorlage"
+
+#: apps/verification/views.py:35 apps/verification/views.py:49
+#: apps/verification/views.py:74
+msgid "The profile does not belong to you"
+msgstr "Das Profil gehört nicht Ihnen."
+
+#: apps/verification/views.py:42
+msgid ""
+"There is no pin verification open for the given user profile at this time"
+msgstr "Es gibt keine offene PIN Verification für das ausgewählte Profil"
+
+#: apps/verification/views.py:67
+msgid "PIN did not match, we resent a new one"
+msgstr "Der PIN ist nicht korrekt, ein neuer wurde versendet."
+
+#: apps/verification/views.py:86
+msgid "PIN did not match"
+msgstr "Pin passt nicht"
+
+#: apps/wallet/admin.py:81
+msgid "Download QR-Code Zip"
+msgstr "QR-Codes als Zip herunterladen"
+
+#: apps/wallet/admin.py:117
+msgid "Download QR-Code pdf"
+msgstr "QR-Codes als PDF herunterladen"
+
+#: apps/wallet/admin.py:143
+msgid "{} Wallets generated"
+msgstr "{} Wallets generiert"
+
+#: apps/wallet/admin.py:180
+msgid "Retry failed transactions"
+msgstr "Neuversuch von zurückgewiesenen Transaktionen"
+
+#: apps/wallet/admin.py:186
+#, fuzzy
+#| msgid "Meta transaction"
+msgid "Force transaction to done"
+msgstr "Zwinge Transaktion zu gemacht"
+
+#: apps/wallet/admin.py:228
+msgid "Only open cashout out requests can be used in this action"
+msgstr "Nur offene Auszahlungsanfragen können diese Aktion durchführen"
+
+#: apps/wallet/admin.py:232
+msgid "Only settled (done) transactions can be used in this action"
+msgstr "Nur abgeschlossene Transaktionen können diese Aktion durchführen"
+
+#: apps/wallet/admin.py:265
+msgid "Please enter a correct payment date"
+msgstr "Bitte korrektes Zahlungsdatum angeben"
+
+#: apps/wallet/admin.py:272
+#: apps/wallet/templates/admin/generate_payout_file.html:16
+#: apps/wallet/templates/admin/generate_payout_file.html:47
+msgid "Generate Payout XML"
+msgstr "Auszahlungsdatei (XML) generieren"
+
+#: apps/wallet/forms.py:8 apps/wallet/models.py:233
+msgid "Amount"
+msgstr "Anzahl"
+
+#: apps/wallet/models.py:42
+msgid "Deactivated"
+msgstr "Deaktiviert"
+
+#: apps/wallet/models.py:46
+msgid "Consumer"
+msgstr "Konsument"
+
+#: apps/wallet/models.py:47
+msgid "Company"
+msgstr "Firma"
+
+#: apps/wallet/models.py:56
+msgid "Wallet Id"
+msgstr "Wallet Id"
+
+#: apps/wallet/models.py:58
+msgid "Publickey"
+msgstr "Publickey"
+
+#: apps/wallet/models.py:60
+msgid "Category"
+msgstr "Kategorie"
+
+#: apps/wallet/models.py:122
+msgid "Public key is not in valid format"
+msgstr "Das Format des Public Key ist nicht korrekt"
+
+#: apps/wallet/models.py:133
+msgid "Privatekey"
+msgstr "Privatekey"
+
+#: apps/wallet/models.py:210
+msgid "Paper wallets"
+msgstr "Papier Wallets"
+
+#: apps/wallet/models.py:230
+msgid "From Wallet"
+msgstr "Sender Wallet"
+
+#: apps/wallet/models.py:232
+msgid "To Wallet"
+msgstr "Empfänger Wallet"
+
+#: apps/wallet/models.py:239
+msgid "Submitted to chain"
+msgstr "An Blockchain gesendet"
+
+#: apps/wallet/models.py:242
+msgid "Operation hash"
+msgstr "Blockchain Transaktionshash"
+
+#: apps/wallet/models.py:245
+msgid "Notes"
+msgstr "Notizen"
+
+#: apps/wallet/models.py:278
+msgid ""
+"Wallet transfer ongoing for destination wallet, cannot send funds to this "
+"wallet at the moment."
+msgstr ""
+"Es gibt nicht abgeschlossene Transaktionen zum Ziel Wallet, bitte später "
+"nochmals versuchen."
+
+#: apps/wallet/models.py:281
+msgid "Currency must allow minting if you want to mint"
+msgstr "Währung erlaubt kein minting"
+
+#: apps/wallet/models.py:284
+msgid "Amount must be > 0"
+msgstr "Anzahl muss grösser als 0 sein"
+
+#: apps/wallet/models.py:290
+msgid "Balance of from_wallet must be greater than amount"
+msgstr ""
+"Kontostand vom Sender Wallet muss grösser als der zu sendende Betrag sein"
+
+#: apps/wallet/models.py:294 apps/wallet/models.py:352
+#: apps/wallet/models.py:354
+msgid "\"From wallet\" and \"to wallet\" need to use same currency"
+msgstr "Sender und Empfänger Wallet müssen die gleiche Währung haben"
+
+#: apps/wallet/models.py:297
+msgid ""
+"Wallet transfer ongoing for source wallet, cannot send funds from this "
+"wallet at the moment."
+msgstr ""
+"Das Sender Wallet hat offene Transaktionen, bitte versuchen Sie es später "
+"nochmals."
+
+#: apps/wallet/models.py:300
+msgid "Only verified addresses can send money"
+msgstr "Nur verifizierte Adressen können Geld senden"
+
+#: apps/wallet/models.py:317 apps/wallet/models.py:398
+msgid "Transaction"
+msgstr "Transaktion"
+
+#: apps/wallet/models.py:318
+msgid "Transactions"
+msgstr "Transaktionen"
+
+#: apps/wallet/models.py:340
+msgid "Metatransaction always must have from"
+msgstr "Transaktion muss ein Sender haben"
+
+#: apps/wallet/models.py:342
+msgid "Nonce must be > 0"
+msgstr "Nonce muss grösser als 0 sein"
+
+#: apps/wallet/models.py:348
+msgid "Nonce must be 1 higher than from_wallet's last meta transaction nonce"
+msgstr "Nonce muss grösser als die letzte Nonce des Sender Wallets sein"
+
+#: apps/wallet/models.py:366
+msgid "Signature is invalid"
+msgstr "Signatur ist invalid"
+
+#: apps/wallet/models.py:375
+msgid "Meta transaction"
+msgstr "Meta Transaktion"
+
+#: apps/wallet/models.py:376
+msgid "Meta transactions"
+msgstr "Meta Transaktionen"
+
+#: apps/wallet/models.py:402
+msgid "Beneficiary name"
+msgstr "Name des Begünstigten"
+
+#: apps/wallet/models.py:412
+msgid "Iban is incorrect"
+msgstr "IBAN ist inkorrekt"
+
+#: apps/wallet/models.py:417
+msgid ""
+"Cash out only possible with transactions going to the owner wallet of the "
+"currency"
+msgstr "Auszahlung nur möglich zur Besitzer Wallet der Währung"
+
+#: apps/wallet/models.py:430
+msgid "Cash out request"
+msgstr "Auszahlungsanfrage"
+
+#: apps/wallet/models.py:431
+msgid "Cash out requests"
+msgstr "Auszahlungsanfragen"
+
+#: apps/wallet/templates/admin/generate_payout_file.html:20
+#, fuzzy, python-format
+#| msgid ""
+#| "\n"
+#| "                        You are about to generate a payout XML containing "
+#| "%(total_requests)s transactions. \n"
+#| "                        The total amount is going to be "
+#| "%(total_amount_formatted)s CHF. The actual beneficiaries are:\n"
+#| "                    "
+msgid ""
+"\n"
+"                        You are about to generate a payout XML containing "
+"%(total_requests)s transactions. \n"
+"                        The total amount is going to be "
+"%(total_amount_formatted)s CHF. The actual beneficiaries are:\n"
+"                    "
+msgstr ""
+"\n"
+"                        You are about to generate a payout XML containing "
+"%(total_requests)s transactions. \n"
+"                        The total amount is going to be %(total_amount)s. "
+"The actual beneficiaries are:\n"
+"                        \n"
+"                    "
+
+#: apps/wallet/templates/admin/generate_payout_file.html:35
+msgid "Please enter the payment date below:"
+msgstr "Bitte Auszahlungsdatum eingeben:"
+
+#: apps/wallet/templates/admin/generate_wallets.html:16
+msgid "Generate Wallets"
+msgstr "Wallets generieren"
+
+#: apps/wallet/templates/admin/generate_wallets.html:26
+msgid "Generate"
+msgstr "Generieren"
+
+#: project/admin.py:21
+msgid "Import Users"
+msgstr "Benutzer importieren"
+
+#: project/admin.py:27
+msgid "Import Companies"
+msgstr "Firmen importieren"
+
+#: project/base_settings.py:147
+msgid "English"
+msgstr "Englisch"
+
+#: project/base_settings.py:148
+msgid "German"
+msgstr "Deutsch"
+
+#: templates/admin/base.html:8
+msgid "Documentation"
+msgstr "Dokumentation"
+
+#: templates/admin/base.html:12
+msgid "Change password"
+msgstr "Passwort ändern"
+
+#: templates/admin/base.html:14
+msgid "Log out"
+msgstr "Ausloggen"
+
+#~ msgid "paper wallet"
+#~ msgstr "Papier Wallet"
+
+#~ msgid "Address needs to be filled out completely"
+#~ msgstr "Adresse muss komplett ausgefüllt sein"
+
+#~ msgid "Either uid or owner information has to be filled out"
+#~ msgstr "Uid oder Besiterinformation muss ausgefüllt sein"
+
+#~ msgid "Requested"
+#~ msgstr "Angefordert"
+
+#~ msgid "Claim limit reached"
+#~ msgstr "Einlösungslimit erreicht"
+
+#~ msgid "Tried to claim again"
+#~ msgstr "Wiederholter Einlöseversuch"
+
+#~ msgid "Verification Entries"
+#~ msgstr "Verifikationseinträge"
+
+#~ msgid "Text"
+#~ msgstr "Text"
+
+#~ msgid "Boolean"
+#~ msgstr "Ja/Nein"
+
+#~ msgid "Date"
+#~ msgstr "Datum"
+
+#~ msgid "Number"
+#~ msgstr "Nummer"
+
+#~ msgid "Input type"
+#~ msgstr "Eingabetyp"
+
+#~ msgid "CSV Column"
+#~ msgstr "CSV Spalte"
+
+#~ msgid "Verification input"
+#~ msgstr "Verifikationseingabe"
+
+#~ msgid "Data"
+#~ msgstr "Daten"
+
+#~ msgid "Verification input data"
+#~ msgstr "Verifikationdaten"
+
+#~ msgid "Owner name"
+#~ msgstr "Besitzername"
+
+#~ msgid "Owner address"
+#~ msgstr "Besiteradresse"
+
+#~ msgid "Owner telephone number"
+#~ msgstr "Besitzer Telefonnummer"
+
+#~ msgid "Receiving wallet"
+#~ msgstr "Empfänger Wallet"
+
+#~ msgid "Address"
+#~ msgstr "Adresse"
+
+#~ msgid "Language"
+#~ msgstr "Sprache"
+
+#~ msgid "With this state the receiving_wallet needs to be set"
+#~ msgstr "In diesem Status muss einen Wallet Empfängeradresse gesetzt sein"
+
+#~ msgid "Please provide a CSV file with the following columns:"
+#~ msgstr "Für den Import wird eine CSV Datei mit folgenden Spalten benötigt:"
+
+#~ msgid "Verification could not be done"
+#~ msgstr "Verifikation konnte nicht abgeschlossen werden"
+
+#~ msgid "You are not the owner of the company"
+#~ msgstr "Sie sind nicht der Besitzer der Firma"
+
+#~ msgid "View site"
+#~ msgstr "Seite Ansehen"

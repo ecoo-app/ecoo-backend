@@ -1,0 +1,216 @@
+variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+    GOOGLE_TAG: eu.gcr.io/papers-kubernetes/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_COMMIT_SHA
+    GOOGLE_TAG_LATEST: eu.gcr.io/papers-kubernetes/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:latest
+  
+image: tmaier/docker-compose:latest
+  
+services:
+  - docker:dind
+ 
+stages:
+  - build
+  - test
+  - publish
+  - deploy
+  - provision
+  
+build:
+  stage: build
+  script:
+    - docker build -t $GOOGLE_TAG .
+  tags:
+    - docker
+
+test:
+  stage: test
+  script:
+    
+    - docker run $GOOGLE_TAG python manage.py test
+  tags:
+    - docker
+    
+publish:
+  stage: publish
+  image: google/cloud-sdk
+  before_script:
+    - echo $GCLOUD_GOOGLE_KEY > key.json
+    - gcloud auth activate-service-account $GCLOUD_ACCOUNT --key-file key.json
+    - gcloud config set account $GCLOUD_ACCOUNT
+    - gcloud config set compute/zone $GCLOUD_ZONE
+    - gcloud config set project $GCLOUD_PROJECT
+    - gcloud auth configure-docker
+  script:
+    - docker tag $GOOGLE_TAG $GOOGLE_TAG_LATEST
+    - docker push $GOOGLE_TAG
+    - docker push $GOOGLE_TAG_LATEST
+  only:
+    - master
+    - develop
+  tags:
+    - docker
+ 
+k8s-deploy-development:
+  stage: deploy
+  only:
+    - master
+    - develop
+  when: manual
+  image: google/cloud-sdk
+  before_script:
+    - echo $GCLOUD_GOOGLE_KEY > key.json
+    - gcloud auth activate-service-account $GCLOUD_ACCOUNT --key-file key.json
+    - gcloud config set account $GCLOUD_ACCOUNT
+    - gcloud config set project $GCLOUD_PROJECT
+    - gcloud config set compute/zone $GCLOUD_ZONE_DEVELOPMENT
+    - gcloud container clusters get-credentials papers-cluster-development
+  script:
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__TO_BE_REPLACED_BY_IMAGE_TAG__|"$GOOGLE_TAG"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__NAMESPACE_NAME__|"$NAMESPACE"|g" {} +
+
+    # DJANGO
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__DJANGO_DB_USER__|"$DJANGO_DB_USER_DEVELOPMENT"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__DJANGO_DB_PASSWORD__|"$DJANGO_DB_PASSWORD_DEVELOPMENT"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__DJANGO_DB_NAME_DEVELOPMENT__|"$DJANGO_DB_NAME_DEVELOPMENT"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__DJANGO_SECRET_KEY__|"$DJANGO_SECRET_KEY_DEV"|g" {} +
+
+    # POST API
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__POST_CLIENT_ID__|"$POST_CLIENT_ID"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__POST_CLIENT_SECRET__|"$POST_CLIENT_SECRET"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__POST_CAMPAIGN_KEY__|"$POST_CAMPAIGN_KEY"|g" {} +
+
+    # TEZOS
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__TEZOS_ADMIN_ACCOUNT_PRIVATE_KEY__|"$TEZOS_ADMIN_ACCOUNT_PRIVATE_KEY_DEV"|g" {} +
+
+    # OAUTH APPLE
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__APPLE_ID_CLIENT__|"$APPLE_ID_CLIENT_DEV"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__APPLE_ID_TEAM__|"$APPLE_ID_TEAM_DEV"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__APPLE_ID_KEY__|"$APPLE_ID_KEY_DEV"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__APPLE_ID_SECRET__|"$APPLE_ID_SECRET_DEV"|g" {} +
+    
+    # OAUTH GOOGLE
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__GOOGLE_OAUTH2_KEY__|"$GOOGLE_OAUTH2_DEV_KEY"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__GOOGLE_OAUTH2_SECRET__|"$GOOGLE_OAUTH2_DEV_SECRET"|g" {} +
+
+    # FCM
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__FCM_KEY__|"$FCM_KEY"|g" {} +
+
+    # MAILJET
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__ENCRYPTION_KEY__|"$ENCRYPTION_KEY"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__MAILJET_SMS_TOKEN__|"$MAILJET_SMS_TOKEN"|g" {} +
+
+    # SENTRY
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__SENTRY_DSN__|"$SENTRY_DSN_DEV"|g" {} +
+
+    - kubectl apply -f k8s/common/namespace.yaml
+    - kubectl apply -f k8s/common/secret.yaml
+    - kubectl apply -f k8s/development/ --recursive
+    - kubectl apply -f k8s/common/ --recursive
+
+  tags:
+    - docker
+  environment: development
+  
+k8s-deploy-production:
+  stage: deploy
+  only:
+    - master
+    - develop
+  when: manual
+  image: google/cloud-sdk
+  before_script:
+    - echo $GCLOUD_GOOGLE_KEY > key.json
+    - gcloud auth activate-service-account $GCLOUD_ACCOUNT --key-file key.json
+    - gcloud config set account $GCLOUD_ACCOUNT
+    - gcloud config set project $GCLOUD_PROJECT
+    - gcloud config set compute/zone $GCLOUD_ZONE
+    - gcloud container clusters get-credentials papers-cluster-production
+  script:
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__TO_BE_REPLACED_BY_IMAGE_TAG__|"$GOOGLE_TAG"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__NAMESPACE_NAME__|"$NAMESPACE"|g" {} +
+    
+    # DJANGO
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__DJANGO_DB_USER__|"$DJANGO_DB_USER_PRODUCTION"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__DJANGO_DB_PASSWORD__|"$DJANGO_DB_PASSWORD_PRODUCTION"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__DJANGO_DB_NAME_PRODUCTION__|"$DJANGO_DB_NAME_PRODUCTION"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__DJANGO_SECRET_KEY__|"$DJANGO_SECRET_KEY_PROD"|g" {} +
+    
+    # POST API
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__POST_CLIENT_ID__|"$POST_CLIENT_ID"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__POST_CLIENT_SECRET__|"$POST_CLIENT_SECRET"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__POST_CAMPAIGN_KEY__|"$POST_CAMPAIGN_KEY"|g" {} +
+
+    # TEZOS
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__TEZOS_ADMIN_ACCOUNT_PRIVATE_KEY__|"$TEZOS_ADMIN_ACCOUNT_PRIVATE_KEY_PROD"|g" {} +
+    
+    
+    # OAUTH APPLE
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__APPLE_ID_CLIENT__|"$APPLE_ID_CLIENT_PROD"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__APPLE_ID_TEAM__|"$APPLE_ID_TEAM_PROD"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__APPLE_ID_KEY__|"$APPLE_ID_KEY_PROD"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__APPLE_ID_SECRET__|"$APPLE_ID_SECRET_PROD"|g" {} +
+    
+    # OAUTH GOOGLE
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__GOOGLE_OAUTH2_KEY__|"$GOOGLE_OAUTH2_PROD_KEY"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__GOOGLE_OAUTH2_SECRET__|"$GOOGLE_OAUTH2_PROD_SECRET"|g" {} +
+
+    # FCM
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__FCM_KEY__|"$FCM_KEY"|g" {} +
+
+    # MAILJET
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__ENCRYPTION_KEY__|"$ENCRYPTION_KEY"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__MAILJET_SMS_TOKEN__|"$MAILJET_SMS_TOKEN"|g" {} +
+
+    # SENTRY
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__SENTRY_DSN__|"$SENTRY_DSN_PROD"|g" {} +
+
+    - kubectl apply -f k8s/common/namespace.yaml
+    - kubectl apply -f k8s/common/secret.yaml
+    - kubectl apply -f k8s/production/ --recursive
+    - kubectl apply -f k8s/common/ --recursive
+  tags:
+    - docker
+  environment: production
+  
+provision-db-development:
+  stage: provision
+  only:
+    - develop
+    - master
+  when: manual
+  image: google/cloud-sdk
+  before_script:
+    - echo $GCLOUD_GOOGLE_KEY > key.json
+    - gcloud auth activate-service-account $GCLOUD_ACCOUNT --key-file key.json
+    - gcloud config set account $GCLOUD_ACCOUNT
+    - gcloud config set project $GCLOUD_PROJECT
+    - gcloud config set compute/zone $GCLOUD_ZONE_DEVELOPMENT
+    - gcloud container clusters get-credentials papers-cluster-development
+    - export STOLON_PROXY=$(kubectl get pods --all-namespaces | grep stolon-proxy | awk 'NR==1{print $2}')
+  script:
+    - kubectl exec -n development-postgresql $STOLON_PROXY -- bash -c "export PGPASSWORD=$PG_DEV_MASTER_PASSWORD && psql --host=localhost --username=$PG_DEV_MASTER_USERNAME postgres -c \"CREATE DATABASE $DJANGO_DB_NAME_DEVELOPMENT\""  || true
+    - kubectl exec -n development-postgresql $STOLON_PROXY -- bash -c "export PGPASSWORD=$PG_DEV_MASTER_PASSWORD && psql --host=localhost --username=$PG_DEV_MASTER_USERNAME postgres -c \"CREATE USER $DJANGO_DB_USER_DEVELOPMENT WITH ENCRYPTED PASSWORD '$DJANGO_DB_PASSWORD_DEVELOPMENT'\"" || true
+    - kubectl exec -n development-postgresql $STOLON_PROXY -- bash -c "export PGPASSWORD=$PG_DEV_MASTER_PASSWORD && psql --host=localhost --username=$PG_DEV_MASTER_USERNAME postgres -c \"GRANT ALL PRIVILEGES ON DATABASE $DJANGO_DB_NAME_DEVELOPMENT to $DJANGO_DB_USER_DEVELOPMENT\""
+  tags:
+    - docker   
+    
+provision-db-production:
+  stage: provision
+  only:
+    - master
+  when: manual
+  image: google/cloud-sdk
+  before_script:
+    - echo $GCLOUD_GOOGLE_KEY > key.json
+    - gcloud auth activate-service-account $GCLOUD_ACCOUNT --key-file key.json
+    - gcloud config set account $GCLOUD_ACCOUNT
+    - gcloud config set project $GCLOUD_PROJECT
+    - gcloud config set compute/zone $GCLOUD_ZONE
+    - gcloud container clusters get-credentials papers-cluster-production
+    - export STOLON_PROXY=$(kubectl get pods | grep stolon-proxy | awk 'NR==1{print $1}')
+  script:
+    - kubectl exec $STOLON_PROXY -- bash -c "export PGPASSWORD=$PG_PROD_MASTER_PASSWORD && psql --host=localhost --username=$PG_PROD_MASTER_USERNAME postgres -c \"CREATE DATABASE $DJANGO_DB_NAME_PRODUCTION\""  || true
+    - kubectl exec $STOLON_PROXY -- bash -c "export PGPASSWORD=$PG_PROD_MASTER_PASSWORD && psql --host=localhost --username=$PG_PROD_MASTER_USERNAME postgres -c \"CREATE USER $DJANGO_DB_USER_PRODUCTION WITH ENCRYPTED PASSWORD '$DJANGO_DB_PASSWORD_PRODUCTION'\"" || true
+    - kubectl exec $STOLON_PROXY -- bash -c "export PGPASSWORD=$PG_PROD_MASTER_PASSWORD && psql --host=localhost --username=$PG_PROD_MASTER_USERNAME postgres -c \"GRANT ALL PRIVILEGES ON DATABASE $DJANGO_DB_NAME_PRODUCTION to $DJANGO_DB_USER_PRODUCTION\""
+  tags:
+    - docker   

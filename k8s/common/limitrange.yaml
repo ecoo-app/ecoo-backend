@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: __NAMESPACE_NAME__-limitrange
+  namespace: __NAMESPACE_NAME__
+spec:
+  limits:
+  - default:
+      cpu: '1'
+      memory: '1000Mi'
+    defaultRequest:
+      cpu: '0.001'
+      memory: 150Mi
+    type: Container

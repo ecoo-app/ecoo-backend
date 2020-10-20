@@ -1,0 +1,40 @@
+[
+{
+    "model": "auth.group",
+    "pk": 1,
+    "fields": {
+        "name": "import",
+        "permissions": [
+            145,
+            148,
+            141,
+            144
+        ]
+    }
+},
+{
+    "model": "auth.group",
+    "pk": 2,
+    "fields": {
+        "name": "payout",
+        "permissions": [
+            117,
+            118,
+            120
+        ]
+    }
+},
+{
+    "model": "auth.group",
+    "pk": 3,
+    "fields": {
+        "name": "match",
+        "permissions": [
+            146,
+            148,
+            142,
+            144
+        ]
+    }
+}
+]
