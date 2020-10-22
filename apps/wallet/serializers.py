@@ -61,10 +61,10 @@ class TransactionSerializer(serializers.ModelSerializer):
     to_wallet = serializers.SlugRelatedField(many=False, read_only=False,
                                              slug_field='wallet_id', queryset=Wallet.objects.all())
 
-    def validate_from_wallet(self, value):
-        if value.owner != self.context['request'].user:
-            raise serializers.ValidationError("Does not belong to user")
-        return value
+    # def validate_from_wallet(self, value):
+    #     if value.owner != self.context['request'].user:
+    #         raise serializers.ValidationError("Does not belong to user")
+    #     return value
 
     class Meta:
         model = Transaction

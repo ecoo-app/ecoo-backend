@@ -768,3 +768,251 @@ class ProfileApiTest(APITestCase):
             pk=user_verification.pk)
         self.assertNotEqual(user_verification.state,
                             VERIFICATION_STATES.CLAIMED.value)
+
+
+class ProfileLookupTest(APITestCase):
+    pubkey_1 = 'edpkuvNy6TuQ2z8o9wnoaTtTXkzQk7nhegCHfxBc4ecsd4qG71KYNG'
+    pubkey_2 = 'edpkv75x1Rn8GZbGUU8eXqyur5sWxdJNazCq3eN4SW6J4ykp2XUNgC'
+
+    def setUp(self):
+        self.user = get_user_model().objects.create(
+            username="testuser", password="abcd")
+        self.user_2 = get_user_model().objects.create(
+            username="testuser_2", password="abcd")
+
+        self.currency = Currency.objects.create(
+            token_id=0, name="TEZ", symbol='tez', claim_deadline='2120-01-01', campaign_end='2120-01-01')
+        self.currency_2 = Currency.objects.create(
+            token_id=1, name="TEZ2", starting_capital=22, symbol='tez2', claim_deadline='2120-01-01', campaign_end='2120-01-01')
+
+        self.wallet_1 = Wallet.objects.create(owner=self.user, wallet_id=Wallet.generate_wallet_id(
+        ), public_key="edpkuWW8CKkKRD7VipUyggFFnUaCumbMKDBLzPRNtbDx9zG2PtMeRS", currency=self.currency)
+
+        self.wallet_1_1 = Wallet.objects.create(owner=self.user, wallet_id=Wallet.generate_wallet_id(
+        ), public_key="edpkuqDMtBwt45prqmLpjUTNNKUkKvy7i1xXvEkkHkDfAq6ihzMGtX", currency=self.currency)
+
+        self.wallet_1_2 = Wallet.objects.create(owner=self.user, wallet_id=Wallet.generate_wallet_id(
+        ), public_key="edpkuUwKji4CWfQchkf2F1X8VKbYXtgjarAmg7pn4Rhydf1YYzrDka", currency=self.currency, category=WALLET_CATEGORIES.COMPANY.value)
+
+        self.wallet_2 = Wallet.objects.create(owner=self.user_2, wallet_id=Wallet.generate_wallet_id(
+        ), public_key=self.pubkey_2, currency=self.currency)
+
+        Transaction.objects.create(
+            to_wallet=self.currency.owner_wallet, amount=2000)
+        Transaction.objects.create(
+            to_wallet=self.currency_2.owner_wallet, amount=2000)
+
+    def test_user_complete(self):
+        user_verification = UserVerification.objects.create(
+            first_name="Alessandro",
+            last_name="De Carli",
+            address_street="Sonnmattstr. 121",
+            address_postal_code="5242",
+            address_town="Birr",
+            date_of_birth="1989-06-24",
+        )
+
+        PlaceOfOrigin.objects.create(
+            place_of_origin='Baden AG',
+            user_verification=user_verification
+        )
+
+        UserProfile.objects.create(
+            owner=self.user,
+            first_name='Alessandro', last_name='De Carli', address_street="Sonnmattstr. 121",
+            address_postal_code="5242",
+            address_town="Birr",
+            date_of_birth="1989-06-24",
+            place_of_origin='Baden AG',
+            telephone_number='+41783285325',
+            wallet=self.wallet_1)
+
+        user_verification.refresh_from_db()
+        self.assertEquals(user_verification.state,
+                          VERIFICATION_STATES.PENDING.value)
+
+    def test_first_names1(self):
+        user_verification = UserVerification.objects.create(
+            first_name="Alessandro Lionel",
+            last_name="De Carli",
+            address_street="Sonnmattstr. 121",
+            address_postal_code="5242",
+            address_town="Birr",
+            date_of_birth="1989-06-24",
+        )
+
+        PlaceOfOrigin.objects.create(
+            place_of_origin='Baden AG',
+            user_verification=user_verification
+        )
+
+        UserProfile.objects.create(
+            owner=self.user,
+            first_name='Lionel', last_name='De Carli', address_street="Sonnmattstr. 121",
+            address_postal_code="5242",
+            address_town="Birr",
+            date_of_birth="1989-06-24",
+            place_of_origin='Baden AG',
+            telephone_number='+41783285325',
+            wallet=self.wallet_1)
+
+        user_verification.refresh_from_db()
+        self.assertEquals(user_verification.state,
+                          VERIFICATION_STATES.PENDING.value)
+
+    def test_first_names2(self):
+        user_verification = UserVerification.objects.create(
+            first_name="Alessandro Lionel",
+            last_name="De Carli",
+            address_street="Sonnmattstr. 121",
+            address_postal_code="5242",
+            address_town="Birr",
+            date_of_birth="1989-06-24",
+        )
+
+        PlaceOfOrigin.objects.create(
+            place_of_origin='Baden AG',
+            user_verification=user_verification
+        )
+
+        UserProfile.objects.create(
+            owner=self.user,
+            first_name='Lionel Alessandro', last_name='De Carli', address_street="Sonnmattstr. 121",
+            address_postal_code="5242",
+            address_town="Birr",
+            date_of_birth="1989-06-24",
+            place_of_origin='Baden AG',
+            telephone_number='+41783285325',
+            wallet=self.wallet_1)
+
+        user_verification.refresh_from_db()
+        self.assertEquals(user_verification.state,
+                          VERIFICATION_STATES.PENDING.value)
+
+    def test_first_names3(self):
+        user_verification = UserVerification.objects.create(
+            first_name="Alessandro Lionel",
+            last_name="De Carli",
+            address_street="Sonnmattstr. 121",
+            address_postal_code="5242",
+            address_town="Birr",
+            date_of_birth="1989-06-24",
+        )
+
+        PlaceOfOrigin.objects.create(
+            place_of_origin='Baden AG',
+            user_verification=user_verification
+        )
+
+        UserProfile.objects.create(
+            owner=self.user,
+            first_name='Lionel Alessandro Markus', last_name='De Carli', address_street="Sonnmattstr. 121",
+            address_postal_code="5242",
+            address_town="Birr",
+            date_of_birth="1989-06-24",
+            place_of_origin='Baden AG',
+            telephone_number='+41783285325',
+            wallet=self.wallet_1)
+
+        user_verification.refresh_from_db()
+        self.assertEquals(user_verification.state,
+                          VERIFICATION_STATES.OPEN.value)
+
+    @skip('Not implemented yet')
+    def test_last_names(self):
+        user_verification = UserVerification.objects.create(
+            first_name="Alessandro",
+            last_name="De Carli",
+            address_street="Sonnmattstr. 121",
+            address_postal_code="5242",
+            address_town="Birr",
+            date_of_birth="1989-06-24",
+        )
+
+        PlaceOfOrigin.objects.create(
+            place_of_origin='Baden AG',
+            user_verification=user_verification
+        )
+
+        UserProfile.objects.create(
+            owner=self.user,
+            first_name='Alessandro', last_name='Carli', address_street="Sonnmattstr. 121",
+            address_postal_code="5242",
+            address_town="Birr",
+            date_of_birth="1989-06-24",
+            place_of_origin='Baden AG',
+            telephone_number='+41783285325',
+            wallet=self.wallet_1)
+
+        user_verification.refresh_from_db()
+        self.assertEquals(user_verification.state,
+                          VERIFICATION_STATES.PENDING.value)
+
+    def test_company_lookup(self):
+        company_verification = CompanyVerification.objects.create(
+            name="Papers AG",
+            uid="12-3-4-3",
+            address_street="Sonnmattstr. 121",
+            address_postal_code="5242",
+            address_town="Birr"
+        )
+
+        CompanyProfile.objects.create(
+            owner=self.user,
+            name='bla',
+            address_street="Sonnmattstr. 121",
+            address_postal_code="5242",
+            address_town="Birr",
+            phone_number='+41783285325',
+            wallet=self.wallet_1_2,
+            uid='12-3-4-3'
+            )
+        
+        company_verification.refresh_from_db()
+        self.assertEquals(company_verification.state,
+                          VERIFICATION_STATES.PENDING.value)
+
+    def test_empty_names(self):
+        # completely empty names are prohibited by the model! 
+
+        user_verification = UserVerification.objects.create(
+            first_name="Alessandro Lionel",
+            last_name="De Carli",
+            address_street="Sonnmattstr. 121",
+            address_postal_code="5242",
+            address_town="Birr",
+            date_of_birth="1989-06-24",
+        )
+
+        PlaceOfOrigin.objects.create(
+            place_of_origin='Baden AG',
+            user_verification=user_verification
+        )
+
+        UserProfile.objects.create(
+            owner=self.user,
+            first_name=' ', last_name='De Carli', address_street="Sonnmattstr. 121",
+            address_postal_code="5242",
+            address_town="Birr",
+            date_of_birth="1989-06-24",
+            place_of_origin='Baden AG',
+            telephone_number='+41783285325',
+            wallet=self.wallet_1)
+
+        user_verification.refresh_from_db()
+        self.assertEquals(user_verification.state,
+                          VERIFICATION_STATES.OPEN.value)
+
+        UserProfile.objects.create(
+            owner=self.user,
+            first_name='Alessandro Lionel', last_name=' ', address_street="Sonnmattstr. 121",
+            address_postal_code="5242",
+            address_town="Birr",
+            date_of_birth="1989-06-24",
+            place_of_origin='Baden AG',
+            telephone_number='+41783285325',
+            wallet=self.wallet_1)
+
+        user_verification.refresh_from_db()
+        self.assertEquals(user_verification.state,
+                          VERIFICATION_STATES.OPEN.value)

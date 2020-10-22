@@ -1,7 +1,5 @@
 from django.contrib.auth import get_user_model
-from django.http import JsonResponse
-from django.shortcuts import render
-from rest_framework import generics, mixins, permissions, serializers, status
+from rest_framework import generics, mixins, permissions, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import AllowAny
