@@ -75,10 +75,10 @@ class Wallet(CurrencyOwnedMixin):
 
     @property
     def nonce(self):
-        if self.from_metatransactions.count() == 0:
+        if self.from_metatransactions.filter(from_public_key=self.public_key).count() == 0:
             return 0
         else:
-            return self.from_metatransactions.aggregate(Max('nonce'))['nonce__max']
+            return self.from_metatransactions.filter(from_public_key=self.public_key).aggregate(Max('nonce'))['nonce__max']
 
     @property
     def is_in_public_key_transfer(self):
@@ -320,7 +320,9 @@ class Transaction(UUIDModel):
 
 class MetaTransaction(Transaction):
     nonce = models.IntegerField()
-    signature = models.CharField(max_length=128)
+    signature = models.CharField(max_length=128, unique=True)
+    from_public_key = models.CharField(
+        _('Publickey'), blank=True, editable=False, max_length=60)
 
     def to_meta_transaction_dictionary(self):
         return {
@@ -335,6 +337,7 @@ class MetaTransaction(Transaction):
 
     def clean(self, *args, **kwargs):
         errors = {}
+        
         if self.is_mint_transaction:
             errors['from_wallet'] = ValidationError(
                 _('Metatransaction always must have from'))
@@ -342,7 +345,7 @@ class MetaTransaction(Transaction):
             errors['nonce'] = ValidationError(_('Nonce must be > 0'))
 
         if hasattr(self, 'from_wallet'):
-
+            
             if self.from_wallet and self.nonce != self.from_wallet.nonce+1:
                 errors['nonce'] = ValidationError(
                     _('Nonce must be 1 higher than from_wallet\'s last meta transaction nonce'))
@@ -358,7 +361,8 @@ class MetaTransaction(Transaction):
         except:
             pass
         if self.from_wallet and self.to_wallet:
-            key = pytezos.Key.from_encoded_key(self.from_wallet.public_key)
+            self.from_public_key = self.from_wallet.public_key
+            key = pytezos.Key.from_encoded_key(self.from_public_key)
             try:
                 key.verify(self.signature, message)
             except ValueError:
@@ -374,6 +378,7 @@ class MetaTransaction(Transaction):
         ordering = ['-created_at']
         verbose_name = _('Meta transaction')
         verbose_name_plural = _('Meta transactions')
+        #unique_together = ('nonce','public_key')
 
 
 class WalletPublicKeyTransferRequest(UUIDModel):

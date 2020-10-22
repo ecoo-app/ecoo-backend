@@ -160,6 +160,72 @@ class TransactionTestCase(TestCase):
         with self.assertRaises(ValidationError):
             Transaction.objects.create(to_wallet=self.wallet1, amount=100)
 
+class ComplexTransactionFlowsTestCase(TestCase):
+    def setUp(self):
+        self.currency = Currency.objects.create(token_id=0, name="test", symbol='test', claim_deadline='2120-01-01', campaign_end='2120-01-01')
+        self.key1 = pytezos.crypto.Key.generate()
+        self.key2 = pytezos.crypto.Key.generate()
+        self.wallet1 = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
+        ), public_key=self.key1.public_key(), currency=self.currency, state=WALLET_STATES.VERIFIED.value)
+        self.wallet2 = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
+        ), public_key=self.key2.public_key(), currency=self.currency, state=WALLET_STATES.VERIFIED.value)
+
+    def test_recovery_flow_with_history(self):
+        
+        Transaction.objects.create(to_wallet=self.wallet1, amount=100)
+        
+        meta_transaction1 = MetaTransaction(from_wallet=self.wallet1, to_wallet=self.wallet2, amount=10, nonce=1)
+        signature1 = self.key1.sign(pack_meta_transaction(meta_transaction1.to_meta_transaction_dictionary()))
+        meta_transaction1.signature = signature1
+        meta_transaction1.save()
+
+    
+        self.assertEqual(meta_transaction1.from_public_key, self.wallet1.public_key)
+        self.assertEqual(self.wallet1.balance, 90)
+        self.assertEqual(self.wallet2.balance, 10)
+        self.assertEqual(self.wallet1.nonce, 1)
+
+        meta_transaction2 = MetaTransaction(from_wallet=self.wallet1, to_wallet=self.wallet2, amount=10, nonce=2)
+        signature2 = self.key1.sign(pack_meta_transaction(meta_transaction2.to_meta_transaction_dictionary()))
+        meta_transaction2.signature = signature2
+        meta_transaction2.save()
+
+        self.assertEqual(meta_transaction1.from_public_key, self.wallet1.public_key)
+        self.assertEqual(self.wallet1.balance, 80)
+        self.assertEqual(self.wallet2.balance, 20)
+        self.assertEqual(self.wallet1.nonce, 2)
+
+        new_key1 = pytezos.crypto.Key.generate()
+
+        wallet_public_key_transfer_request = WalletPublicKeyTransferRequest.objects.create(
+            wallet=self.wallet1, old_public_key=self.wallet1.public_key, new_public_key=new_key1.public_key())
+
+        wallet_public_key_transfer_request.old_public_key = wallet_public_key_transfer_request.wallet.public_key
+        wallet_public_key_transfer_request.wallet.public_key = wallet_public_key_transfer_request.new_public_key
+        wallet_public_key_transfer_request.wallet.save()
+        wallet_public_key_transfer_request.state = TRANSACTION_STATES.DONE.value
+        wallet_public_key_transfer_request.notes = "Has no balance or was recovering to same pubkey, transferred offchain"
+        wallet_public_key_transfer_request.save()    
+
+        self.wallet1.refresh_from_db()
+        self.assertEqual(self.wallet1.nonce, 0)
+        meta_transaction2 = MetaTransaction(from_wallet=self.wallet1, to_wallet=self.wallet2, amount=10, nonce=3)
+        signature2 = new_key1.sign(pack_meta_transaction(meta_transaction2.to_meta_transaction_dictionary()))
+        meta_transaction2.signature = signature2
+        with self.assertRaises(ValidationError): # the nonce must reset because it's a new pubkey
+            meta_transaction2.save()
+        
+        meta_transaction3 = MetaTransaction(from_wallet=self.wallet1, to_wallet=self.wallet2, amount=10, nonce=1)
+        signature3 = new_key1.sign(pack_meta_transaction(meta_transaction3.to_meta_transaction_dictionary()))
+        meta_transaction3.signature = signature3
+        meta_transaction3.save()
+
+        self.assertEqual(meta_transaction3.from_public_key, self.wallet1.public_key)
+        self.assertEqual(self.wallet1.balance, 70)
+        self.assertEqual(self.wallet2.balance, 30)
+
+
+
 
 @skip
 class BlockchainSyncTestCase(TestCase):
