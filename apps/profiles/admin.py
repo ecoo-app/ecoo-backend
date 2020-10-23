@@ -1,12 +1,12 @@
 from django.contrib import admin, messages
-from apps.profiles.models import CompanyProfile, PROFILE_VERIFICATION_STAGES, UserProfile
+from apps.profiles.models import CompanyProfile, PROFILE_VERIFICATION_STAGES, UserProfile, PROFILE_STATES
 from django.utils.translation import ugettext_lazy as _
 import requests
 from django.conf import settings
 from django import forms
 import datetime
 from django.shortcuts import render
-from apps.profiles.filters import UserVerificationLevelFilter, CompanyVerificationLevelFilter
+from apps.profiles.filters import UserVerificationLevelFilter, CompanyVerificationLevelFilter, IsActiveFilter
 from apps.verification.models import CompanyVerification, PlaceOfOrigin, UserVerification, VERIFICATION_STATES
 from apps.wallet.models import Wallet, WALLET_STATES
 
@@ -32,13 +32,13 @@ def verify_users(modeladmin, request, queryset):
                 address_postal_code=user_profile.address_postal_code,
                 date_of_birth=user_profile.date_of_birth,
             )
-            PlaceOfOrigin.objects.create(place_of_origin=user_profile.place_of_origin, user_verification=user_verification) 
+            PlaceOfOrigin.objects.create(
+                place_of_origin=user_profile.place_of_origin, user_verification=user_verification)
             user_profile.save()
-        
+
         if user_profile.wallet.state != WALLET_STATES.VERIFIED.value:
-            user_profile.wallet.state=WALLET_STATES.VERIFIED.value
+            user_profile.wallet.state = WALLET_STATES.VERIFIED.value
             user_profile.wallet.save()
-       
 
         from apps.wallet.utils import create_claim_transaction
         create_claim_transaction(user_profile.wallet)
@@ -73,7 +73,7 @@ def verify_companies(modeladmin, request, queryset):
         company_profile.save()
 
         if company_profile.wallet.state != WALLET_STATES.VERIFIED.value:
-            company_profile.wallet.state=WALLET_STATES.VERIFIED.value
+            company_profile.wallet.state = WALLET_STATES.VERIFIED.value
             company_profile.wallet.save()
 
         modified += 1
@@ -89,6 +89,22 @@ def verify_companies(modeladmin, request, queryset):
 verify_companies.short_description = _('Verify companies')
 
 
+def deactivate_company_profile(modeladmin, request, queryset):
+    queryset.exclude(company_verification__state=VERIFICATION_STATES.CLAIMED.value).update(
+        state=PROFILE_STATES.DEACTIVATED.value)
+
+
+deactivate_company_profile.short_description = _('Deactivate Company Profile')
+
+
+def deactivate_user_profile(modeladmin, request, queryset):
+    queryset.exclude(user_verification__state=VERIFICATION_STATES.CLAIMED.value).update(
+        state=PROFILE_STATES.DEACTIVATED.value)
+
+
+deactivate_user_profile.short_description = _('Deactivate User Profile')
+
+
 class PreventDeleteWhenVerifiedMixin:
     def has_delete_permission(self, request, obj=None):
         if obj is not None:
@@ -102,8 +118,8 @@ class UserProfile(PreventDeleteWhenVerifiedMixin, admin.ModelAdmin):
                     'date_of_birth', 'owner', 'verification_stage_display', 'created_at']
     search_fields = ['first_name', 'last_name',
                      'address_street', 'telephone_number', 'date_of_birth', 'owner__username']
-    list_filter = [UserVerificationLevelFilter, 'created_at']
-    actions = [verify_users]
+    list_filter = [IsActiveFilter, UserVerificationLevelFilter, 'created_at']
+    actions = [deactivate_user_profile, verify_users]
     readonly_fields = ['created_at', ]
 
     def render_change_form(self, request, context, *args, **kwargs):
@@ -118,8 +134,9 @@ class CompanyProfile(PreventDeleteWhenVerifiedMixin, admin.ModelAdmin):
                     'owner', 'verification_stage_display', 'created_at']
     search_fields = ['name', 'uid',
                      'address_street', 'owner__username']
-    list_filter = [CompanyVerificationLevelFilter, 'created_at']
-    actions = [verify_companies]
+    list_filter = [IsActiveFilter,
+                   CompanyVerificationLevelFilter, 'created_at']
+    actions = [deactivate_company_profile, verify_companies]
     readonly_fields = ['created_at', ]
 
     def render_change_form(self, request, context, *args, **kwargs):

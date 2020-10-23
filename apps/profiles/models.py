@@ -32,6 +32,16 @@ PROFILE_VERIFICATION_STAGES_CHOICES = (
     (PROFILE_VERIFICATION_STAGES.MAX_CLAIMS.value, _('Max Claims')),
 )
 
+class PROFILE_STATES(Enum):
+    ACTIVE = 0
+    DEACTIVATED = 3
+
+
+PROFILE_STATE_CHOICES = (
+    (PROFILE_STATES.ACTIVE.value, _('Active')),
+    (PROFILE_STATES.DEACTIVATED.value, _('Deactivated')),
+)
+
 
 class CompanyProfile(UUIDModel):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_(
@@ -53,6 +63,10 @@ class CompanyProfile(UUIDModel):
     wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE,
                                related_name='company_profiles', verbose_name=_('Wallet'),)
 
+    state = models.IntegerField(
+        _('State'), default=PROFILE_STATES.ACTIVE.value, choices=PROFILE_STATE_CHOICES)
+
+
     def verification_stage(self):
         from apps.verification.models import VERIFICATION_STATES
         if hasattr(self, 'company_verification'):
@@ -70,6 +84,11 @@ class CompanyProfile(UUIDModel):
     def clean(self, *args, **kwargs):
         # TODO: do we need to clean the data? (eg. strip() on strings)
         errors = {}
+
+        if self.state == PROFILE_STATES.DEACTIVATED.value:
+            if self.verification_stage == PROFILE_VERIFICATION_STAGES.VERIFIED.value:
+                errors['state'] = ValidationError(
+                    _('Cannot deactivate a verified profile'))
         if hasattr(self,'wallet'):
             if self.wallet.category != WALLET_CATEGORIES.COMPANY.value:
                 errors['wallet'] = ValidationError(
@@ -129,6 +148,9 @@ class UserProfile(UUIDModel):
     place_of_origin = models.CharField(
         max_length=128, verbose_name=_('Place of origin'))
 
+    state = models.IntegerField(
+        _('State'), default=PROFILE_STATES.ACTIVE.value, choices=PROFILE_STATE_CHOICES)
+    
     @property
     def sms_pin_verification(self):
         from apps.verification.models import VERIFICATION_STATES
@@ -154,7 +176,10 @@ class UserProfile(UUIDModel):
     def clean(self, *args, **kwargs):
         # TODO: additional cleanup (eg. phonenumbers without spaces/always with spaces formatted, Street without trailing/leading spaces etc.)
         errors = {}
-
+        if self.state == PROFILE_STATES.DEACTIVATED.value:
+            if self.verification_stage == PROFILE_VERIFICATION_STAGES.VERIFIED.value:
+                errors['state'] = ValidationError(
+                    _('Cannot deactivate a verified profile'))
         # TODO: this isn't sufficient to be sure that it's a swiss mobile number
         if not self.telephone_number.replace(' ', '').startswith("+417"):
             errors['telephone_number'] = ValidationError(

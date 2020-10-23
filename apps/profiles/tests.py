@@ -966,14 +966,14 @@ class ProfileLookupTest(APITestCase):
             phone_number='+41783285325',
             wallet=self.wallet_1_2,
             uid='12-3-4-3'
-            )
-        
+        )
+
         company_verification.refresh_from_db()
         self.assertEquals(company_verification.state,
                           VERIFICATION_STATES.PENDING.value)
 
     def test_empty_names(self):
-        # completely empty names are prohibited by the model! 
+        # completely empty names are prohibited by the model!
 
         user_verification = UserVerification.objects.create(
             first_name="Alessandro Lionel",
