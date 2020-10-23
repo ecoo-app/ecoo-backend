@@ -28,9 +28,10 @@ class UserVerificationLevelFilter(SimpleListFilter):
             return queryset.filter(user_verification__state=VERIFICATION_STATES.MAX_CLAIMS.value)
         return queryset.all()
 
+
 class CompanyVerificationLevelFilter(UserVerificationLevelFilter):
     title = _('Company Verification Level')
-    
+
     def queryset(self, request, queryset):
         if self.value() == '0':
             return queryset.exclude(company_verification__isnull=False).exclude(address_pin_verification__isnull=False)
@@ -41,9 +42,10 @@ class CompanyVerificationLevelFilter(UserVerificationLevelFilter):
         else:
             return queryset
 
+
 class CompanyVerificationLevelFilter(UserVerificationLevelFilter):
     title = _('Company Verification Level')
-    
+
     def queryset(self, request, queryset):
         if self.value() == '0':
             return queryset.exclude(company_verification__isnull=False).exclude(address_pin_verification__isnull=False)
@@ -81,4 +83,4 @@ class IsActiveFilter(SimpleListFilter):
         if self.value() == 'show_deactivated':
             return queryset.all()
         elif self.value() is None:
-            return queryset.filter(state=VERIFICATION_STATES.ACTIVE.value)
+            return queryset.filter(state=PROFILE_STATES.ACTIVE.value)
