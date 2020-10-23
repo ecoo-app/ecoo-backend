@@ -15,12 +15,11 @@ from rest_framework.response import Response
 from rest_framework.permissions import BasePermission
 
 from apps.profiles.serializers import UserProfileSerializer, CompanyProfileSerializer
-from apps.profiles.models import UserProfile, CompanyProfile
+from apps.profiles.models import UserProfile, CompanyProfile, PROFILE_STATES
 from django.utils.translation import ugettext_lazy as _
 from apps.wallet.models import Wallet
 from rest_framework.pagination import CursorPagination
-
-# TODO: add check for too many profiles per user
+from apps.verification.models import VERIFICATION_STATES
 
 
 class ProfileCursorPagination(CursorPagination):
@@ -34,7 +33,7 @@ class UserProfileListCreate(generics.ListCreateAPIView):
     pagination_class = ProfileCursorPagination
 
     def get_queryset(self):
-        return self.request.user.user_profiles
+        return self.request.user.user_profiles.filter(state=PROFILE_STATES.ACTIVE.value)
 
     def create(self, request, *args, **kwargs):
         data = request.data.copy()
@@ -48,7 +47,7 @@ class UserProfileDestroy(generics.DestroyAPIView):
     pagination_class = ProfileCursorPagination
 
     def get_queryset(self):
-        return self.request.user.user_profiles
+        return self.request.user.user_profiles.filter(state=PROFILE_STATES.ACTIVE.value)
 
 
 class CompanyProfileListCreate(generics.ListCreateAPIView):
@@ -56,7 +55,7 @@ class CompanyProfileListCreate(generics.ListCreateAPIView):
     pagination_class = ProfileCursorPagination
 
     def get_queryset(self):
-        return self.request.user.company_profiles
+        return self.request.user.company_profiles.filter(state=PROFILE_STATES.ACTIVE.value)
 
 
 class CompanyProfileDestroy(generics.DestroyAPIView):
@@ -64,4 +63,4 @@ class CompanyProfileDestroy(generics.DestroyAPIView):
     pagination_class = ProfileCursorPagination
 
     def get_queryset(self):
-        return self.request.user.company_profiles
+        return self.request.user.company_profiles.filter(state=PROFILE_STATES.ACTIVE.value)
