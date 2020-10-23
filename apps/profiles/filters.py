@@ -1,6 +1,7 @@
 from django.contrib.admin.filters import SimpleListFilter
 from django.utils.translation import ugettext_lazy as _
 from apps.verification.models import VERIFICATION_STATES
+from apps.profiles.models import PROFILE_STATES
 from django.db.models import Q
 
 
@@ -52,3 +53,32 @@ class CompanyVerificationLevelFilter(UserVerificationLevelFilter):
             return queryset.filter(address_pin_verification__isnull=False)
         else:
             return queryset
+
+
+class IsActiveFilter(SimpleListFilter):
+    title = _('Show Deactivated')
+
+    parameter_name = 'show_deactivated'
+
+    def lookups(self, request, model_admin):
+        return (
+            (None, _('No')),
+            ('yes', _('Yes')),
+            ('all', _('All')),
+        )
+
+    def choices(self, cl):
+        for lookup, title in self.lookup_choices:
+            yield {
+                'selected': self.value() == lookup,
+                'query_string': cl.get_query_string({
+                    self.parameter_name: lookup,
+                }, []),
+                'display': title,
+            }
+
+    def queryset(self, request, queryset):
+        if self.value() == 'show_deactivated':
+            return queryset.all()
+        elif self.value() is None:
+            return queryset.filter(state=VERIFICATION_STATES.ACTIVE.value)
