@@ -378,7 +378,7 @@ class MetaTransaction(Transaction):
         ordering = ['-created_at']
         verbose_name = _('Meta transaction')
         verbose_name_plural = _('Meta transactions')
-        #unique_together = ('nonce','public_key')
+        unique_together = ('nonce','from_public_key')
 
 
 class WalletPublicKeyTransferRequest(UUIDModel):
