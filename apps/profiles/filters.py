@@ -65,7 +65,6 @@ class IsActiveFilter(SimpleListFilter):
     def lookups(self, request, model_admin):
         return (
             (None, _('No')),
-            ('yes', _('Yes')),
             ('all', _('All')),
         )
 
