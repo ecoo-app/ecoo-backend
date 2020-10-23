@@ -32,13 +32,13 @@ def verify_users(modeladmin, request, queryset):
                 address_postal_code=user_profile.address_postal_code,
                 date_of_birth=user_profile.date_of_birth,
             )
-            PlaceOfOrigin.objects.create(place_of_origin=user_profile.place_of_origin, user_verification=user_verification) 
+            PlaceOfOrigin.objects.create(
+                place_of_origin=user_profile.place_of_origin, user_verification=user_verification)
             user_profile.save()
-        
+
         if user_profile.wallet.state != WALLET_STATES.VERIFIED.value:
-            user_profile.wallet.state=WALLET_STATES.VERIFIED.value
+            user_profile.wallet.state = WALLET_STATES.VERIFIED.value
             user_profile.wallet.save()
-       
 
         from apps.wallet.utils import create_claim_transaction
         create_claim_transaction(user_profile.wallet)
@@ -73,7 +73,7 @@ def verify_companies(modeladmin, request, queryset):
         company_profile.save()
 
         if company_profile.wallet.state != WALLET_STATES.VERIFIED.value:
-            company_profile.wallet.state=WALLET_STATES.VERIFIED.value
+            company_profile.wallet.state = WALLET_STATES.VERIFIED.value
             company_profile.wallet.save()
 
         modified += 1
@@ -90,12 +90,20 @@ verify_companies.short_description = _('Verify companies')
 
 
 def deactivate_company_profile(modeladmin, request, queryset):
-    queryset.exclude(company_verification__state=VERIFICATION_STATES.CLAIMED.value).update(state=PROFILE_STATES.DEACTIVATED.value)
+    queryset.exclude(company_verification__state=VERIFICATION_STATES.CLAIMED.value).update(
+        state=PROFILE_STATES.DEACTIVATED.value)
+
+
 deactivate_company_profile.short_description = _('Deactivate Company Profile')
 
+
 def deactivate_user_profile(modeladmin, request, queryset):
-    queryset.exclude(user_verification__state=VERIFICATION_STATES.CLAIMED.value).update(state=PROFILE_STATES.DEACTIVATED.value)
+    queryset.exclude(user_verification__state=VERIFICATION_STATES.CLAIMED.value).update(
+        state=PROFILE_STATES.DEACTIVATED.value)
+
+
 deactivate_user_profile.short_description = _('Deactivate User Profile')
+
 
 class PreventDeleteWhenVerifiedMixin:
     def has_delete_permission(self, request, obj=None):
@@ -111,7 +119,7 @@ class UserProfile(PreventDeleteWhenVerifiedMixin, admin.ModelAdmin):
     search_fields = ['first_name', 'last_name',
                      'address_street', 'telephone_number', 'date_of_birth', 'owner__username']
     list_filter = [IsActiveFilter, UserVerificationLevelFilter, 'created_at']
-    actions = [deactivate_user_profile,verify_users]
+    actions = [deactivate_user_profile, verify_users]
     readonly_fields = ['created_at', ]
 
     def render_change_form(self, request, context, *args, **kwargs):
@@ -126,7 +134,8 @@ class CompanyProfile(PreventDeleteWhenVerifiedMixin, admin.ModelAdmin):
                     'owner', 'verification_stage_display', 'created_at']
     search_fields = ['name', 'uid',
                      'address_street', 'owner__username']
-    list_filter = [IsActiveFilter, CompanyVerificationLevelFilter, 'created_at']
+    list_filter = [IsActiveFilter,
+                   CompanyVerificationLevelFilter, 'created_at']
     actions = [deactivate_company_profile, verify_companies]
     readonly_fields = ['created_at', ]
 
