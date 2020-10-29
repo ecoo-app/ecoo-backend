@@ -23,7 +23,7 @@ def pre_save_signal_wallet(sender, instance, **kwargs):
     if instance.uuid is not None:
         try:
             previous = Wallet.objects.get(uuid=instance.uuid)
-            if instance.state != previous.state and instance.state == WALLET_STATES.VERIFIED:
+            if instance.state != previous.state and instance.state == WALLET_STATES.VERIFIED.value:
                 instance.notify_owner_verified()
         except Wallet.DoesNotExist:
             pass
