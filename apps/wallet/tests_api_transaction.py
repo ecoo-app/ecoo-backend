@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework.test import APIClient, APIRequestFactory, APITestCase
 
 from apps.currency.models import Currency
-from apps.wallet.models import (WALLET_STATES, MetaTransaction, Transaction,
+from apps.wallet.models import (CashOutRequest, WALLET_STATES, MetaTransaction, Transaction,
                                 Wallet)
 from apps.wallet.serializers import TransactionSerializer, WalletSerializer
 from apps.wallet.utils import (pack_meta_transaction,
@@ -24,8 +24,10 @@ class TransactionApiTest(APITestCase):
         self.user_2 = get_user_model().objects.create(
             username="testuser_2", password="abcd")
 
-        self.currency = Currency.objects.create(token_id=0, name="TEZ", symbol='tez', claim_deadline='2120-01-01', campaign_end='2120-01-01')
-        self.currency_2 = Currency.objects.create(token_id=1, name="TEZ2", symbol='tez2', claim_deadline='2120-01-01', campaign_end='2120-01-01')
+        self.currency = Currency.objects.create(
+            token_id=0, name="TEZ", symbol='tez', claim_deadline='2120-01-01', campaign_end='2120-01-01')
+        self.currency_2 = Currency.objects.create(
+            token_id=1, name="TEZ2", symbol='tez2', claim_deadline='2120-01-01', campaign_end='2120-01-01')
 
         self.wallet_1 = Wallet.objects.create(owner=self.user, wallet_id=Wallet.generate_wallet_id(
         ), public_key="edpku8CQWKpekx9EWYKPF3pPScPeo3acTEKdeA9vdJYU8hSgoFPq53", currency=self.currency)
@@ -35,6 +37,9 @@ class TransactionApiTest(APITestCase):
 
         self.wallet_2 = Wallet.objects.create(owner=self.user_2, wallet_id=Wallet.generate_wallet_id(
         ), public_key=self.pubkey_2, currency=self.currency, state=WALLET_STATES.VERIFIED.value)
+
+        self.wallet_2_1_2 = Wallet.objects.create(owner=self.user_2, wallet_id=Wallet.generate_wallet_id(
+        ), public_key="edpkuqw4KyJAsjSyn7Ca67Mc6GLpQxTMb6CLPQj8H8KZYdKDeBkC2v", currency=self.currency, state=WALLET_STATES.VERIFIED.value)
 
         self.wallet_2_2 = Wallet.objects.create(owner=self.user_2, wallet_id=Wallet.generate_wallet_id(
         ), public_key=self.pubkey_1, currency=self.currency_2, state=WALLET_STATES.VERIFIED.value)
@@ -235,12 +240,23 @@ class TransactionApiTest(APITestCase):
         self.client.force_authenticate(user=None)
 
     def test_transaction_list(self):
+        self.wallet_1.state = WALLET_STATES.VERIFIED.value
+        self.wallet_1.save()
+        self.wallet_2.state = WALLET_STATES.VERIFIED.value
+        self.wallet_2.save()
+
         tx1_1 = Transaction.objects.create(
             to_wallet=self.wallet_1, amount=20)
         tx2_1 = Transaction.objects.create(
             to_wallet=self.wallet_2_2, amount=20)
-        tx3_1 = Transaction.objects.create(
+        tx3_1_1 = Transaction.objects.create(
             to_wallet=self.wallet_2, amount=20)
+        tx3_2 = Transaction.objects.create(from_wallet=self.wallet_1,
+                                           to_wallet=self.wallet_2, amount=2)
+        tx3_3 = Transaction.objects.create(from_wallet=self.wallet_2,
+                                           to_wallet=self.wallet_1, amount=4)
+        tx3_4 = Transaction.objects.create(from_wallet=self.wallet_2,
+                                           to_wallet=self.wallet_2_1_2, amount=4)
 
         response = self.client.get('/api/wallet/transaction/')
 
@@ -259,10 +275,68 @@ class TransactionApiTest(APITestCase):
         self.client.force_authenticate(user=self.user)
 
         response = self.client.get('/api/wallet/transaction/')
-        response_result = [dict(r) for r in response.data['results']]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # self.assertEqual(response.data, [TransactionSerializer(
-        #   tx1).data, TransactionSerializer(tx2).data, TransactionSerializer(tx1_1).data])
+        self.assertEqual(response.data['results'], [
+            TransactionSerializer(
+                tx3_3).data,
+            TransactionSerializer(tx3_2).data,
+            TransactionSerializer(tx1_1).data,
+        ])
+
+        response = self.client.get(
+            '/api/wallet/transaction/?from_wallet__wallet_id='+self.wallet_1.wallet_id)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['results'], [
+            TransactionSerializer(tx3_2).data,
+        ])
+
+        response = self.client.get(
+            '/api/wallet/transaction/?to_wallet__wallet_id='+self.wallet_1.wallet_id)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['results'], [
+            TransactionSerializer(tx3_3).data,
+            TransactionSerializer(tx1_1).data,
+        ])
 
         self.client.force_authenticate(user=None)
+
+    def test_open_cashout_request(self):
+        self.wallet_1.state = WALLET_STATES.VERIFIED.value
+        self.wallet_1.save()
+        self.wallet_2.state = WALLET_STATES.VERIFIED.value
+        self.wallet_2.save()
+        Transaction.objects.create(
+            to_wallet=self.wallet_1, amount=20)
+        Transaction.objects.create(
+            to_wallet=self.wallet_2_2, amount=20)
+        Transaction.objects.create(
+            to_wallet=self.wallet_2, amount=20)
+        Transaction.objects.create(from_wallet=self.wallet_1,
+                                   to_wallet=self.wallet_2, amount=2)
+        Transaction.objects.create(from_wallet=self.wallet_2,
+                                   to_wallet=self.wallet_1, amount=4)
+        Transaction.objects.create(from_wallet=self.wallet_2,
+                                   to_wallet=self.wallet_2_1_2, amount=4)
+        tx4 = Transaction.objects.create(from_wallet=self.wallet_2,
+                                         to_wallet=self.currency.owner_wallet, amount=7)
+        tx4_2 = Transaction.objects.create(from_wallet=self.wallet_2,
+                                           to_wallet=self.currency.owner_wallet, amount=5)
+
+        self.client.force_authenticate(user=self.user_2)
+
+        response = self.client.get(
+            '/api/wallet/open_cashout_transaction/?from_wallet__wallet_id='+self.wallet_2.wallet_id)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['results']), 2)
+        self.assertEqual(response.data['results'][0]['uuid'], str(tx4_2.uuid))
+        self.assertEqual(response.data['results'][1]['uuid'], str(tx4.uuid))
+
+        CashOutRequest.objects.create(
+            transaction=tx4_2, beneficiary_name='baba', beneficiary_iban='CH93 0076 2011 6238 5295 7')
+
+        response = self.client.get(
+            '/api/wallet/open_cashout_transaction/?from_wallet__wallet_id='+self.wallet_2.wallet_id)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(response.data['results'][0]['uuid'], str(tx4.uuid),)
