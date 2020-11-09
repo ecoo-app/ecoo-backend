@@ -4,6 +4,7 @@ from apps.currency.models import Currency
 from apps.currency.serializers import CurrencySerializer
 from apps.wallet.models import CashOutRequest, MetaTransaction, Transaction, Wallet, WalletPublicKeyTransferRequest, WALLET_CATEGORIES
 
+
 class PublicWalletSerializer(serializers.ModelSerializer):
     owner = serializers.HiddenField(
         default=serializers.CurrentUserDefault()
@@ -16,7 +17,8 @@ class PublicWalletSerializer(serializers.ModelSerializer):
         model = Wallet
         fields = ['owner', 'wallet_id', 'public_key',
                   'nonce', 'currency', 'currency_details', 'category', 'state']
-        read_only_fields = ['state',]
+        read_only_fields = ['state', ]
+
 
 class WalletSerializer(PublicWalletSerializer):
 

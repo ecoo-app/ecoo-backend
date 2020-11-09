@@ -249,6 +249,10 @@ class Transaction(UUIDModel):
             return "{} -{}-> {}".format(self.from_wallet.wallet_id, self.amount, self.to_wallet.wallet_id)
         else:
             return "-{}-> {}".format(self.amount, self.to_wallet.wallet_id)
+    
+    @property
+    def is_cashout_transaction(self)-> bool:
+        return self.to_wallet == self.to_wallet.currency.cashout_wallet
 
     @property
     def is_mint_transaction(self):

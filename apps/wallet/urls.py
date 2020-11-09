@@ -1,8 +1,10 @@
 
-from django.urls import include, path
-from rest_framework import routers
+from django.urls import path
 
-from apps.wallet.views import CashOutRequestListCreate, MetaTransactionListCreate, TransactionList, WalletDetail, WalletListCreate, WalletPublicKeyTransferRequestListCreate
+from apps.wallet.views import (CashOutRequestListCreate,
+                               MetaTransactionListCreate, OpenCashoutTransactions, TransactionList,
+                               WalletDetail, WalletListCreate,
+                               WalletPublicKeyTransferRequestListCreate)
 
 urlpatterns = [
     path('wallet/', WalletListCreate.as_view(), name='wallet_list_create'),
@@ -14,6 +16,8 @@ urlpatterns = [
 
     path('transaction/', TransactionList.as_view(),
          name='transaction_list'),
+    path('open_cashout_transaction/', OpenCashoutTransactions.as_view(),
+         name='open_cashout_list'),
     path('meta_transaction/', MetaTransactionListCreate.as_view(),
          name='meta_transaction_list_create'),
 ]
