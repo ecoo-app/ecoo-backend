@@ -585,6 +585,58 @@ class ProfileApiTest(APITestCase):
                          status.HTTP_204_NO_CONTENT)
         self.assertEqual(CompanyProfile.objects.all().count(), 0)
 
+    def test_invalid_postal_code(self):
+        company_verification = CompanyVerification.objects.create(
+            name="Papers AG",
+            uid="12-3-4-3",
+            address_street="Sonnmattstr. 121",
+            address_town="Birr",
+            address_postal_code="5242"
+        )
+
+        data = {
+            "name": "Papers AG",
+            "uid": "12-3-4-3",
+            "address_street": "Sonnmattstr. 121",
+            "address_postal_code": "ab",
+            "address_town": "Birr",
+            "wallet": self.wallet_1_2.wallet_id
+        }
+
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(
+            '/api/profiles/company_profiles/', data, format='json')
+        # the second create overrides user 2
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+
+        user_verification = UserVerification.objects.create(
+            first_name="Alessandro",
+            last_name="De Carli",
+            address_street="Sonnmattstr. 121",
+            address_postal_code="5242",
+            address_town="Birr",
+            date_of_birth="1989-06-24"
+        )
+
+        data = {
+            "first_name": "Alessandro",
+            "last_name": "De Carli",
+            "address_street": "Sonnmattstr. 121",
+            "address_postal_code": "ab",
+            "address_town": "Birr",
+            "telephone_number": "+41763057500",
+            "date_of_birth": "1989-06-24",
+            "wallet": self.wallet_2.wallet_id,
+            "place_of_origin": "Baden AG"
+        }
+
+        self.client.force_authenticate(user=self.user_2)
+        response = self.client.post(
+            '/api/profiles/user_profiles/', data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+
     def test_user_verification_with_different_place_of_origin(self):
         self.client.force_authenticate(user=self.user)
         user_verification = UserVerification.objects.create(

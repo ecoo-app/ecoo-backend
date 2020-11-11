@@ -10,7 +10,8 @@ div, section, main {
     box-sizing: border-box;
 }
 @page {
-    size: a3 portrait;  
+    width: 21cm;
+    height: 29.7cm;
 }
 
 h1, h2, h3, h4 {
@@ -119,5 +120,7 @@ main {
 @media print {
     main {
         box-shadow: none;
+        width: 21cm;
+        height: 29.7cm;
     }
 }

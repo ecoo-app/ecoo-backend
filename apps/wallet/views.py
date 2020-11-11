@@ -1,23 +1,16 @@
-from django_filters.rest_framework import DjangoFilterBackend
-from project.utils import raise_api_exception
-import binascii
-
-import pytezos
-from django.conf import settings
-from django.core.exceptions import PermissionDenied
-from django.db import IntegrityError
 from django.db.models import Q
-from django.shortcuts import redirect, render
-from pytezos import Key
-from rest_framework import generics, mixins, status, filters
-from rest_framework.decorators import api_view
-from rest_framework.exceptions import ValidationError
-from rest_framework.response import Response
-from rest_framework.permissions import BasePermission
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, generics
 
-from apps.wallet.models import WALLET_CATEGORIES, WALLET_STATES, CashOutRequest, Transaction, MetaTransaction, Wallet, WalletPublicKeyTransferRequest, PaperWallet
-from apps.wallet.serializers import CashOutRequestSerializer, MetaTransactionSerializer, TransactionSerializer, WalletSerializer, WalletPublicKeyTransferRequestSerializer, PublicWalletSerializer
-from apps.wallet.utils import create_message, read_nonce_from_chain
+from apps.wallet.models import (WALLET_STATES, CashOutRequest, MetaTransaction,
+                                Transaction, Wallet,
+                                WalletPublicKeyTransferRequest)
+from apps.wallet.serializers import (CashOutRequestSerializer,
+                                     MetaTransactionSerializer,
+                                     PublicWalletSerializer,
+                                     TransactionSerializer,
+                                     WalletPublicKeyTransferRequestSerializer,
+                                     WalletSerializer)
 
 
 class WalletDetail(generics.RetrieveAPIView):
@@ -55,6 +48,10 @@ class TransactionList(generics.ListAPIView):
     def get_queryset(self):
         return Transaction.objects.filter(Q(from_wallet__owner=self.request.user) | Q(to_wallet__owner=self.request.user)).order_by('-created_at')
 
+class OpenCashoutTransactions(TransactionList):
+    def get_queryset(self):
+        cashout_ids = [str(tx.uuid) for tx in Transaction.objects.filter(from_wallet__owner=self.request.user) if tx.is_cashout_transaction]
+        return Transaction.objects.filter(uuid__in=cashout_ids, cash_out_requests__isnull=True).order_by('-created_at')
 
 class MetaTransactionListCreate(generics.ListCreateAPIView):
     serializer_class = MetaTransactionSerializer
