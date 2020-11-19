@@ -97,7 +97,7 @@ class CompanyProfile(UUIDModel):
             if hasattr(self,'owner'):
                 if self.wallet.owner is not None and self.owner.pk != self.wallet.owner.pk:
                     errors['wallet'] = ValidationError(
-                        _('You can only attach a wallet you own to this profile'))
+                        _('You can only attach your own wallet to this profile'))
                 
         if len(errors) > 0:
             raise ValidationError(errors)
@@ -193,7 +193,7 @@ class UserProfile(UUIDModel):
             if hasattr(self,'owner'):
                 if self.wallet.owner is not None and self.owner.pk != self.wallet.owner.pk:
                     errors['wallet'] = ValidationError(
-                        _('You can only attach a wallet you own to this profile'))
+                        _('You can only attach your own wallet to this profile'))
 
         if len(errors) > 0:
             raise ValidationError(errors)
