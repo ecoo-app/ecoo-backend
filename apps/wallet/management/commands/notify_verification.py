@@ -30,13 +30,13 @@ class Command(BaseCommand):
             category=WALLET_CATEGORIES.CONSUMER.value)
 
         for wallet in consumer_wallet:
-            message = f"Sie haben für Ihr Wallet {wallet.wallet_id} noch keine Gutschrift angefordert. Falls Sie eine Gutschrift erhalten möchten gehen Sie auf Gutschrift anfordern und verifizieren Sie sich."
+            message = f"Sie haben für Ihr Wallet {wallet.wallet_id} noch keine Gutschrift angefordert. Falls Sie eine Gutschrift erhalten möchten, tippen Sie auf 'Gutschrift anfordern' und verifizieren Sie sich."
             self.__notify_wallet(wallet, message)
 
         company_wallet = wallets_to_notify.filter(
             category=WALLET_CATEGORIES.COMPANY.value)
         for wallet in consumer_wallet:
-            message = f"Sie haben Ihr Wallet {wallet.wallet_id} noch nicht verifiziert. Um Ihr Guthaben in Schweizer Franken einzutauschen müssen Sie sich verifizien. Tippen Sie auf Einlösen um den Prozess zu starten."
+            message = f"Sie haben Ihr Wallet {wallet.wallet_id} noch nicht verifiziert. Um Ihr Guthaben in Schweizer Franken, einzutauschen müssen Sie sich verifizien. Tippen Sie auf 'Einlösen' um den Prozess zu starten."
             self.__notify_wallet(wallet, message)
 
     def __notify_wallet(self, wallet, message):

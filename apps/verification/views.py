@@ -98,10 +98,8 @@ class AutocompleteUserList(generics.ListAPIView):
         if search_string.strip() == '':
             return UserVerification.objects.none()
 
-        qs = UserVerification.objects.filter(
-            Q(address_street__istartswith=search_string)).distinct('address_street', 'address_town', 'address_postal_code')
-        pks = qs.values_list('uuid', flat=True)
-        return UserVerification.objects.filter(uuid__in=pks)
+        return UserVerification.objects.filter(
+            Q(address_street__istartswith=search_string)).distinct('address_street', 'address_town', 'address_postal_code').order_by('address_street')
 
 
 class AutocompleteCompanyList(generics.ListAPIView):
@@ -115,10 +113,8 @@ class AutocompleteCompanyList(generics.ListAPIView):
         search_string = self.request.GET['search']
         if search_string.strip() == '':
             return CompanyVerification.objects.none()
-        qs = CompanyVerification.objects.filter(
-            Q(address_street__istartswith=search_string)).distinct('address_street','address_town', 'address_postal_code')
-        pks = qs.values_list('uuid', flat=True)
-        return CompanyVerification.objects.filter(uuid__in=pks)
+        return CompanyVerification.objects.filter(
+            Q(address_street__istartswith=search_string)).distinct('address_street', 'address_town', 'address_postal_code').order_by('address_street')
 
 
 @staff_member_required
@@ -126,10 +122,11 @@ def create_paper_wallet_from_userverification(request, uuid):
     user_verification = UserVerification.objects.get(uuid=uuid)
     if user_verification.state != VERIFICATION_STATES.OPEN.value:
         return redirect('admin:verification_userverification_changelist')
-    place_of_origin = PlaceOfOrigin.objects.filter(user_verification=user_verification).first()
-    
+    place_of_origin = PlaceOfOrigin.objects.filter(
+        user_verification=user_verification).first()
+
     paper_wallet = PaperWallet.generate_new_wallet(place_of_origin=place_of_origin,
-        currency=Currency.objects.all().first(), user_verification=user_verification)
+                                                   currency=Currency.objects.all().first(), user_verification=user_verification)
     create_claim_transaction(paper_wallet)
 
     return redirect('admin:wallet_paperwallet_change', paper_wallet.uuid)
