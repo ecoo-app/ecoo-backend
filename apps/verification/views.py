@@ -88,6 +88,7 @@ def verify_company_profile_pin(request, company_profile_uuid=None):
 
 class AutocompleteUserList(generics.ListAPIView):
     serializer_class = AutocompleteUserSerializer
+    pagination_class = 'rest_framework.pagination.PageNumberPagination'
 
     def list(self, request):
         self.request = request
@@ -99,11 +100,12 @@ class AutocompleteUserList(generics.ListAPIView):
             return UserVerification.objects.none()
 
         return UserVerification.objects.filter(
-            Q(address_street__istartswith=search_string)).order_by('address_street').distinct('address_street')
+            Q(address_street__istartswith=search_string)).order_by('address_street', 'address_town', 'address_postal_code').distinct('address_street', 'address_town', 'address_postal_code')
 
 
 class AutocompleteCompanyList(generics.ListAPIView):
     serializer_class = AutocompleteCompanySerializer
+    pagination_class = 'rest_framework.pagination.PageNumberPagination'
 
     def list(self, request):
         self.request = request
@@ -114,7 +116,7 @@ class AutocompleteCompanyList(generics.ListAPIView):
         if search_string.strip() == '':
             return CompanyVerification.objects.none()
         return CompanyVerification.objects.filter(
-            Q(address_street__istartswith=search_string)).order_by('address_street').distinct('address_street')
+            Q(address_street__istartswith=search_string)).order_by('address_street', 'address_town', 'address_postal_code').distinct('address_street', 'address_town', 'address_postal_code')
 
 
 @staff_member_required
