@@ -7,6 +7,7 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework import generics, status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework.pagination import PageNumberPagination
 
 from apps.currency.models import Currency
 from apps.profiles.models import CompanyProfile, UserProfile
@@ -88,7 +89,7 @@ def verify_company_profile_pin(request, company_profile_uuid=None):
 
 class AutocompleteUserList(generics.ListAPIView):
     serializer_class = AutocompleteUserSerializer
-    pagination_class = 'rest_framework.pagination.PageNumberPagination'
+    pagination_class = PageNumberPagination
 
     def list(self, request):
         self.request = request
@@ -105,7 +106,7 @@ class AutocompleteUserList(generics.ListAPIView):
 
 class AutocompleteCompanyList(generics.ListAPIView):
     serializer_class = AutocompleteCompanySerializer
-    pagination_class = 'rest_framework.pagination.PageNumberPagination'
+    pagination_class = PageNumberPagination
 
     def list(self, request):
         self.request = request
