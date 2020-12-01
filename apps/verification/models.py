@@ -61,6 +61,7 @@ class CompanyVerification(AbstractVerification):
     class Meta:
         verbose_name = _('Company verification')
         verbose_name_plural = _('Company verifications')
+        ordering = ['name']
 
 
 class UserVerification(AbstractVerification):
@@ -80,6 +81,7 @@ class UserVerification(AbstractVerification):
     class Meta:
         verbose_name = _('User verification')
         verbose_name_plural = _('User verifications')
+        ordering = ['last_name']
 
 
 class AddressPinVerification(AbstractVerification):
@@ -131,7 +133,7 @@ class SMSPinVerification(AbstractVerification):
 
     def clean(self, *args, **kwargs):
         errors = {}
-        if hasattr(self,'user_profile') and self.user_profile.sms_pin_verifications.filter(state=VERIFICATION_STATES.FAILED.value).exists():
+        if hasattr(self, 'user_profile') and self.user_profile.sms_pin_verifications.filter(state=VERIFICATION_STATES.FAILED.value).exists():
             last_timestamp = self.user_profile.sms_pin_verifications.filter(
                 state=VERIFICATION_STATES.FAILED.value).last().updated_at
             exponential_threshold_delta = datetime.timedelta(seconds=settings.SMS_PIN_WAIT_TIME_THRESHOLD_SECONDS**self.user_profile.sms_pin_verifications.filter(
@@ -144,7 +146,6 @@ class SMSPinVerification(AbstractVerification):
         if len(errors) > 0:
             raise ValidationError(errors)
         super(SMSPinVerification, self).clean(*args, **kwargs)
-        
 
     class Meta:
         verbose_name = _('SMS pin verification')
