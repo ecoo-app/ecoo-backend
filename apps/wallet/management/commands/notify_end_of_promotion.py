@@ -15,8 +15,8 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         mapping = {
-            WALLET_CATEGORIES.CONSUMER.value:'End of promotion/coins are about to expire',
-            WALLET_CATEGORIES.COMPANY.value:'Approaching deadline for exchanging coins for CHF'
+            WALLET_CATEGORIES.CONSUMER.value:'Das Ende der CURRENCY_NAME Kampagne ist in XXX Tagen. Bitte benutzten Sie ihr restliches Guthaben vorher.',
+            WALLET_CATEGORIES.COMPANY.value:'Die Eintschauschfrist für CURRENCY_NAME ist in XXX Tagen. Bitte tauschen Sie Ihr Guthaben vorher bei der Stadt ein.'
 
         }
         
@@ -30,7 +30,7 @@ class Command(BaseCommand):
             
             for currency in currencies:
                 for category, msg in mapping:
-                    users_to_notify = Wallets.objects.filter(currency=currency, balance__gt=0,category=category ).values_list('owner').distinct()
-                    devices = FCMDevice.objects.filter(user__in=user_uuids_to_notify)
+                    users_to_notify = Wallet.objects.filter(currency=currency, balance__gt=0,category=category ).values_list('owner').distinct()
+                    devices = FCMDevice.objects.filter(user__in=users_to_notify)
                     self.stdout.write(f'Currency: {currency.name} Notifying {len(devices)} potential devices')
-                    devices.send_message(title=settings.PUSH_NOTIFICATION_TITLE, body= msg + f' in {days}')
+                    devices.send_message(title=settings.PUSH_NOTIFICATION_TITLE, body= msg.replace('CURRENCY_NAME',currency.name).replace('XXX', days))
