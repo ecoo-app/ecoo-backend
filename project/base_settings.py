@@ -368,3 +368,5 @@ OAUTH2_PROVIDER = {
 }
 
 BLOCKCHAIN_SYNC_WAIT_TIME = 6
+
+DEEPLINK_BASE_URL = "https://app.ecoo.ch/deeplink/v1/"

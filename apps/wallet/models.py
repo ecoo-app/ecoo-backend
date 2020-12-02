@@ -20,6 +20,9 @@ from apps.currency.mixins import CurrencyOwnedMixin
 from apps.wallet.utils import create_message
 from project.mixins import UUIDModel
 from django.contrib.auth import get_user_model
+import pysodium
+from urllib.parse import urlencode
+import base64
 
 
 class WALLET_STATES(Enum):
@@ -147,7 +150,7 @@ class OwnerWallet(Wallet):
 
 class PaperWallet(Wallet):
     user_verification = models.ForeignKey(
-        'verification.UserVerification', null=True, on_delete=models.DO_NOTHING, )
+        'verification.UserVerification', null=True, on_delete=models.DO_NOTHING, blank=True)
     private_key = models.CharField(unique=True, max_length=128)
 
     @staticmethod
@@ -201,6 +204,22 @@ class PaperWallet(Wallet):
 
                     return paper_wallet
 
+    def generate_deeplink(self):
+        encryption_key = bytes.fromhex(settings.ENCRYPTION_KEY)
+        nonce = pysodium.randombytes(pysodium.crypto_secretbox_NONCEBYTES)
+        pk = pysodium.crypto_aead_xchacha20poly1305_ietf_encrypt(
+            self.private_key.encode('UTF-8'), None, nonce, encryption_key)
+        decrypted_pk = pysodium.crypto_aead_xchacha20poly1305_ietf_decrypt(
+            pk, None, nonce, encryption_key)
+
+        payload = {
+            'nonce': base64.b64encode(nonce),
+            'id': self.wallet_id,
+            'pk': base64.b64encode(pk)
+        }
+
+        return "{}wallet/?{}".format(settings.DEEPLINK_BASE_URL, urlencode(payload))
+
     def save(self, *args, **kwargs):
         self.state = WALLET_STATES.VERIFIED.value
         super(PaperWallet, self).save(*args, **kwargs)
@@ -249,9 +268,9 @@ class Transaction(UUIDModel):
             return "{} -{}-> {}".format(self.from_wallet.wallet_id, self.amount, self.to_wallet.wallet_id)
         else:
             return "-{}-> {}".format(self.amount, self.to_wallet.wallet_id)
-    
+
     @property
-    def is_cashout_transaction(self)-> bool:
+    def is_cashout_transaction(self) -> bool:
         return self.to_wallet == self.to_wallet.currency.cashout_wallet
 
     @property
@@ -341,7 +360,7 @@ class MetaTransaction(Transaction):
 
     def clean(self, *args, **kwargs):
         errors = {}
-        
+
         if self.is_mint_transaction:
             errors['from_wallet'] = ValidationError(
                 _('Metatransaction always must have from'))
@@ -349,7 +368,7 @@ class MetaTransaction(Transaction):
             errors['nonce'] = ValidationError(_('Nonce must be > 0'))
 
         if hasattr(self, 'from_wallet'):
-            
+
             if self.from_wallet and self.nonce != self.from_wallet.nonce+1:
                 errors['nonce'] = ValidationError(
                     _('Nonce must be 1 higher than from_wallet\'s last meta transaction nonce'))
@@ -382,7 +401,7 @@ class MetaTransaction(Transaction):
         ordering = ['-created_at']
         verbose_name = _('Meta transaction')
         verbose_name_plural = _('Meta transactions')
-        unique_together = ('nonce','from_public_key')
+        unique_together = ('nonce', 'from_public_key')
 
 
 class WalletPublicKeyTransferRequest(UUIDModel):
