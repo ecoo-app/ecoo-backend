@@ -95,7 +95,7 @@ class PaperWalletAdmin(WalletAdmin):
         response = HttpResponse(content_type="application/pdf")
 
         for wallet in queryset.all():
-            qr_code = pyqrcode.create(wallet.generate_deeplink, error='M')
+            qr_code = pyqrcode.create(wallet.generate_deeplink(), error='M')
 
             template = get_template('wallet/paper_wallet_pdf.html')
             html = template.render({'image': qr_code.png_as_base64_str(scale=5
