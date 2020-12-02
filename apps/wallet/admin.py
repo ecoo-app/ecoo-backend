@@ -27,6 +27,8 @@ from apps.wallet.models import (TRANSACTION_STATES, WALLET_CATEGORIES,
                                 PaperWallet, Transaction, Wallet,
                                 WalletPublicKeyTransferRequest)
 
+from urllib.parse import urlencode
+
 
 @admin.register(Wallet)
 class WalletAdmin(admin.ModelAdmin):
@@ -47,46 +49,9 @@ class OwnerWalletAdmin(WalletAdmin):
     pass
 
 
-def get_pdf(modeladmin, request, queryset):
-    documents = []
-    response = HttpResponse(content_type="application/pdf")
-
-    for wallet in queryset.all():
-        encryption_key = bytes.fromhex(settings.ENCRYPTION_KEY)
-        nonce = pysodium.randombytes(pysodium.crypto_secretbox_NONCEBYTES)
-        pk = pysodium.crypto_aead_xchacha20poly1305_ietf_encrypt(
-            wallet.private_key.encode('UTF-8'), None, nonce, encryption_key)
-        decrypted_pk = pysodium.crypto_aead_xchacha20poly1305_ietf_decrypt(
-            pk, None, nonce, encryption_key)
-
-        payload = {
-            'nonce': nonce.hex(),
-            'id': wallet.wallet_id,
-            'pk': pk.hex()
-        }
-
-        qr_code = pyqrcode.create(json.dumps(payload), error='M')
-
-        template = get_template('wallet/paper_wallet_pdf.html')
-        html = template.render({'image': qr_code.png_as_base64_str(scale=5
-                                                                   ), 'logo': settings.STATIC_ROOT+'/wallet/ecoo_logo_bw.png', 'wetzikon_bw': settings.STATIC_ROOT+'/wallet/wetzikon_bw.png'}, request)  # .encode(encoding="UTF-8")
-
-        documents.append(weasyprint.HTML(
-            string=html, base_url=request.build_absolute_uri()).write_pdf(
-                target=response,
-                presentational_hints=True,
-                stylesheets=[CSS(settings.STATIC_ROOT + '/wallet/print.css')]
-        ))
-
-    return response
-
-
-get_pdf.short_description = _('Download QR-Code pdf')
-
-
 @admin.register(PaperWallet)
 class PaperWalletAdmin(WalletAdmin):
-    actions = [get_pdf]
+    actions = ['get_pdf']
 
     def generate_wallets(self, request):
         if not request.user.is_superuser:
@@ -124,6 +89,29 @@ class PaperWalletAdmin(WalletAdmin):
                 retry = False
             except IntegrityError:
                 retry = True
+
+    def get_pdf(modeladmin, request, queryset):
+        documents = []
+        response = HttpResponse(content_type="application/pdf")
+
+        for wallet in queryset.all():
+            qr_code = pyqrcode.create(wallet.generate_deeplink, error='M')
+
+            template = get_template('wallet/paper_wallet_pdf.html')
+            html = template.render({'image': qr_code.png_as_base64_str(scale=5
+                                                                       ), 'logo': settings.STATIC_ROOT+'/wallet/ecoo_logo_bw.png', 'wetzikon_bw': settings.STATIC_ROOT+'/wallet/wetzikon_bw.png'}, request)  # .encode(encoding="UTF-8")
+
+            documents.append(weasyprint.HTML(
+                string=html, base_url=request.build_absolute_uri()).write_pdf(
+                    target=response,
+                    presentational_hints=True,
+                    stylesheets=[
+                        CSS(settings.STATIC_ROOT + '/wallet/print.css')]
+            ))
+
+        return response
+
+    get_pdf.short_description = _('Download QR-Code pdf')
 
 
 @admin.register(Transaction)

@@ -1,6 +1,6 @@
 from django.test import TestCase
 from apps.currency.models import Currency
-from apps.wallet.models import WALLET_STATES, Wallet, MetaTransaction, Transaction, WalletPublicKeyTransferRequest, TRANSACTION_STATES
+from apps.wallet.models import WALLET_STATES, Wallet, MetaTransaction, Transaction, WalletPublicKeyTransferRequest, PaperWallet, TRANSACTION_STATES, WALLET_CATEGORIES
 from apps.wallet.signals import custom_meta_transaction_validation
 # from pytezos import pytezos, crypto
 import pytezos
@@ -11,6 +11,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db.models.signals import pre_save
 from unittest import skip
+from urllib.parse import urlparse
 
 
 class WalletTestCase(TestCase):
@@ -23,20 +24,23 @@ class WalletTestCase(TestCase):
                          sender=MetaTransaction, dispatch_uid='custom_meta_transaction_validation')
 
     def test_bogus_pubkey(self):
-        currency = Currency.objects.create(token_id=0, name="test", symbol='test', claim_deadline='2120-01-01', campaign_end='2120-01-01')
+        currency = Currency.objects.create(
+            token_id=0, name="test", symbol='test', claim_deadline='2120-01-01', campaign_end='2120-01-01')
         with self.assertRaises(ValidationError):
             wallet = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
             ), public_key="bogus", currency=currency, state=WALLET_STATES.VERIFIED.value)
 
     def test_address_calculation(self):
-        currency = Currency.objects.create(token_id=0, name="test", symbol='test', claim_deadline='2120-01-01', campaign_end='2120-01-01')
+        currency = Currency.objects.create(
+            token_id=0, name="test", symbol='test', claim_deadline='2120-01-01', campaign_end='2120-01-01')
         wallet = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
         ), public_key="edpku976gpuAD2bXyx1XGraeKuCo1gUZ3LAJcHM12W1ecxZwoiu22R", currency=currency, state=WALLET_STATES.VERIFIED.value)
         self.assertEqual(
             wallet.nonce, 0)
 
     def test_nonce_calculation(self):
-        currency = Currency.objects.create(token_id=0, name="test", symbol='test', claim_deadline='2120-01-01', campaign_end='2120-01-01')
+        currency = Currency.objects.create(
+            token_id=0, name="test", symbol='test', claim_deadline='2120-01-01', campaign_end='2120-01-01')
         key1 = pytezos.crypto.Key.generate()
         key2 = pytezos.crypto.Key.generate()
         wallet1 = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
@@ -44,9 +48,11 @@ class WalletTestCase(TestCase):
         wallet2 = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
         ), public_key=key2.public_key(), currency=currency, state=WALLET_STATES.VERIFIED.value)
         Transaction.objects.create(to_wallet=wallet1, amount=100)
-        
-        meta_transaction1 = MetaTransaction(from_wallet=wallet1, to_wallet=wallet2, amount=10, nonce=1)
-        signature1 = key1.sign(pack_meta_transaction(meta_transaction1.to_meta_transaction_dictionary()))
+
+        meta_transaction1 = MetaTransaction(
+            from_wallet=wallet1, to_wallet=wallet2, amount=10, nonce=1)
+        signature1 = key1.sign(pack_meta_transaction(
+            meta_transaction1.to_meta_transaction_dictionary()))
         meta_transaction1.signature = signature1
         meta_transaction1.save()
         self.assertEqual(
@@ -54,8 +60,10 @@ class WalletTestCase(TestCase):
         self.assertEqual(
             wallet2.nonce, 0)
 
-        meta_transaction2 = MetaTransaction(from_wallet=wallet2, to_wallet=wallet1, amount=1, nonce=1)
-        signature2 = key2.sign(pack_meta_transaction(meta_transaction2.to_meta_transaction_dictionary()))
+        meta_transaction2 = MetaTransaction(
+            from_wallet=wallet2, to_wallet=wallet1, amount=1, nonce=1)
+        signature2 = key2.sign(pack_meta_transaction(
+            meta_transaction2.to_meta_transaction_dictionary()))
         meta_transaction2.signature = signature2
         meta_transaction2.save()
 
@@ -64,8 +72,10 @@ class WalletTestCase(TestCase):
         self.assertEqual(
             wallet2.nonce, 1)
 
-        meta_transaction3 = MetaTransaction(from_wallet=wallet1, to_wallet=wallet2, amount=1, nonce=2)
-        signature3 = key1.sign(pack_meta_transaction(meta_transaction3.to_meta_transaction_dictionary()))
+        meta_transaction3 = MetaTransaction(
+            from_wallet=wallet1, to_wallet=wallet2, amount=1, nonce=2)
+        signature3 = key1.sign(pack_meta_transaction(
+            meta_transaction3.to_meta_transaction_dictionary()))
         meta_transaction3.signature = signature3
         meta_transaction3.save()
         self.assertEqual(
@@ -74,7 +84,8 @@ class WalletTestCase(TestCase):
             wallet2.nonce, 1)
 
     def test_balance_calculation(self):
-        currency = Currency.objects.create(token_id=0, name="test", symbol='test', claim_deadline='2120-01-01', campaign_end='2120-01-01')
+        currency = Currency.objects.create(
+            token_id=0, name="test", symbol='test', claim_deadline='2120-01-01', campaign_end='2120-01-01')
         key1 = pytezos.crypto.Key.generate()
         key2 = pytezos.crypto.Key.generate()
         wallet1 = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
@@ -82,41 +93,67 @@ class WalletTestCase(TestCase):
         wallet2 = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
         ), public_key=key2.public_key(), currency=currency, state=WALLET_STATES.VERIFIED.value)
         Transaction.objects.create(to_wallet=wallet1, amount=100)
-        
-        meta_transaction1 = MetaTransaction(from_wallet=wallet1, to_wallet=wallet2, amount=10, nonce=1)
-        signature1 = key1.sign(pack_meta_transaction(meta_transaction1.to_meta_transaction_dictionary()))
+
+        meta_transaction1 = MetaTransaction(
+            from_wallet=wallet1, to_wallet=wallet2, amount=10, nonce=1)
+        signature1 = key1.sign(pack_meta_transaction(
+            meta_transaction1.to_meta_transaction_dictionary()))
         meta_transaction1.signature = signature1
         meta_transaction1.save()
-            
+
         self.assertEqual(
             wallet1.balance, 90)
         self.assertEqual(
             wallet2.balance, 10)
 
-        meta_transaction2 = MetaTransaction(from_wallet=wallet2, to_wallet=wallet1, amount=1, nonce=1)
-        signature2 = key2.sign(pack_meta_transaction(meta_transaction2.to_meta_transaction_dictionary()))
+        meta_transaction2 = MetaTransaction(
+            from_wallet=wallet2, to_wallet=wallet1, amount=1, nonce=1)
+        signature2 = key2.sign(pack_meta_transaction(
+            meta_transaction2.to_meta_transaction_dictionary()))
         meta_transaction2.signature = signature2
         meta_transaction2.save()
-        
+
         self.assertEqual(
             wallet1.balance, 91)
         self.assertEqual(
             wallet2.balance, 9)
 
-        meta_transaction1 = MetaTransaction(from_wallet=wallet1, to_wallet=wallet2, amount=1, nonce=2)
-        signature1 = key1.sign(pack_meta_transaction(meta_transaction1.to_meta_transaction_dictionary()))
+        meta_transaction1 = MetaTransaction(
+            from_wallet=wallet1, to_wallet=wallet2, amount=1, nonce=2)
+        signature1 = key1.sign(pack_meta_transaction(
+            meta_transaction1.to_meta_transaction_dictionary()))
         meta_transaction1.signature = signature1
         meta_transaction1.save()
-        
+
         self.assertEqual(
             wallet1.balance, 90)
         self.assertEqual(
             wallet2.balance, 10)
 
 
+class PaperWalletTestCase(TestCase):
+    def setUp(self):
+        self.currency = Currency.objects.create(
+            token_id=0, name="test", symbol='test', claim_deadline='2120-01-01', campaign_end='2120-01-01')
+
+    def test_deeplink_generation(self):
+        key = pytezos.crypto.Key.generate()
+        private_key = key.secret_key(None, False)
+        public_key = key.public_key()
+
+        paper_wallet = PaperWallet.objects.create(currency=self.currency, private_key=private_key, wallet_id=PaperWallet.generate_wallet_id(
+        ), public_key=public_key, category=WALLET_CATEGORIES.CONSUMER.value)
+
+        deeplink = urlparse(paper_wallet.generate_deeplink())
+
+        self.assertIn(settings.DEEPLINK_BASE_URL, deeplink.geturl())
+        self.assertIn(paper_wallet.wallet_id, deeplink.query)
+
+
 class MetaTransactionTestCase(TestCase):
     def test_validation(self):
-        currency = Currency.objects.create(token_id=0, name="test", symbol='test', claim_deadline='2120-01-01', campaign_end='2120-01-01')
+        currency = Currency.objects.create(
+            token_id=0, name="test", symbol='test', claim_deadline='2120-01-01', campaign_end='2120-01-01')
         wallet1 = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
         ), public_key="edpku976gpuAD2bXyx1XGraeKuCo1gUZ3LAJcHM12W1ecxZwoiu22R", currency=currency, state=WALLET_STATES.VERIFIED.value)
         wallet2 = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
@@ -137,7 +174,8 @@ class MetaTransactionTestCase(TestCase):
 class TransactionTestCase(TestCase):
 
     def setUp(self):
-        self.currency = Currency.objects.create(token_id=0, name="test", symbol='test', claim_deadline='2120-01-01', campaign_end='2120-01-01')
+        self.currency = Currency.objects.create(
+            token_id=0, name="test", symbol='test', claim_deadline='2120-01-01', campaign_end='2120-01-01')
         self.wallet1 = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
         ), public_key="edpku976gpuAD2bXyx1XGraeKuCo1gUZ3LAJcHM12W1ecxZwoiu22R", currency=self.currency, state=WALLET_STATES.VERIFIED.value)
         self.wallet2 = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
@@ -160,9 +198,11 @@ class TransactionTestCase(TestCase):
         with self.assertRaises(ValidationError):
             Transaction.objects.create(to_wallet=self.wallet1, amount=100)
 
+
 class ComplexTransactionFlowsTestCase(TestCase):
     def setUp(self):
-        self.currency = Currency.objects.create(token_id=0, name="test", symbol='test', claim_deadline='2120-01-01', campaign_end='2120-01-01')
+        self.currency = Currency.objects.create(
+            token_id=0, name="test", symbol='test', claim_deadline='2120-01-01', campaign_end='2120-01-01')
         self.key1 = pytezos.crypto.Key.generate()
         self.key2 = pytezos.crypto.Key.generate()
         self.wallet1 = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
@@ -171,26 +211,31 @@ class ComplexTransactionFlowsTestCase(TestCase):
         ), public_key=self.key2.public_key(), currency=self.currency, state=WALLET_STATES.VERIFIED.value)
 
     def test_recovery_flow_with_history(self):
-        
+
         Transaction.objects.create(to_wallet=self.wallet1, amount=100)
-        
-        meta_transaction1 = MetaTransaction(from_wallet=self.wallet1, to_wallet=self.wallet2, amount=10, nonce=1)
-        signature1 = self.key1.sign(pack_meta_transaction(meta_transaction1.to_meta_transaction_dictionary()))
+
+        meta_transaction1 = MetaTransaction(
+            from_wallet=self.wallet1, to_wallet=self.wallet2, amount=10, nonce=1)
+        signature1 = self.key1.sign(pack_meta_transaction(
+            meta_transaction1.to_meta_transaction_dictionary()))
         meta_transaction1.signature = signature1
         meta_transaction1.save()
 
-    
-        self.assertEqual(meta_transaction1.from_public_key, self.wallet1.public_key)
+        self.assertEqual(meta_transaction1.from_public_key,
+                         self.wallet1.public_key)
         self.assertEqual(self.wallet1.balance, 90)
         self.assertEqual(self.wallet2.balance, 10)
         self.assertEqual(self.wallet1.nonce, 1)
 
-        meta_transaction2 = MetaTransaction(from_wallet=self.wallet1, to_wallet=self.wallet2, amount=10, nonce=2)
-        signature2 = self.key1.sign(pack_meta_transaction(meta_transaction2.to_meta_transaction_dictionary()))
+        meta_transaction2 = MetaTransaction(
+            from_wallet=self.wallet1, to_wallet=self.wallet2, amount=10, nonce=2)
+        signature2 = self.key1.sign(pack_meta_transaction(
+            meta_transaction2.to_meta_transaction_dictionary()))
         meta_transaction2.signature = signature2
         meta_transaction2.save()
 
-        self.assertEqual(meta_transaction1.from_public_key, self.wallet1.public_key)
+        self.assertEqual(meta_transaction1.from_public_key,
+                         self.wallet1.public_key)
         self.assertEqual(self.wallet1.balance, 80)
         self.assertEqual(self.wallet2.balance, 20)
         self.assertEqual(self.wallet1.nonce, 2)
@@ -205,32 +250,37 @@ class ComplexTransactionFlowsTestCase(TestCase):
         wallet_public_key_transfer_request.wallet.save()
         wallet_public_key_transfer_request.state = TRANSACTION_STATES.DONE.value
         wallet_public_key_transfer_request.notes = "Has no balance or was recovering to same pubkey, transferred offchain"
-        wallet_public_key_transfer_request.save()    
+        wallet_public_key_transfer_request.save()
 
         self.wallet1.refresh_from_db()
         self.assertEqual(self.wallet1.nonce, 0)
-        meta_transaction2 = MetaTransaction(from_wallet=self.wallet1, to_wallet=self.wallet2, amount=10, nonce=3)
-        signature2 = new_key1.sign(pack_meta_transaction(meta_transaction2.to_meta_transaction_dictionary()))
+        meta_transaction2 = MetaTransaction(
+            from_wallet=self.wallet1, to_wallet=self.wallet2, amount=10, nonce=3)
+        signature2 = new_key1.sign(pack_meta_transaction(
+            meta_transaction2.to_meta_transaction_dictionary()))
         meta_transaction2.signature = signature2
-        with self.assertRaises(ValidationError): # the nonce must reset because it's a new pubkey
+        # the nonce must reset because it's a new pubkey
+        with self.assertRaises(ValidationError):
             meta_transaction2.save()
-        
-        meta_transaction3 = MetaTransaction(from_wallet=self.wallet1, to_wallet=self.wallet2, amount=10, nonce=1)
-        signature3 = new_key1.sign(pack_meta_transaction(meta_transaction3.to_meta_transaction_dictionary()))
+
+        meta_transaction3 = MetaTransaction(
+            from_wallet=self.wallet1, to_wallet=self.wallet2, amount=10, nonce=1)
+        signature3 = new_key1.sign(pack_meta_transaction(
+            meta_transaction3.to_meta_transaction_dictionary()))
         meta_transaction3.signature = signature3
         meta_transaction3.save()
 
-        self.assertEqual(meta_transaction3.from_public_key, self.wallet1.public_key)
+        self.assertEqual(meta_transaction3.from_public_key,
+                         self.wallet1.public_key)
         self.assertEqual(self.wallet1.balance, 70)
         self.assertEqual(self.wallet2.balance, 30)
 
 
-
-
-@skip
+@ skip
 class BlockchainSyncTestCase(TestCase):
     def setUp(self):
-        self.currency = Currency.objects.create(token_id=0, name="TEZ", symbol='test', claim_deadline='2120-01-01', campaign_end='2120-01-01')
+        self.currency = Currency.objects.create(
+            token_id=0, name="TEZ", symbol='test', claim_deadline='2120-01-01', campaign_end='2120-01-01')
         self.pytezos_client = pytezos.pytezos.using(
             key=settings.TEZOS_ADMIN_ACCOUNT_PRIVATE_KEY, shell=settings.TEZOS_NODE)
         self.last_nonce = read_nonce_from_chain(

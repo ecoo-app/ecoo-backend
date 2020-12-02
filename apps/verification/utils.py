@@ -3,7 +3,6 @@ from django.conf import settings
 from oauthlib.oauth2 import BackendApplicationClient
 from requests_oauthlib import OAuth2Session
 import json
-import base64
 
 
 def accept_verfication_and_create_transaction(obj):
