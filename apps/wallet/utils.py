@@ -290,6 +290,65 @@ def sync_to_blockchain(is_dry_run=True, _async=False):
             return OperationResult.is_applied(operation_result)
 
 
+def check_sync_state():
+    from apps.wallet.models import Wallet
+    pytezos_client = pytezos.using(
+        key=settings.TEZOS_ADMIN_ACCOUNT_PRIVATE_KEY, shell=settings.TEZOS_NODE)
+    token_contract = pytezos_client.contract(
+        settings.TEZOS_TOKEN_CONTRACT_ADDRESS)
+    fail_message = ""
+    transfer_transaction_payloads = []
+    for wallet in Wallet.objects.all():
+        try:
+            on_chain_balance = token_contract.big_map_get(
+                "ledger/{}::{}".format(wallet.address, wallet.currency.token_id))
+            if wallet.balance != on_chain_balance:
+
+                fail_message += "{} has {} onchain balance but on system {}\n".format(
+                    wallet.wallet_id, on_chain_balance, wallet.balance)
+        except:
+            if wallet.balance > 0:
+                fail_message += "{} has 0 onchain balance but on system {}\n".format(
+                    wallet.wallet_id, wallet.balance)
+    if len(fail_message) > 0:
+        raise Exception(fail_message)
+        return False
+    else:
+        return True
+
+
+def fix_sync_state(payback_address):
+    from apps.wallet.models import Wallet
+    pytezos_client = pytezos.using(
+        key=settings.TEZOS_ADMIN_ACCOUNT_PRIVATE_KEY, shell=settings.TEZOS_NODE)
+    token_contract = pytezos_client.contract(
+        settings.TEZOS_TOKEN_CONTRACT_ADDRESS)
+    transfer_transaction_payloads = []
+    total_amount = 0
+    for wallet in Wallet.objects.all():
+        try:
+            on_chain_balance = token_contract.big_map_get(
+                "ledger/{}::{}".format(wallet.address, wallet.currency.token_id))
+            if wallet.balance < on_chain_balance:
+                transfer_transaction_payloads.append({
+                    "from_": wallet.address,
+                    "txs": [{
+                        "to_": payback_address,
+                        "token_id": wallet.currency.token_id,
+                        "amount": on_chain_balance-wallet.balance
+                    }]
+                })
+                total_amount += on_chain_balance-wallet.balance
+        except Exception as error:
+            if wallet.balance > 0:
+                print("wallet {} had some issues: {}".format(
+                    wallet.wallet_id, error))
+    print("going to transfer {} from {} wallets to {}".format(
+        total_amount, len(transfer_transaction_payloads), payback_address))
+    token_contract.transfer(
+        transfer_transaction_payloads).operation_group.sign().inject(_async=False, preapply=True, check_result=True, num_blocks_wait=settings.TEZOS_BLOCK_WAIT_TIME)
+
+
 def create_claim_transaction(wallet):
     from apps.wallet.models import Wallet, MetaTransaction, Transaction, WalletPublicKeyTransferRequest, TRANSACTION_STATES
 
