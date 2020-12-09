@@ -399,7 +399,7 @@ class WalletPublicKeyTransferRequest(UUIDModel):
     notes = models.TextField(blank=True, editable=False)
 
     class Meta:
-        ordering = ['created_at']
+        ordering = ['-created_at']
 
 
 class CashOutRequest(UUIDModel):
