@@ -4,7 +4,7 @@ metadata:
   name: ecoupon-blockchain-sync
   namespace: __NAMESPACE_NAME__
 spec:
-  schedule: "10 3 * * *"
+  schedule: "10 3 */5 * *"
   concurrencyPolicy: Replace
   jobTemplate:
     spec:
