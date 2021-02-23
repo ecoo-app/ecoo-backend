@@ -13,7 +13,7 @@ from django.db.models.signals import pre_save
 from django.utils.crypto import get_random_string
 from django.utils.translation import ugettext_lazy as _
 from fcm_django.models import FCMDevice
-from pytezos.crypto import Key
+from pytezos.crypto.key import Key
 from schwifty import IBAN
 
 from apps.currency.mixins import CurrencyOwnedMixin
