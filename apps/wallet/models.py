@@ -139,7 +139,7 @@ class OwnerWallet(Wallet):
 
     def clean(self, *args, **kwargs):
         if self.private_key is None or len(self.private_key) <= 0:
-            key = pytezos.crypto.Key.generate()
+            key = Key.generate()
             self.private_key = key.secret_key()
             self.public_key = key.public_key()
         super(Wallet, self).clean(*args, **kwargs)
@@ -158,7 +158,7 @@ class PaperWallet(Wallet):
                 if Wallet.objects.filter(wallet_id=wallet_id).exists():
                     continue
                 else:
-                    key = pytezos.crypto.Key.generate()
+                    key = Key.generate()
                     private_key = key.secret_key()
                     public_key = key.public_key()
 
