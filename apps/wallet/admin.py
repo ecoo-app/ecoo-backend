@@ -112,7 +112,7 @@ class PaperWalletAdmin(WalletAdmin):
         return TemplateResponse(request, 'admin/generate_wallets.html', {'form': form, 'opts': self.opts, 'media': self.media, })
 
     def generate_wallet(self, currency):
-        key = pytezos.crypto.Key.generate()
+        key = pytezos.crypto.key.Key.generate()
         private_key = key.secret_key(None, False)
         public_key = key.public_key()
 
