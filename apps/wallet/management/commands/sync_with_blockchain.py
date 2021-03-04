@@ -10,4 +10,4 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         sync_to_blockchain(is_dry_run=False)
-        check_sync_state()
+        #check_sync_state()

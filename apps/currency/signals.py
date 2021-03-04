@@ -12,7 +12,7 @@ from apps.wallet.models import OwnerWallet, WALLET_CATEGORIES
 def create_owner_wallet(sender, instance, created, **kwargs):
 
     if created:
-        key = pytezos.crypto.Key.generate()
+        key = pytezos.crypto.key.Key.generate()
         private_key = key.secret_key()
         public_key = key.public_key()
 

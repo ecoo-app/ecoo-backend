@@ -1,5 +1,5 @@
 from rest_framework.pagination import CursorPagination
-from pytezos import pytezos, michelson
+from pytezos import pytezos
 from django.utils.timezone import now
 from django.conf import settings
 from django.utils.timezone import now
@@ -7,6 +7,7 @@ from pytezos.operation.result import OperationResult
 import json
 import traceback
 import time
+from pytezos.michelson.types.base import MichelsonType
 
 MESSAGE_STRUCTURE = {
     "prim": "pair",
@@ -82,7 +83,9 @@ def create_message(from_wallet, to_wallet, nonce, token_id, amount):
             }
         ]
     }
-    return michelson.pack.pack(message_to_encode, MESSAGE_STRUCTURE)
+
+    michelson_type = MichelsonType.match(MESSAGE_STRUCTURE)
+    return michelson_type.from_micheline_value(message_to_encode).pack()
 
 
 def pack_meta_transaction(meta_transaction):
@@ -124,8 +127,8 @@ def pack_meta_transaction(meta_transaction):
                 }
             ]
         })
-
-    return michelson.pack.pack(message_to_encode, MESSAGE_STRUCTURE)
+    michelson_type = MichelsonType.match(MESSAGE_STRUCTURE)
+    return michelson_type.from_micheline_value(message_to_encode).pack()
 
 
 def read_nonce_from_chain(address):

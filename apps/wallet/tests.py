@@ -39,10 +39,16 @@ class WalletTestCase(TestCase):
             wallet.nonce, 0)
 
     def test_nonce_calculation(self):
-        currency = Currency.objects.create(
-            token_id=0, name="test", symbol='test', claim_deadline='2120-01-01', campaign_end='2120-01-01')
-        key1 = pytezos.crypto.Key.generate()
-        key2 = pytezos.crypto.Key.generate()
+        # <<<<<<< HEAD
+        #         currency = Currency.objects.create(
+        #             token_id=0, name="test", symbol='test', claim_deadline='2120-01-01', campaign_end='2120-01-01')
+        #         key1 = pytezos.crypto.Key.generate()
+        #         key2 = pytezos.crypto.Key.generate()
+        # =======
+        currency = Currency.objects.create(token_id=0, name="test", symbol='test', claim_deadline='2120-01-01', campaign_end='2120-01-01')
+        key1 = pytezos.crypto.key.Key.generate()
+        key2 = pytezos.crypto.key.Key.generate()
+        # >>>>>>> master
         wallet1 = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
         ), public_key=key1.public_key(), currency=currency, state=WALLET_STATES.VERIFIED.value)
         wallet2 = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
@@ -84,10 +90,16 @@ class WalletTestCase(TestCase):
             wallet2.nonce, 1)
 
     def test_balance_calculation(self):
-        currency = Currency.objects.create(
-            token_id=0, name="test", symbol='test', claim_deadline='2120-01-01', campaign_end='2120-01-01')
-        key1 = pytezos.crypto.Key.generate()
-        key2 = pytezos.crypto.Key.generate()
+        # <<<<<<< HEAD
+        #         currency = Currency.objects.create(
+        #             token_id=0, name="test", symbol='test', claim_deadline='2120-01-01', campaign_end='2120-01-01')
+        #         key1 = pytezos.crypto.Key.generate()
+        #         key2 = pytezos.crypto.Key.generate()
+        # =======
+        currency = Currency.objects.create(token_id=0, name="test", symbol='test', claim_deadline='2120-01-01', campaign_end='2120-01-01')
+        key1 = pytezos.crypto.key.Key.generate()
+        key2 = pytezos.crypto.key.Key.generate()
+        # >>>>>>> master
         wallet1 = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
         ), public_key=key1.public_key(), currency=currency, state=WALLET_STATES.VERIFIED.value)
         wallet2 = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
@@ -137,7 +149,7 @@ class PaperWalletTestCase(TestCase):
             token_id=0, name="test", symbol='test', claim_deadline='2120-01-01', campaign_end='2120-01-01')
 
     def test_deeplink_generation(self):
-        key = pytezos.crypto.Key.generate()
+        key = pytezos.crypto.key.Key.generate()
         private_key = key.secret_key(None, False)
         public_key = key.public_key()
 
@@ -201,10 +213,16 @@ class TransactionTestCase(TestCase):
 
 class ComplexTransactionFlowsTestCase(TestCase):
     def setUp(self):
-        self.currency = Currency.objects.create(
-            token_id=0, name="test", symbol='test', claim_deadline='2120-01-01', campaign_end='2120-01-01')
-        self.key1 = pytezos.crypto.Key.generate()
-        self.key2 = pytezos.crypto.Key.generate()
+        # <<<<<<< HEAD
+        #         self.currency = Currency.objects.create(
+        #             token_id=0, name="test", symbol='test', claim_deadline='2120-01-01', campaign_end='2120-01-01')
+        #         self.key1 = pytezos.crypto.Key.generate()
+        #         self.key2 = pytezos.crypto.Key.generate()
+        # =======
+        self.currency = Currency.objects.create(token_id=0, name="test", symbol='test', claim_deadline='2120-01-01', campaign_end='2120-01-01')
+        self.key1 = pytezos.crypto.key.Key.generate()
+        self.key2 = pytezos.crypto.key.Key.generate()
+        # >>>>>>> master
         self.wallet1 = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
         ), public_key=self.key1.public_key(), currency=self.currency, state=WALLET_STATES.VERIFIED.value)
         self.wallet2 = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
@@ -240,7 +258,7 @@ class ComplexTransactionFlowsTestCase(TestCase):
         self.assertEqual(self.wallet2.balance, 20)
         self.assertEqual(self.wallet1.nonce, 2)
 
-        new_key1 = pytezos.crypto.Key.generate()
+        new_key1 = pytezos.crypto.key.Key.generate()
 
         wallet_public_key_transfer_request = WalletPublicKeyTransferRequest.objects.create(
             wallet=self.wallet1, old_public_key=self.wallet1.public_key, new_public_key=new_key1.public_key())
@@ -343,7 +361,7 @@ class BlockchainSyncTestCase(TestCase):
 
     def test_complex_sync(self):
         for i in range(40):
-            key = pytezos.crypto.Key.generate()
+            key = pytezos.crypto.key.Key.generate()
             private_key = key.secret_key()
             public_key = key.public_key()
             user_wallet = Wallet.objects.create(
@@ -358,7 +376,7 @@ class BlockchainSyncTestCase(TestCase):
             MetaTransaction.objects.create(
                 from_wallet=user_wallet, to_wallet=self.wallet1, signature=signature, nonce=1, amount=1)
 
-            key = pytezos.crypto.Key.generate()
+            key = pytezos.crypto.key.Key.generate()
             public_key = key.public_key()
 
             WalletPublicKeyTransferRequest.objects.create(

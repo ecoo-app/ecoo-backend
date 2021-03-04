@@ -13,7 +13,7 @@ from django.db.models.signals import pre_save
 from django.utils.crypto import get_random_string
 from django.utils.translation import ugettext_lazy as _
 from fcm_django.models import FCMDevice
-from pytezos.crypto import Key
+from pytezos.crypto.key import Key
 from schwifty import IBAN
 
 from apps.currency.mixins import CurrencyOwnedMixin
@@ -142,7 +142,7 @@ class OwnerWallet(Wallet):
 
     def clean(self, *args, **kwargs):
         if self.private_key is None or len(self.private_key) <= 0:
-            key = pytezos.crypto.Key.generate()
+            key = Key.generate()
             self.private_key = key.secret_key()
             self.public_key = key.public_key()
         super(Wallet, self).clean(*args, **kwargs)
@@ -161,7 +161,7 @@ class PaperWallet(Wallet):
                 if Wallet.objects.filter(wallet_id=wallet_id).exists():
                     continue
                 else:
-                    key = pytezos.crypto.Key.generate()
+                    key = Key.generate()
                     private_key = key.secret_key()
                     public_key = key.public_key()
 
