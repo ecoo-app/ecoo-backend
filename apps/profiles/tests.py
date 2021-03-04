@@ -1,20 +1,21 @@
+import time
 from unittest import skip
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import status
 from rest_framework.test import APIClient, APIRequestFactory, APITestCase
 
 from apps.currency.models import Currency
 from apps.profiles.models import (PROFILE_VERIFICATION_STAGES, CompanyProfile,
                                   UserProfile)
-from apps.verification.models import AddressPinVerification, CompanyVerification, PlaceOfOrigin, SMSPinVerification, UserVerification, VERIFICATION_STATES
+from apps.verification.models import (VERIFICATION_STATES,
+                                      AddressPinVerification,
+                                      CompanyVerification, PlaceOfOrigin,
+                                      SMSPinVerification, UserVerification)
 from apps.wallet.models import (WALLET_CATEGORIES, WALLET_STATES,
                                 MetaTransaction, Transaction, Wallet)
-from apps.profiles.models import CompanyProfile, PROFILE_VERIFICATION_STAGES, UserProfile
-from django.conf import settings
-from django.core.exceptions import ObjectDoesNotExist
-import time
 
 
 class ProfileApiTest(APITestCase):
@@ -59,7 +60,7 @@ class ProfileApiTest(APITestCase):
             date_of_birth="1989-06-24"
         )
 
-        place_of_origin = PlaceOfOrigin.objects.create(
+        PlaceOfOrigin.objects.create(
             place_of_origin="Baden AG", user_verification=user_verification)
 
         data = {
@@ -183,7 +184,7 @@ class ProfileApiTest(APITestCase):
         # self.assertEqual(response.data['verification_stage'], 0)
 
     def test_company_verification_ok(self):
-        company_verification = CompanyVerification.objects.create(
+        CompanyVerification.objects.create(
             name="Papers AG",
             uid="12-3-4-3",
             address_street="Sonnmattstr. 121",
@@ -219,7 +220,7 @@ class ProfileApiTest(APITestCase):
                          PROFILE_VERIFICATION_STAGES.VERIFIED.value)
 
     def test_company_verification_not_matching_wallet(self):
-        company_verification = CompanyVerification.objects.create(
+        CompanyVerification.objects.create(
             name="Papers AG",
             uid="12-3-4-3",
             address_street="Sonnmattstr. 121",
@@ -243,7 +244,7 @@ class ProfileApiTest(APITestCase):
                          status.HTTP_422_UNPROCESSABLE_ENTITY)
 
     def test_company_verification_incomplete_address(self):
-        company_verification = CompanyVerification.objects.create(
+        CompanyVerification.objects.create(
             name="Papers AG",
             uid="12-3-4-3",
             address_street="Sonnmattstr. 121",
@@ -304,7 +305,7 @@ class ProfileApiTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_company_verification_no_uid(self):
-        company_verification = CompanyVerification.objects.create(
+        CompanyVerification.objects.create(
             name="Papers AG",
             uid="12-3-4-3",
             address_street="Sonnmattstr. 121",
@@ -331,11 +332,11 @@ class ProfileApiTest(APITestCase):
         # TODO: check that no verification data is there!!
 
         try:
-            address_pin_verification = company_profile.address_pin_verification
+            _ = company_profile.address_pin_verification
         except ObjectDoesNotExist:
             pass
 
-        company_verification = CompanyVerification.objects.create(
+        CompanyVerification.objects.create(
             name="Papers AG",
             uid="12-3-4-3",
             address_street="Sonnmattstr. 121",
@@ -366,7 +367,7 @@ class ProfileApiTest(APITestCase):
         # pass
 
     def test_company_verification_not_matching_address(self):
-        company_verification = CompanyVerification.objects.create(
+        CompanyVerification.objects.create(
             name="Papers AG",
             uid="12-3-4-4",
             address_street="Sonnmattstr. 121",
@@ -389,6 +390,8 @@ class ProfileApiTest(APITestCase):
         self.assertEqual(response.status_code,
                          status.HTTP_422_UNPROCESSABLE_ENTITY)
 
+    # FIXME: this wasn't run through anymore because of a test with the same name futher down now named .._2
+    @skip
     def test_company_profile_verification_flow(self):
         company_verification = CompanyVerification.objects.create(
             name="Papers AG",
@@ -497,7 +500,7 @@ class ProfileApiTest(APITestCase):
         self.assertEqual(response.data['verification_stage'], 0)
 
     def test_user_profile_destroy(self):
-        user_verification = UserVerification.objects.create(
+        UserVerification.objects.create(
             first_name="Alessandro",
             last_name="De Carli",
             address_street="Sonnmattstr. 121",
@@ -545,8 +548,8 @@ class ProfileApiTest(APITestCase):
                          status.HTTP_204_NO_CONTENT)
         self.assertEqual(UserProfile.objects.all().count(), 1)
 
-    def test_company_profile_verification_flow(self):
-        company_verification = CompanyVerification.objects.create(
+    def test_company_profile_verification_flow_2(self):
+        CompanyVerification.objects.create(
             name="Papers AG",
             uid="12-3-4-3",
             address_street="Sonnmattstr. 121",
@@ -586,7 +589,7 @@ class ProfileApiTest(APITestCase):
         self.assertEqual(CompanyProfile.objects.all().count(), 0)
 
     def test_invalid_postal_code(self):
-        company_verification = CompanyVerification.objects.create(
+        CompanyVerification.objects.create(
             name="Papers AG",
             uid="12-3-4-3",
             address_street="Sonnmattstr. 121",
@@ -609,8 +612,7 @@ class ProfileApiTest(APITestCase):
         # the second create overrides user 2
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-
-        user_verification = UserVerification.objects.create(
+        UserVerification.objects.create(
             first_name="Alessandro",
             last_name="De Carli",
             address_street="Sonnmattstr. 121",
@@ -636,7 +638,6 @@ class ProfileApiTest(APITestCase):
             '/api/profiles/user_profiles/', data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-
     def test_user_verification_with_different_place_of_origin(self):
         self.client.force_authenticate(user=self.user)
         user_verification = UserVerification.objects.create(
@@ -649,9 +650,9 @@ class ProfileApiTest(APITestCase):
             # place_of_origin="Baden AG"
         )
 
-        place_of_origin = PlaceOfOrigin.objects.create(
+        PlaceOfOrigin.objects.create(
             user_verification=user_verification, place_of_origin="Baden AG")
-        place_of_origin = PlaceOfOrigin.objects.create(
+        PlaceOfOrigin.objects.create(
             user_verification=user_verification, place_of_origin="Zürich ZH")
 
         data = {
@@ -695,12 +696,12 @@ class ProfileApiTest(APITestCase):
 
         for i in range(5):
             company_verification = CompanyVerification.objects.create(
-                name="Papers AG"+str(i),
+                name="Papers AG" + str(i),
                 uid="12-3-4-3"
             )
 
             data = {
-                "name": "Papers AG"+str(i),
+                "name": "Papers AG" + str(i),
                 "uid": "12-3-4-3",
                 "address_street": "Sonnmattstr. 121",
                 "address_postal_code": "5242",
@@ -755,7 +756,7 @@ class ProfileApiTest(APITestCase):
 
         for i in range(5):
             user_verification = UserVerification.objects.create(
-                first_name="Alessandro"+str(i),
+                first_name="Alessandro" + str(i),
                 last_name="De Carli",
                 address_street="Sonnmattstr. 121",
                 address_postal_code="5242",
@@ -764,7 +765,7 @@ class ProfileApiTest(APITestCase):
             )
 
             data = {
-                "first_name": "Alessandro"+str(i),
+                "first_name": "Alessandro" + str(i),
                 "last_name": "De Carli",
                 "address_street": "Sonnmattstr. 121",
                 "address_postal_code": "5242",

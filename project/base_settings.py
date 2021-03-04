@@ -186,8 +186,8 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=4*30),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=6*30),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=4 * 30),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=6 * 30),
     'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': True,
 
@@ -207,8 +207,8 @@ SIMPLE_JWT = {
     'JTI_CLAIM': 'jti',
 
     'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
-    'SLIDING_TOKEN_LIFETIME': timedelta(days=4*30),
-    'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=6*30),
+    'SLIDING_TOKEN_LIFETIME': timedelta(days=4 * 30),
+    'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=6 * 30),
 }
 
 
@@ -364,7 +364,7 @@ FULLCLEAN_WHITELIST = ['apps']
 
 
 OAUTH2_PROVIDER = {
-    'ACCESS_TOKEN_EXPIRE_SECONDS': 60*60*24*300,
+    'ACCESS_TOKEN_EXPIRE_SECONDS': 60 * 60 * 24 * 300,
 }
 
 BLOCKCHAIN_SYNC_WAIT_TIME = 6

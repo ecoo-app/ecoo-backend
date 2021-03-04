@@ -95,7 +95,7 @@ class WalletApiTest(APITestCase):
         }, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(wallet_count+1, Wallet.objects.all().count())
+        self.assertEqual(wallet_count + 1, Wallet.objects.all().count())
 
         # duplicate input
         wallet_count = Wallet.objects.all().count()
@@ -112,7 +112,7 @@ class WalletApiTest(APITestCase):
 
     def test_wallet_detail_unauthorized(self):
         response = self.client.get(
-            '/api/wallet/wallet/' + self.wallet_1.wallet_id+'/')
+            '/api/wallet/wallet/' + self.wallet_1.wallet_id + '/')
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
@@ -120,13 +120,13 @@ class WalletApiTest(APITestCase):
         self.client.force_authenticate(user=self.user)
 
         response = self.client.get(
-            '/api/wallet/wallet/' + self.wallet_2.wallet_id+'/')
+            '/api/wallet/wallet/' + self.wallet_2.wallet_id + '/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             response.data, PublicWalletSerializer(self.wallet_2).data)
 
         response = self.client.get(
-            '/api/wallet/wallet/' + self.wallet_1.wallet_id+'/')
+            '/api/wallet/wallet/' + self.wallet_1.wallet_id + '/')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, WalletSerializer(self.wallet_1).data)
@@ -177,6 +177,7 @@ class WalletPublicKeyTransferRequestApiTest(APITestCase):
         self.assertEqual(wallet_public_key_transfer_request_count,
                          WalletPublicKeyTransferRequest.objects.all().count())
 
+    # FIXME: was overriden by test with same name!
     def test_wallet_public_key_transfer_request_correct_and_duplicate(self):
         #   incorrect request
         self.client.force_authenticate(user=self.user_2)
@@ -186,11 +187,11 @@ class WalletPublicKeyTransferRequestApiTest(APITestCase):
             "wallet": self.wallet_1.wallet_id,
             "new_public_key": self.pubkey_1
         }, format='json')
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(wallet_public_key_transfer_request_count,
                          WalletPublicKeyTransferRequest.objects.all().count())
 
-    def test_wallet_public_key_transfer_request_correct_and_duplicate(self):
+    def test_wallet_public_key_transfer_request_correct_and_duplicate_1(self):
         # correct request
         self.client.force_authenticate(user=self.user)
         wallet_public_key_transfer_request_count = WalletPublicKeyTransferRequest.objects.all().count()
@@ -199,8 +200,7 @@ class WalletPublicKeyTransferRequestApiTest(APITestCase):
             "new_public_key": self.pubkey_1
         }, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(wallet_public_key_transfer_request_count +
-                         1, WalletPublicKeyTransferRequest.objects.all().count())
+        self.assertEqual(wallet_public_key_transfer_request_count + 1, WalletPublicKeyTransferRequest.objects.all().count())
 
     def test_wallet_public_key_transfer_request_list(self):
         # correct request
@@ -211,8 +211,7 @@ class WalletPublicKeyTransferRequestApiTest(APITestCase):
             "new_public_key": self.pubkey_1
         }, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(wallet_public_key_transfer_request_count +
-                         1, WalletPublicKeyTransferRequest.objects.all().count())
+        self.assertEqual(wallet_public_key_transfer_request_count + 1, WalletPublicKeyTransferRequest.objects.all().count())
 
         self.client.force_authenticate(user=self.user)
         wallet_public_key_transfer_request_count = WalletPublicKeyTransferRequest.objects.all().count()
@@ -261,7 +260,7 @@ class CashOutRequestApiTest(APITestCase):
             to_wallet=self.wallet_pk, amount=100)
 
         self.token_transaction = MetaTransaction(
-            from_wallet=self.wallet_pk, to_wallet=self.currency.cashout_wallet, nonce=self.wallet_pk.nonce+1, amount=10)
+            from_wallet=self.wallet_pk, to_wallet=self.currency.cashout_wallet, nonce=self.wallet_pk.nonce + 1, amount=10)
         signature = self.key.sign(pack_meta_transaction(
             self.token_transaction.to_meta_transaction_dictionary()))
         self.token_transaction.signature = signature
@@ -300,8 +299,7 @@ class CashOutRequestApiTest(APITestCase):
             "beneficiary_iban": "CH2509000000619652574"
         }, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(cash_out_request_count +
-                         1, CashOutRequest.objects.all().count())
+        self.assertEqual(cash_out_request_count + 1, CashOutRequest.objects.all().count())
 
         self.client.force_authenticate(user=self.user)
         response = self.client.post('/api/wallet/cash_out_request/', {

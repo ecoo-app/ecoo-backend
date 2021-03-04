@@ -2,7 +2,6 @@ from rest_framework.pagination import CursorPagination
 from pytezos import pytezos
 from django.utils.timezone import now
 from django.conf import settings
-from django.utils.timezone import now
 from pytezos.operation.result import OperationResult
 import json
 import traceback
@@ -49,37 +48,38 @@ def create_message(from_wallet, to_wallet, nonce, token_id, amount):
     message_to_encode = {
         "prim": "Pair",
         "args": [
-                {
-                    "string": from_wallet.public_key
-                },
+
             {
-                    "prim": "Pair",
-                    "args": [
+                "string": from_wallet.public_key
+            },
+            {
+                "prim": "Pair",
+                "args": [
+                    {
+                        'int': nonce
+                    },
+                    [
                         {
-                            'int': nonce
-                        },
-                        [
-                            {
-                                "prim": "Pair",
-                                "args": [
-                                    {
-                                        "string": to_wallet.address
-                                    },
-                                    {
-                                        "prim": "Pair",
-                                        "args": [
-                                            {
-                                                "int": token_id
-                                            },
-                                            {
-                                                'int': amount
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
-                        ]
+                            "prim": "Pair",
+                            "args": [
+                                {
+                                    "string": to_wallet.address
+                                },
+                                {
+                                    "prim": "Pair",
+                                    "args": [
+                                        {
+                                            "int": token_id
+                                        },
+                                        {
+                                            'int': amount
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
                     ]
+                ]
             }
         ]
     }
@@ -230,7 +230,7 @@ def sync_to_blockchain(is_dry_run=True, _async=False):
     final_operation_group = None
     operation_counter = 0
     for operation_group in operation_groups:
-        if final_operation_group == None:
+        if final_operation_group is None:
             final_operation_group = operation_group
             operation_counter = int(operation_group.contents[0]['counter'])
         else:
@@ -240,7 +240,7 @@ def sync_to_blockchain(is_dry_run=True, _async=False):
             final_operation_group = final_operation_group.operation(
                 operation_group.contents[0])
 
-    if final_operation_group != None:  # we have stuff to sync
+    if final_operation_group is not None:  # we have stuff to sync
         print(final_operation_group)
         operation_result = final_operation_group.sign().preapply()
         print(operation_result)
@@ -300,7 +300,6 @@ def check_sync_state():
     token_contract = pytezos_client.contract(
         settings.TEZOS_TOKEN_CONTRACT_ADDRESS)
     fail_message = ""
-    transfer_transaction_payloads = []
     for wallet in Wallet.objects.all():
         try:
             on_chain_balance = token_contract.big_map_get(
@@ -338,10 +337,10 @@ def fix_sync_state(payback_address):
                     "txs": [{
                         "to_": payback_address,
                         "token_id": wallet.currency.token_id,
-                        "amount": on_chain_balance-wallet.balance
+                        "amount": on_chain_balance - wallet.balance
                     }]
                 })
-                total_amount += on_chain_balance-wallet.balance
+                total_amount += on_chain_balance - wallet.balance
         except Exception as error:
             if wallet.balance > 0:
                 print("wallet {} had some issues: {}".format(

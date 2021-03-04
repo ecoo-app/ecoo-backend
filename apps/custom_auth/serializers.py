@@ -24,7 +24,6 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ["username", "password", ]
 
 
-
 class SocialSerializer(serializers.Serializer):
     """
     Serializer which accepts an OAuth2 access token.
@@ -33,6 +32,7 @@ class SocialSerializer(serializers.Serializer):
         allow_blank=False,
         trim_whitespace=True,
     )
+
 
 class ApplicationSerializer(serializers.ModelSerializer):
     class Meta:

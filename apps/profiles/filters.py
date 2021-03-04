@@ -43,20 +43,6 @@ class CompanyVerificationLevelFilter(UserVerificationLevelFilter):
             return queryset
 
 
-class CompanyVerificationLevelFilter(UserVerificationLevelFilter):
-    title = _('Company Verification Level')
-
-    def queryset(self, request, queryset):
-        if self.value() == '0':
-            return queryset.exclude(company_verification__isnull=False).exclude(address_pin_verification__isnull=False)
-        elif self.value() == '1':
-            return queryset.filter(company_verification__isnull=False)
-        elif self.value() == '2':
-            return queryset.filter(address_pin_verification__isnull=False)
-        else:
-            return queryset
-
-
 class IsActiveFilter(SimpleListFilter):
     title = _('Show Deactivated')
 

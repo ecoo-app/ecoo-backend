@@ -66,6 +66,7 @@ class Wallet(CurrencyOwnedMixin):
 
     @property
     def address(self):
+        # return "key"
         return Key.from_encoded_key(self.public_key).public_key_hash()
 
     @property
@@ -209,8 +210,9 @@ class PaperWallet(Wallet):
         nonce = pysodium.randombytes(pysodium.crypto_secretbox_NONCEBYTES)
         pk = pysodium.crypto_aead_xchacha20poly1305_ietf_encrypt(
             self.private_key.encode('UTF-8'), None, nonce, encryption_key)
-        decrypted_pk = pysodium.crypto_aead_xchacha20poly1305_ietf_decrypt(
-            pk, None, nonce, encryption_key)
+        # TODO: never used?!?
+        # decrypted_pk = pysodium.crypto_aead_xchacha20poly1305_ietf_decrypt(
+        #     pk, None, nonce, encryption_key)
 
         payload = {
             'nonce': base64.b64encode(nonce),
@@ -275,7 +277,7 @@ class Transaction(UUIDModel):
 
     @property
     def is_mint_transaction(self):
-        return self.from_wallet == None
+        return self.from_wallet is None
 
     @property
     def tag(self):
@@ -369,7 +371,7 @@ class MetaTransaction(Transaction):
 
         if hasattr(self, 'from_wallet'):
 
-            if self.from_wallet and self.nonce != self.from_wallet.nonce+1:
+            if self.from_wallet and self.nonce != self.from_wallet.nonce + 1:
                 errors['nonce'] = ValidationError(
                     _('Nonce must be 1 higher than from_wallet\'s last meta transaction nonce'))
             if hasattr(self, 'to_wallet'):
