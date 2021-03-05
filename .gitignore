@@ -171,3 +171,10 @@ dmypy.json
 # End of https://www.gitignore.io/api/django,python
 
 **/project/settings.py
+
+# coverage
+coverage_html_report/
+.coverage
+.coverage.*
+coverage.xml
+*.cover

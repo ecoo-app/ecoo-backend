@@ -11,6 +11,7 @@ services:
 stages:
   - build
   - test
+  - coverage
   - publish
   - deploy
   - provision
@@ -24,12 +25,42 @@ build:
 
 test:
   stage: test
+  variables:
+    POSTGRES_DB: "postgres"
+    POSTGRES_USER: "postgres"
+    POSTGRES_PASSWORD: "postgres"
+    PGDATA: "/var/lib/postgresql/data"
+    POSTGRES_INITDB_ARGS: "--encoding=UTF8 --data-checksums"
+
+  services:
+    - postgres:9.6
+
   script:
-    
-    - docker run $GOOGLE_TAG python manage.py test
+    - docker stop $CI_PROJECT_NAME-$CI_COMMIT_SHA-test || true
+    - docker rm  $CI_PROJECT_NAME-$CI_COMMIT_SHA-test || true
+    - docker run --user root -e DJANGO_DB_HOST=$POSTGRES_PORT_5432_TCP_ADDR --name $CI_PROJECT_NAME-$CI_COMMIT_SHA-test $GOOGLE_TAG bash -c "pip install coverage && coverage erase && coverage run --branch manage.py test"
   tags:
     - docker
-    
+
+
+coverage:
+  stage: coverage
+  script:
+    - docker start $CI_PROJECT_NAME-$CI_COMMIT_SHA-test
+    - docker exec $CI_PROJECT_NAME-$CI_COMMIT_SHA-test bash -c "coverage report -m"
+    # - docker exec $CI_PROJECT_NAME-$CI_COMMIT_SHA-test bash -c "coverage html"
+    # - docker cp $CI_PROJECT_NAME-$CI_COMMIT_SHA-test:/code/coverage_html_report ./coverage_html_report
+    - docker stop $CI_PROJECT_NAME-$CI_COMMIT_SHA-test
+    - docker rm $CI_PROJECT_NAME-$CI_COMMIT_SHA-test || true
+  artifacts:
+    paths:
+      - ./coverage_html_report/
+    expire_in: 1 week
+  tags:
+    - docker
+
+
+
 publish:
   stage: publish
   image: google/cloud-sdk
