@@ -5,14 +5,27 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Django",
+            "name": "Python: Django Test",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/manage.py",
             "args": [
                 "test",
+                "apps.wallet.tests_api",
             ],
-            "django": true
+            "django": true,
+            "justMyCode": true
+        },
+        {
+            "name": "Python: Django Runserver",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/manage.py",
+            "args": [
+                "runserver",
+            ],
+            "django": true,
+            "justMyCode": true
         }
     ]
 }

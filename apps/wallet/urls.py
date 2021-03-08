@@ -2,13 +2,18 @@
 from django.urls import path
 
 from apps.wallet.views import (CashOutRequestListCreate,
-                               MetaTransactionListCreate, OpenCashoutTransactions, TransactionList,
-                               WalletDetail, WalletListCreate,
+                               MetaTransactionListCreate,
+                               OpenCashoutTransactions, PaperWalletDetail,
+                               TransactionList, WalletDetail, WalletListCreate,
                                WalletPublicKeyTransferRequestListCreate)
 
 urlpatterns = [
     path('wallet/', WalletListCreate.as_view(), name='wallet_list_create'),
     path('wallet/<slug:wallet_id>/', WalletDetail.as_view(), name='wallet_detail'),
+    
+    path('paper_wallet/<slug:wallet_id>/', PaperWalletDetail.as_view(), name='wallet_detail'),
+    path('paper_wallet/<slug:wallet_id>/<slug:signature>/', PaperWalletDetail.as_view(), name='wallet_detail'),
+
     path('wallet_public_key_transfer_request/',
          WalletPublicKeyTransferRequestListCreate.as_view(), name='wallet_public_key_transfer_request_list_create'),
     path('cash_out_request/',

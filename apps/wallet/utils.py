@@ -1,4 +1,3 @@
-from rest_framework.pagination import CursorPagination
 from pytezos import pytezos
 from django.utils.timezone import now
 from django.conf import settings
@@ -8,6 +7,29 @@ import json
 import traceback
 import time
 from pytezos.michelson.types.base import MichelsonType
+
+
+PAPER_WALLET_MESSAGE_STRUCTURE = {
+    "prim": "pair",
+            "args": [
+                {
+                "prim":"string"
+                },
+                {"prim": "nat"},
+            ]
+}
+def create_paper_wallet_message(wallet, token_id):
+    message_to_encode = {
+        "prim":"Pair",
+        "args": [
+            {"string": wallet.wallet_id},
+            {"int": token_id},
+        ]
+    }
+    michelson_type = MichelsonType.match(PAPER_WALLET_MESSAGE_STRUCTURE)
+    return michelson_type.from_micheline_value(message_to_encode).pack()
+
+
 
 MESSAGE_STRUCTURE = {
     "prim": "pair",
