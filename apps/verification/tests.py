@@ -5,7 +5,7 @@ from unittest import skip
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from rest_framework import status
-from rest_framework.test import APIClient, APIRequestFactory, APITestCase
+from rest_framework.test import APITestCase
 
 from apps.verification.models import CompanyVerification, UserVerification
 

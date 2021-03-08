@@ -9,10 +9,8 @@ import pytezos
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from django.core.validators import MinValueValidator
 from django.db import models, transaction
 from django.db.models import Max, Q, Sum
-from django.db.models.signals import pre_save
 from django.utils.crypto import get_random_string
 from django.utils.text import slugify
 from django.utils.translation import ugettext_lazy as _

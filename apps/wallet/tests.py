@@ -2,7 +2,6 @@ import time
 from unittest import skip
 from urllib.parse import urlparse
 
-# from pytezos import pytezos, crypto
 import pytezos
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -26,6 +25,8 @@ from apps.wallet.utils import (
     read_nonce_from_chain,
     sync_to_blockchain,
 )
+
+# TODO: add can view all currencies test
 
 
 class WalletTestCase(TestCase):

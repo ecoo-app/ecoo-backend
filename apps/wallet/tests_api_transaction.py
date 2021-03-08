@@ -17,6 +17,8 @@ from apps.wallet.models import (
 from apps.wallet.serializers import TransactionSerializer, WalletSerializer
 from apps.wallet.utils import pack_meta_transaction, read_nonce_from_chain
 
+# TODO: add can view all currencies test
+
 
 class TransactionApiTest(APITestCase):
     pubkey_1 = "edpkuvNy6TuQ2z8o9wnoaTtTXkzQk7nhegCHfxBc4ecsd4qG71KYNG"

@@ -20,6 +20,8 @@ from apps.wallet.serializers import (
 from apps.wallet.utils import create_paper_wallet_message, pack_meta_transaction
 from project.utils_testing import BaseEcouponApiTestCase
 
+# TODO: add can view all currencies test
+
 
 class WalletApiTest(BaseEcouponApiTestCase):
     def setUp(self):

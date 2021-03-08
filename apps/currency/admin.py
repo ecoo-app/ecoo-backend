@@ -1,6 +1,10 @@
 from django.contrib import admin
+from django.db.models.query import QuerySet
+from django.http.request import HttpRequest
 
 from apps.currency.models import Currency, PayoutAccount
+
+# TODO: adjust to only see the own currency
 
 
 class PayoutAccountInline(admin.StackedInline):
@@ -30,3 +34,12 @@ class CurrencyAdmin(admin.ModelAdmin):
     readonly_fields = [
         "created_at",
     ]
+
+    def get_queryset(self, request: HttpRequest) -> QuerySet:
+        qs = super().get_queryset(request)
+        if not (
+            request.user.has_perm("can_view_all_currencies")
+            or request.user.is_superuser
+        ):
+            qs = qs.filter(users__id__exact=request.user.id)
+        return qs

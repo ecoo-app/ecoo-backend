@@ -24,6 +24,7 @@ from apps.verification.models import (
     PlaceOfOrigin,
     UserVerification,
 )
+from apps.wallet.mixins import WalletCurrencyOwnedMixin
 from apps.wallet.models import WALLET_STATES, Wallet
 
 
@@ -145,7 +146,9 @@ class PreventDeleteWhenVerifiedMixin:
 
 
 @admin.register(UserProfile)
-class UserProfile(PreventDeleteWhenVerifiedMixin, admin.ModelAdmin):
+class UserProfile(
+    PreventDeleteWhenVerifiedMixin, WalletCurrencyOwnedMixin, admin.ModelAdmin
+):
     list_display = [
         "first_name",
         "last_name",
@@ -180,7 +183,9 @@ class UserProfile(PreventDeleteWhenVerifiedMixin, admin.ModelAdmin):
 
 
 @admin.register(CompanyProfile)
-class CompanyProfile(PreventDeleteWhenVerifiedMixin, admin.ModelAdmin):
+class CompanyProfile(
+    PreventDeleteWhenVerifiedMixin, WalletCurrencyOwnedMixin, admin.ModelAdmin
+):
     list_display = [
         "name",
         "uid",
