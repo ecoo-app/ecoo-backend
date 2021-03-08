@@ -6,28 +6,28 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('wallet', '0004_auto_20200625_1512'),
+        ("wallet", "0004_auto_20200625_1512"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='tokentransaction',
-            name='created_at',
+            model_name="tokentransaction",
+            name="created_at",
             field=models.DateTimeField(auto_now_add=True, null=True),
         ),
         migrations.AddField(
-            model_name='tokentransaction',
-            name='submitted_to_chain_at',
+            model_name="tokentransaction",
+            name="submitted_to_chain_at",
             field=models.DateTimeField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='wallet',
-            name='is_owner_wallet',
+            model_name="wallet",
+            name="is_owner_wallet",
             field=models.BooleanField(default=False),
         ),
         migrations.AddField(
-            model_name='wallet',
-            name='state',
+            model_name="wallet",
+            name="state",
             field=models.IntegerField(default=0),
         ),
     ]

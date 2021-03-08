@@ -6,23 +6,23 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('currency', '0007_currency_allow_minting'),
+        ("currency", "0007_currency_allow_minting"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='currency',
-            name='decimals',
+            model_name="currency",
+            name="decimals",
             field=models.IntegerField(default=0),
         ),
         migrations.AddField(
-            model_name='currency',
-            name='symbol',
-            field=models.CharField(default='', max_length=5),
+            model_name="currency",
+            name="symbol",
+            field=models.CharField(default="", max_length=5),
         ),
         migrations.AlterField(
-            model_name='currency',
-            name='token_id',
+            model_name="currency",
+            name="token_id",
             field=models.IntegerField(default=0),
             preserve_default=False,
         ),

@@ -6,89 +6,147 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('verification', '0020_merge_20200911_0648'),
+        ("verification", "0020_merge_20200911_0648"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='addresspinverification',
-            options={'verbose_name': 'Adresspin Verifikation', 'verbose_name_plural': 'Adresspin Verifikationen'},
+            name="addresspinverification",
+            options={
+                "verbose_name": "Adresspin Verifikation",
+                "verbose_name_plural": "Adresspin Verifikationen",
+            },
         ),
         migrations.AlterModelOptions(
-            name='companyverification',
-            options={'verbose_name': 'Firmenverifikation', 'verbose_name_plural': 'Firmenverifikationen'},
+            name="companyverification",
+            options={
+                "verbose_name": "Firmenverifikation",
+                "verbose_name_plural": "Firmenverifikationen",
+            },
         ),
         migrations.AlterModelOptions(
-            name='smspinverification',
-            options={'verbose_name': 'SMS Verifikation', 'verbose_name_plural': 'SMS Verifikationen'},
+            name="smspinverification",
+            options={
+                "verbose_name": "SMS Verifikation",
+                "verbose_name_plural": "SMS Verifikationen",
+            },
         ),
         migrations.AlterModelOptions(
-            name='userverification',
-            options={'verbose_name': 'Benutzerverifikation', 'verbose_name_plural': 'Benutzerverifikationen'},
+            name="userverification",
+            options={
+                "verbose_name": "Benutzerverifikation",
+                "verbose_name_plural": "Benutzerverifikationen",
+            },
         ),
         migrations.AlterField(
-            model_name='addresspinverification',
-            name='state',
-            field=models.IntegerField(choices=[(1, 'Offen'), (2, 'Ausstehend'), (3, 'Eingelöst'), (5, 'Fehlgeschlagen'), (6, 'Maximale Anzahl Einlösungen')], default=1, verbose_name='Status'),
+            model_name="addresspinverification",
+            name="state",
+            field=models.IntegerField(
+                choices=[
+                    (1, "Offen"),
+                    (2, "Ausstehend"),
+                    (3, "Eingelöst"),
+                    (5, "Fehlgeschlagen"),
+                    (6, "Maximale Anzahl Einlösungen"),
+                ],
+                default=1,
+                verbose_name="Status",
+            ),
         ),
         migrations.AlterField(
-            model_name='companyverification',
-            name='address_postal_code',
-            field=models.CharField(blank=True, max_length=128, null=True, verbose_name='Postleitzahl'),
+            model_name="companyverification",
+            name="address_postal_code",
+            field=models.CharField(
+                blank=True, max_length=128, null=True, verbose_name="Postleitzahl"
+            ),
         ),
         migrations.AlterField(
-            model_name='companyverification',
-            name='address_street',
-            field=models.CharField(blank=True, max_length=128, null=True, verbose_name='Strasse'),
+            model_name="companyverification",
+            name="address_street",
+            field=models.CharField(
+                blank=True, max_length=128, null=True, verbose_name="Strasse"
+            ),
         ),
         migrations.AlterField(
-            model_name='companyverification',
-            name='address_town',
-            field=models.CharField(blank=True, max_length=128, null=True, verbose_name='Stadt'),
+            model_name="companyverification",
+            name="address_town",
+            field=models.CharField(
+                blank=True, max_length=128, null=True, verbose_name="Stadt"
+            ),
         ),
         migrations.AlterField(
-            model_name='companyverification',
-            name='state',
-            field=models.IntegerField(choices=[(1, 'Offen'), (2, 'Ausstehend'), (3, 'Eingelöst'), (5, 'Fehlgeschlagen'), (6, 'Maximale Anzahl Einlösungen')], default=1, verbose_name='Status'),
+            model_name="companyverification",
+            name="state",
+            field=models.IntegerField(
+                choices=[
+                    (1, "Offen"),
+                    (2, "Ausstehend"),
+                    (3, "Eingelöst"),
+                    (5, "Fehlgeschlagen"),
+                    (6, "Maximale Anzahl Einlösungen"),
+                ],
+                default=1,
+                verbose_name="Status",
+            ),
         ),
         migrations.AlterField(
-            model_name='smspinverification',
-            name='state',
-            field=models.IntegerField(choices=[(1, 'Offen'), (2, 'Ausstehend'), (3, 'Eingelöst'), (5, 'Fehlgeschlagen'), (6, 'Maximale Anzahl Einlösungen')], default=1, verbose_name='Status'),
+            model_name="smspinverification",
+            name="state",
+            field=models.IntegerField(
+                choices=[
+                    (1, "Offen"),
+                    (2, "Ausstehend"),
+                    (3, "Eingelöst"),
+                    (5, "Fehlgeschlagen"),
+                    (6, "Maximale Anzahl Einlösungen"),
+                ],
+                default=1,
+                verbose_name="Status",
+            ),
         ),
         migrations.AlterField(
-            model_name='userverification',
-            name='address_postal_code',
-            field=models.CharField(max_length=128, verbose_name='Postleitzahl'),
+            model_name="userverification",
+            name="address_postal_code",
+            field=models.CharField(max_length=128, verbose_name="Postleitzahl"),
         ),
         migrations.AlterField(
-            model_name='userverification',
-            name='address_street',
-            field=models.CharField(max_length=128, verbose_name='Strasse'),
+            model_name="userverification",
+            name="address_street",
+            field=models.CharField(max_length=128, verbose_name="Strasse"),
         ),
         migrations.AlterField(
-            model_name='userverification',
-            name='address_town',
-            field=models.CharField(max_length=128, verbose_name='Stadt'),
+            model_name="userverification",
+            name="address_town",
+            field=models.CharField(max_length=128, verbose_name="Stadt"),
         ),
         migrations.AlterField(
-            model_name='userverification',
-            name='date_of_birth',
-            field=models.DateField(verbose_name='Geburtsdatum'),
+            model_name="userverification",
+            name="date_of_birth",
+            field=models.DateField(verbose_name="Geburtsdatum"),
         ),
         migrations.AlterField(
-            model_name='userverification',
-            name='first_name',
-            field=models.CharField(max_length=128, verbose_name='Vorname'),
+            model_name="userverification",
+            name="first_name",
+            field=models.CharField(max_length=128, verbose_name="Vorname"),
         ),
         migrations.AlterField(
-            model_name='userverification',
-            name='last_name',
-            field=models.CharField(max_length=128, verbose_name='Nachname'),
+            model_name="userverification",
+            name="last_name",
+            field=models.CharField(max_length=128, verbose_name="Nachname"),
         ),
         migrations.AlterField(
-            model_name='userverification',
-            name='state',
-            field=models.IntegerField(choices=[(1, 'Offen'), (2, 'Ausstehend'), (3, 'Eingelöst'), (5, 'Fehlgeschlagen'), (6, 'Maximale Anzahl Einlösungen')], default=1, verbose_name='Status'),
+            model_name="userverification",
+            name="state",
+            field=models.IntegerField(
+                choices=[
+                    (1, "Offen"),
+                    (2, "Ausstehend"),
+                    (3, "Eingelöst"),
+                    (5, "Fehlgeschlagen"),
+                    (6, "Maximale Anzahl Einlösungen"),
+                ],
+                default=1,
+                verbose_name="Status",
+            ),
         ),
     ]

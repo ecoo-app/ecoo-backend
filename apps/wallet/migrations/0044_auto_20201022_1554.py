@@ -6,12 +6,12 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('wallet', '0043_metatransaction_from_public_key'),
+        ("wallet", "0043_metatransaction_from_public_key"),
     ]
 
     operations = [
         migrations.AlterUniqueTogether(
-            name='metatransaction',
-            unique_together={('nonce', 'from_public_key')},
+            name="metatransaction",
+            unique_together={("nonce", "from_public_key")},
         ),
     ]

@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('currency', '0005_delete_verificationinput'),
+        ("currency", "0005_delete_verificationinput"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='currency',
-            name='campaign_end',
+            model_name="currency",
+            name="campaign_end",
             field=models.DateField(null=True),
         ),
         migrations.AddField(
-            model_name='currency',
-            name='claim_deadline',
+            model_name="currency",
+            name="claim_deadline",
             field=models.DateField(null=True),
         ),
     ]

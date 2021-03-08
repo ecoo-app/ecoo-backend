@@ -7,13 +7,22 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('profiles', '0005_userprofile_place_of_origin'),
+        ("profiles", "0005_userprofile_place_of_origin"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='companyprofile',
-            name='phone_number',
-            field=models.CharField(blank=True, max_length=128, validators=[django.core.validators.RegexValidator('/(\\b(0041|0)|\\B\\+41)(\\s?\\(0\\))?(\\s)?[1-9]{2}(\\s)?[0-9]{3}(\\s)?[0-9]{2}(\\s)?[0-9]{2}\\b/', 'No valid swiss phone number')]),
+            model_name="companyprofile",
+            name="phone_number",
+            field=models.CharField(
+                blank=True,
+                max_length=128,
+                validators=[
+                    django.core.validators.RegexValidator(
+                        "/(\\b(0041|0)|\\B\\+41)(\\s?\\(0\\))?(\\s)?[1-9]{2}(\\s)?[0-9]{3}(\\s)?[0-9]{2}(\\s)?[0-9]{2}\\b/",
+                        "No valid swiss phone number",
+                    )
+                ],
+            ),
         ),
     ]

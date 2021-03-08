@@ -6,41 +6,41 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('wallet', '0024_remove_wallet_claim_count'),
+        ("wallet", "0024_remove_wallet_claim_count"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='company',
-            name='created_at',
+            model_name="company",
+            name="created_at",
             field=models.DateTimeField(auto_now_add=True, null=True),
         ),
         migrations.AddField(
-            model_name='company',
-            name='updated_at',
+            model_name="company",
+            name="updated_at",
             field=models.DateTimeField(auto_now=True, null=True),
         ),
         migrations.AddField(
-            model_name='transaction',
-            name='created_at',
+            model_name="transaction",
+            name="created_at",
             field=models.DateTimeField(auto_now_add=True, null=True),
         ),
         migrations.AddField(
-            model_name='transaction',
-            name='updated_at',
+            model_name="transaction",
+            name="updated_at",
             field=models.DateTimeField(auto_now=True, null=True),
         ),
         migrations.AddField(
-            model_name='wallet',
-            name='created_at',
+            model_name="wallet",
+            name="created_at",
             field=models.DateTimeField(auto_now_add=True, null=True),
         ),
         migrations.AddField(
-            model_name='wallet',
-            name='updated_at',
+            model_name="wallet",
+            name="updated_at",
             field=models.DateTimeField(auto_now=True, null=True),
         ),
         migrations.DeleteModel(
-            name='ClaimableAmount',
+            name="ClaimableAmount",
         ),
     ]

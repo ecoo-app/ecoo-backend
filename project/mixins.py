@@ -1,32 +1,34 @@
-from django.db import models
-from django.utils import timezone
-from two_factor.admin import AdminSiteOTPRequired, AdminSiteOTPRequiredMixin
-from django.utils.http import is_safe_url
-from django.contrib.auth.views import redirect_to_login
-from django.urls import reverse
-from django.http import HttpResponseRedirect
-from project.admin import MyAdminSite
-from django.conf import settings
-
 import uuid
+
+from django.conf import settings
+from django.contrib.auth.views import redirect_to_login
+from django.db import models
+from django.http import HttpResponseRedirect
+from django.urls import reverse
+from django.utils import timezone
+from django.utils.http import is_safe_url
+from two_factor.admin import AdminSiteOTPRequired, AdminSiteOTPRequiredMixin
+
+from project.admin import MyAdminSite
 
 
 class UUIDModel(models.Model):
-    uuid = models.UUIDField(
-        primary_key=True, default=uuid.uuid4, editable=False)
-    created_at = models.DateTimeField(null=True, auto_now_add=True,)
+    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    created_at = models.DateTimeField(
+        null=True,
+        auto_now_add=True,
+    )
     updated_at = models.DateTimeField(auto_now=True, null=True)
 
     class Meta:
         abstract = True
 
 
-REDIRECT_FIELD_NAME = 'next'
+REDIRECT_FIELD_NAME = "next"
 # From https://github.com/Bouke/django-two-factor-auth/issues/219#issuecomment-494382380
 
 
 class AdminSiteOTPRequiredMixinRedirSetup(AdminSiteOTPRequiredMixin, MyAdminSite):
-
     def login(self, request, extra_context=None):
         redirect_to = request.POST.get(
             REDIRECT_FIELD_NAME, request.GET.get(REDIRECT_FIELD_NAME)

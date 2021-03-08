@@ -6,28 +6,28 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('verification', '0020_merge_20200911_0648'),
+        ("verification", "0020_merge_20200911_0648"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='addresspinverification',
-            name='notes',
+            model_name="addresspinverification",
+            name="notes",
             field=models.TextField(blank=True, editable=False),
         ),
         migrations.AddField(
-            model_name='companyverification',
-            name='notes',
+            model_name="companyverification",
+            name="notes",
             field=models.TextField(blank=True, editable=False),
         ),
         migrations.AddField(
-            model_name='smspinverification',
-            name='notes',
+            model_name="smspinverification",
+            name="notes",
             field=models.TextField(blank=True, editable=False),
         ),
         migrations.AddField(
-            model_name='userverification',
-            name='notes',
+            model_name="userverification",
+            name="notes",
             field=models.TextField(blank=True, editable=False),
         ),
     ]

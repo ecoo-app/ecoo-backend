@@ -6,28 +6,28 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('wallet', '0016_auto_20200717_1246'),
+        ("wallet", "0016_auto_20200717_1246"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='tokentransaction',
-            old_name='from_addr',
-            new_name='from_wallet',
+            model_name="tokentransaction",
+            old_name="from_addr",
+            new_name="from_wallet",
         ),
         migrations.RenameField(
-            model_name='tokentransaction',
-            old_name='to_addr',
-            new_name='to_wallet',
+            model_name="tokentransaction",
+            old_name="to_addr",
+            new_name="to_wallet",
         ),
         migrations.RenameField(
-            model_name='wallet',
-            old_name='pub_key',
-            new_name='public_key',
+            model_name="wallet",
+            old_name="pub_key",
+            new_name="public_key",
         ),
         migrations.RenameField(
-            model_name='wallet',
-            old_name='walletID',
-            new_name='wallet_id',
+            model_name="wallet",
+            old_name="walletID",
+            new_name="wallet_id",
         ),
     ]

@@ -6,13 +6,13 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('verification', '0001_initial'),
+        ("verification", "0001_initial"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='verificationinputdata',
-            old_name='verificaiton_input',
-            new_name='verification_input',
+            model_name="verificationinputdata",
+            old_name="verificaiton_input",
+            new_name="verification_input",
         ),
     ]

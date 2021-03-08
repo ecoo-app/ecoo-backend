@@ -1,1 +1,1 @@
-default_app_config = 'apps.wallet.apps.WalletsConfig'
+default_app_config = "apps.wallet.apps.WalletsConfig"

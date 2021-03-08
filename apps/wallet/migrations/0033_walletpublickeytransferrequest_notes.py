@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('wallet', '0032_auto_20200806_1136'),
+        ("wallet", "0032_auto_20200806_1136"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='walletpublickeytransferrequest',
-            name='notes',
+            model_name="walletpublickeytransferrequest",
+            name="notes",
             field=models.TextField(blank=True, editable=False),
         ),
     ]
