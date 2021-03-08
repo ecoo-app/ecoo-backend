@@ -1,10 +1,12 @@
+import pytezos
 from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, generics
+from rest_framework import filters, generics, serializers
 
+from apps.wallet.utils import create_paper_wallet_message
 from apps.wallet.models import (WALLET_STATES, CashOutRequest, MetaTransaction,
                                 Transaction, Wallet,
-                                WalletPublicKeyTransferRequest)
+                                WalletPublicKeyTransferRequest, PaperWallet)
 from apps.wallet.serializers import (CashOutRequestSerializer,
                                      MetaTransactionSerializer,
                                      PublicWalletSerializer,
@@ -24,6 +26,25 @@ class WalletDetail(generics.RetrieveAPIView):
         wallet = self.get_object()
 
         if wallet.owner == self.request.user:
+            return WalletSerializer
+        else:
+            return PublicWalletSerializer
+
+
+class PaperWalletDetail(WalletDetail):
+
+    def get_serializer_class(self):
+        wallet = self.get_object()
+        message_verified = False
+        if self.kwargs.get('signature',None):
+            try:
+                key = pytezos.Key.from_encoded_key(wallet.public_key)
+                key.verify(self.kwargs['signature'], create_paper_wallet_message(wallet, wallet.currency.token_id))
+                message_verified = True
+            except ValueError:
+                raise serializers.ValidationError('invalid signature')
+                # branch out from dev
+        if wallet.owner == self.request.user or message_verified:
             return WalletSerializer
         else:
             return PublicWalletSerializer
