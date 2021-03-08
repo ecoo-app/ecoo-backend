@@ -6,13 +6,15 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('wallet', '0008_auto_20200625_1546'),
+        ("wallet", "0008_auto_20200625_1546"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='wallet',
-            name='state',
-            field=models.IntegerField(choices=[(0, 'Unverified'), (1, 'Pending'), (2, 'Verified')], default=0),
+            model_name="wallet",
+            name="state",
+            field=models.IntegerField(
+                choices=[(0, "Unverified"), (1, "Pending"), (2, "Verified")], default=0
+            ),
         ),
     ]

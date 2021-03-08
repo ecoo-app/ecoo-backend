@@ -1,20 +1,33 @@
-from django.db.models.signals import pre_save, post_save
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
-from apps.wallet.models import WalletPublicKeyTransferRequest, OwnerWallet, Wallet, CashOutRequest, MetaTransaction, Transaction, WALLET_CATEGORIES, TRANSACTION_STATES, WALLET_STATES
-from apps.wallet.utils import sync_to_blockchain
 from django_simple_task import defer
 
+from apps.wallet.models import (
+    TRANSACTION_STATES,
+    WALLET_CATEGORIES,
+    WALLET_STATES,
+    CashOutRequest,
+    MetaTransaction,
+    OwnerWallet,
+    Transaction,
+    Wallet,
+    WalletPublicKeyTransferRequest,
+)
+from apps.wallet.utils import sync_to_blockchain
 
-@receiver(pre_save, sender=MetaTransaction, dispatch_uid='custom_meta_transaction_validation')
+
+@receiver(
+    pre_save, sender=MetaTransaction, dispatch_uid="custom_meta_transaction_validation"
+)
 def custom_meta_transaction_validation(sender, instance, **kwargs):
     instance.to_wallet.notify_owner_receiving_money(
-        instance.from_wallet, instance.amount)
-    instance.from_wallet.notify_transfer_successful(
-        instance.to_wallet, instance.amount)
+        instance.from_wallet, instance.amount
+    )
+    instance.from_wallet.notify_transfer_successful(instance.to_wallet, instance.amount)
 
 
-@receiver(pre_save, sender=Wallet, dispatch_uid='pre_save_signal_wallet')
-@receiver(pre_save, sender=OwnerWallet, dispatch_uid='pre_save_signal_owner_wallet')
+@receiver(pre_save, sender=Wallet, dispatch_uid="pre_save_signal_wallet")
+@receiver(pre_save, sender=OwnerWallet, dispatch_uid="pre_save_signal_owner_wallet")
 def pre_save_signal_wallet(sender, instance, **kwargs):
     if instance.wallet_id is None or len(instance.wallet_id) <= 0:
         instance.wallet_id = Wallet.generate_wallet_id()
@@ -23,13 +36,22 @@ def pre_save_signal_wallet(sender, instance, **kwargs):
     if instance.uuid is not None:
         try:
             previous = Wallet.objects.get(uuid=instance.uuid)
-            if instance.state != previous.state and instance.state == WALLET_STATES.VERIFIED.value:
+            if (
+                instance.state != previous.state
+                and instance.state == WALLET_STATES.VERIFIED.value
+            ):
                 instance.notify_owner_verified()
         except Wallet.DoesNotExist:
             pass
 
 
-@receiver(post_save, sender=WalletPublicKeyTransferRequest, dispatch_uid='async_sync_to_blockchain_after_wallet_public_key_transfer')
-def async_sync_to_blockchain_after_wallet_public_key_transfer(sender, instance, created, **kwargs):
+@receiver(
+    post_save,
+    sender=WalletPublicKeyTransferRequest,
+    dispatch_uid="async_sync_to_blockchain_after_wallet_public_key_transfer",
+)
+def async_sync_to_blockchain_after_wallet_public_key_transfer(
+    sender, instance, created, **kwargs
+):
     if created and instance.state != TRANSACTION_STATES.DONE.value:
         defer(lambda: sync_to_blockchain(is_dry_run=False))

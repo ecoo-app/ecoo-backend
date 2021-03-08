@@ -6,18 +6,22 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('verification', '0004_companyverification_userverification'),
+        ("verification", "0004_companyverification_userverification"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='companyverification',
-            name='state',
-            field=models.IntegerField(choices=[(1, 'Open'), (2, 'Claimed'), (3, 'Requested')], default=1),
+            model_name="companyverification",
+            name="state",
+            field=models.IntegerField(
+                choices=[(1, "Open"), (2, "Claimed"), (3, "Requested")], default=1
+            ),
         ),
         migrations.AddField(
-            model_name='userverification',
-            name='state',
-            field=models.IntegerField(choices=[(1, 'Open'), (2, 'Claimed'), (3, 'Requested')], default=1),
+            model_name="userverification",
+            name="state",
+            field=models.IntegerField(
+                choices=[(1, "Open"), (2, "Claimed"), (3, "Requested")], default=1
+            ),
         ),
     ]

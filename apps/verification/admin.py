@@ -1,23 +1,31 @@
-from django.contrib import admin
-from django.conf.urls import url
-from django.db import transaction
-from io import StringIO
-from apps.verification.models import AddressPinVerification, CompanyVerification, PlaceOfOrigin, SMSPinVerification, UserVerification, VERIFICATION_STATES
-from apps.wallet.utils import create_claim_transaction
-from apps.verification.forms import ImportForm
-from django.template.response import TemplateResponse
-from django.contrib import messages
-from django.http import HttpResponseRedirect
-from apps.verification.filters import VerificaitonFilter
-from django.utils.translation import ugettext_lazy as _, ngettext
-from django.utils.safestring import mark_safe
-
 import csv
-from django.urls import reverse
-from apps.wallet.models import PaperWallet, WALLET_CATEGORIES, WALLET_STATES
-from django.core.exceptions import PermissionDenied
+from io import StringIO
+
 from django import forms
+from django.conf.urls import url
+from django.contrib import admin, messages
+from django.core.exceptions import PermissionDenied
+from django.db import transaction
 from django.forms.models import BaseInlineFormSet
+from django.http import HttpResponseRedirect
+from django.template.response import TemplateResponse
+from django.urls import reverse
+from django.utils.safestring import mark_safe
+from django.utils.translation import ngettext
+from django.utils.translation import ugettext_lazy as _
+
+from apps.verification.filters import VerificaitonFilter
+from apps.verification.forms import ImportForm
+from apps.verification.models import (
+    VERIFICATION_STATES,
+    AddressPinVerification,
+    CompanyVerification,
+    PlaceOfOrigin,
+    SMSPinVerification,
+    UserVerification,
+)
+from apps.wallet.models import WALLET_CATEGORIES, WALLET_STATES, PaperWallet
+from apps.wallet.utils import create_claim_transaction
 
 # TODO: ths isn't used anymore, should it be fixed and used or removed?
 
@@ -68,30 +76,46 @@ class ImportMixin:
             raise PermissionDenied
 
         form = ImportForm()
-        if request.method == 'POST':
+        if request.method == "POST":
             form = ImportForm(request.POST, request.FILES)
             if form.is_valid():
+
                 def is_row_valid(x):
-                    return all((row.get(x) is not None and row.get(x) != '') for x in self.import_validate_fields)
+                    return all(
+                        (row.get(x) is not None and row.get(x) != "")
+                        for x in self.import_validate_fields
+                    )
+
                 csv_reader = csv.DictReader(
-                    StringIO(form.cleaned_data['csv_file'].read().decode('UTF-8-sig')))
+                    StringIO(form.cleaned_data["csv_file"].read().decode("UTF-8-sig"))
+                )
                 created, line_number = 0, 1
                 with transaction.atomic():
                     for row in csv_reader:
                         line_number += 1
                         if not is_row_valid(row):
-                            form.add_error('csv_file', _(
-                                'Line Nr {} is invalid:{}').format(str(line_number), row))
+                            form.add_error(
+                                "csv_file",
+                                _("Line Nr {} is invalid:{}").format(
+                                    str(line_number), row
+                                ),
+                            )
                             transaction.set_rollback(True)
                             break
 
                         places_of_origin = []
-                        for k in ['place_of_origin1', 'place_of_origin2', 'place_of_origin3', 'place_of_origin4']:
+                        for k in [
+                            "place_of_origin1",
+                            "place_of_origin2",
+                            "place_of_origin3",
+                            "place_of_origin4",
+                        ]:
                             if row.get(k) is not None:
-                                if row.get(k) != '':
+                                if row.get(k) != "":
                                     places_of_origin.append(
-                                        PlaceOfOrigin(place_of_origin=row.get(k)))
-                                del(row[k])
+                                        PlaceOfOrigin(place_of_origin=row.get(k))
+                                    )
+                                del row[k]
 
                         entry = self.model(**row)
                         entry.save()
@@ -103,14 +127,32 @@ class ImportMixin:
 
                     if form.is_valid():
                         messages.add_message(
-                            request, messages.SUCCESS, '{} Objects created'.format(created))
-                        return HttpResponseRedirect(request.META['HTTP_REFERER'])
-        return TemplateResponse(request, 'admin/import_csv.html', {'form': form, 'opts': self.opts, 'media': self.media, 'title': 'Import', 'import_validate_fields': self.import_validate_fields + self.additional_import_fields, 'import_name': self.import_name})
+                            request,
+                            messages.SUCCESS,
+                            "{} Objects created".format(created),
+                        )
+                        return HttpResponseRedirect(request.META["HTTP_REFERER"])
+        return TemplateResponse(
+            request,
+            "admin/import_csv.html",
+            {
+                "form": form,
+                "opts": self.opts,
+                "media": self.media,
+                "title": "Import",
+                "import_validate_fields": self.import_validate_fields
+                + self.additional_import_fields,
+                "import_name": self.import_name,
+            },
+        )
 
     def get_extra_urls(self):
         return [
-            url(r'^' + self.import_name.replace('_', '-') + '/$',
-                self.admin_site.admin_view(self.import_csv), name=self.import_name),
+            url(
+                r"^" + self.import_name.replace("_", "-") + "/$",
+                self.admin_site.admin_view(self.import_csv),
+                name=self.import_name,
+            ),
         ]
 
 
@@ -119,9 +161,11 @@ class AtLeastOneRequiredInlineFormSet(BaseInlineFormSet):
         super(AtLeastOneRequiredInlineFormSet, self).clean()
         if any(self.errors):
             return
-        if not any(cleaned_data and not cleaned_data.get('DELETE', False)
-                   for cleaned_data in self.cleaned_data):
-            raise forms.ValidationError(_('At least one item required.'))
+        if not any(
+            cleaned_data and not cleaned_data.get("DELETE", False)
+            for cleaned_data in self.cleaned_data
+        ):
+            raise forms.ValidationError(_("At least one item required."))
 
 
 class PlaceOfOriginInline(admin.TabularInline):
@@ -132,19 +176,47 @@ class PlaceOfOriginInline(admin.TabularInline):
 
 @admin.register(UserVerification)
 class UserVerificationAdmin(ImportMixin, admin.ModelAdmin):
-    list_display = ['first_name', 'last_name', 'address_street',
-                    'address_town', 'address_postal_code', 'date_of_birth', 'state', 'create_paper_wallet', 'created_at']
-    list_filter = ['state', 'created_at']
-    search_fields = ['first_name', 'last_name', 'address_street',
-                     'address_town', 'address_postal_code', 'date_of_birth']
-    inlines = [PlaceOfOriginInline, ]
+    list_display = [
+        "first_name",
+        "last_name",
+        "address_street",
+        "address_town",
+        "address_postal_code",
+        "date_of_birth",
+        "state",
+        "create_paper_wallet",
+        "created_at",
+    ]
+    list_filter = ["state", "created_at"]
+    search_fields = [
+        "first_name",
+        "last_name",
+        "address_street",
+        "address_town",
+        "address_postal_code",
+        "date_of_birth",
+    ]
+    inlines = [
+        PlaceOfOriginInline,
+    ]
 
-    import_name = 'user_import'
-    import_validate_fields = ['first_name',
-                              'last_name', 'address_street', 'address_town', 'address_postal_code', 'date_of_birth']
-    additional_import_fields = ['place_of_origin1',
-                                'place_of_origin2', 'place_of_origin3']
-    readonly_fields = ['created_at', ]
+    import_name = "user_import"
+    import_validate_fields = [
+        "first_name",
+        "last_name",
+        "address_street",
+        "address_town",
+        "address_postal_code",
+        "date_of_birth",
+    ]
+    additional_import_fields = [
+        "place_of_origin1",
+        "place_of_origin2",
+        "place_of_origin3",
+    ]
+    readonly_fields = [
+        "created_at",
+    ]
 
     class Meta:
         model = UserVerification
@@ -154,23 +226,35 @@ class UserVerificationAdmin(ImportMixin, admin.ModelAdmin):
 
     def create_paper_wallet(self, obj):
         if obj.state == VERIFICATION_STATES.OPEN.value:
-            return mark_safe(u"<a class='button btn-success' href='{}'>{}</a>".format(reverse('verification:generate_paper_wallet', args=(obj.uuid,)), _('create paper wallet')))
-        return mark_safe(u"<a class='btn-info'>{}</a>".format(_('cannot create paper wallet')))
+            return mark_safe(
+                u"<a class='button btn-success' href='{}'>{}</a>".format(
+                    reverse("verification:generate_paper_wallet", args=(obj.uuid,)),
+                    _("create paper wallet"),
+                )
+            )
+        return mark_safe(
+            u"<a class='btn-info'>{}</a>".format(_("cannot create paper wallet"))
+        )
 
-    create_paper_wallet.short_description = _('Paper wallet')
+    create_paper_wallet.short_description = _("Paper wallet")
     create_paper_wallet.allow_tags = True
 
 
 @admin.register(CompanyVerification)
 class CompanyVerificationAdmin(ImportMixin, admin.ModelAdmin):
-    list_display = ['name', 'uid', 'state', 'created_at']
-    list_filter = ['state', 'created_at']
-    search_fields = ['name', 'uid']
+    list_display = ["name", "uid", "state", "created_at"]
+    list_filter = ["state", "created_at"]
+    search_fields = ["name", "uid"]
 
-    import_name = 'company_import'
+    import_name = "company_import"
     import_validate_fields = [
-        'name', 'uid', 'address_street', 'address_town', 'address_postal_code']
-    readonly_fields = ['created_at', 'notes']
+        "name",
+        "uid",
+        "address_street",
+        "address_town",
+        "address_postal_code",
+    ]
+    readonly_fields = ["created_at", "notes"]
 
     class Meta:
         model = CompanyVerification
@@ -181,10 +265,10 @@ class CompanyVerificationAdmin(ImportMixin, admin.ModelAdmin):
 
 @admin.register(SMSPinVerification)
 class SMSPinVerificationAdmin(admin.ModelAdmin):
-    readonly_fields = ['user_profile', 'pin', 'created_at', 'notes']
-    list_display = ['user_profile', 'pin', 'state', 'created_at']
-    search_fields = ['user_profile__first_name', 'user_profile__last_name']
-    list_filter = ['state']
+    readonly_fields = ["user_profile", "pin", "created_at", "notes"]
+    list_display = ["user_profile", "pin", "state", "created_at"]
+    search_fields = ["user_profile__first_name", "user_profile__last_name"]
+    list_filter = ["state"]
 
     def has_add_permission(self, request):
         return False
@@ -193,11 +277,12 @@ class SMSPinVerificationAdmin(admin.ModelAdmin):
 @admin.register(AddressPinVerification)
 class AddressPinVerificationAdmin(admin.ModelAdmin):
     # readonly_fields = ['company_profile', 'pin', 'created_at', 'external_id', 'notes']
-    readonly_fields = ['company_profile', ]
-    list_display = ['company_profile', 'pin',
-                    'state', 'preview_link', 'created_at']
-    search_fields = ['company_profile__name']
-    list_filter = ['state']
+    readonly_fields = [
+        "company_profile",
+    ]
+    list_display = ["company_profile", "pin", "state", "preview_link", "created_at"]
+    search_fields = ["company_profile__name"]
+    list_filter = ["state"]
 
     def has_add_permission(self, request):
         return False
@@ -205,5 +290,5 @@ class AddressPinVerificationAdmin(admin.ModelAdmin):
 
 @admin.register(PlaceOfOrigin)
 class PlaceOfOriginAdmin(admin.ModelAdmin):
-    readonly_fields = ['created_at']
-    list_display = ['user_verification', 'place_of_origin']
+    readonly_fields = ["created_at"]
+    list_display = ["user_verification", "place_of_origin"]

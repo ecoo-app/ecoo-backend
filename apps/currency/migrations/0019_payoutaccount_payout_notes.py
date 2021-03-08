@@ -6,14 +6,16 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('currency', '0018_payoutaccount'),
+        ("currency", "0018_payoutaccount"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='payoutaccount',
-            name='payout_notes',
-            field=models.CharField(default='payout', max_length=64, verbose_name='Notes for payout'),
+            model_name="payoutaccount",
+            name="payout_notes",
+            field=models.CharField(
+                default="payout", max_length=64, verbose_name="Notes for payout"
+            ),
             preserve_default=False,
         ),
     ]

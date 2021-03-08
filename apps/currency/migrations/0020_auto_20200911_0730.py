@@ -6,23 +6,23 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('currency', '0019_payoutaccount_payout_notes'),
+        ("currency", "0019_payoutaccount_payout_notes"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='payoutaccount',
-            name='bank_clearing_number',
-            field=models.CharField(max_length=32, verbose_name='clearing number'),
+            model_name="payoutaccount",
+            name="bank_clearing_number",
+            field=models.CharField(max_length=32, verbose_name="clearing number"),
         ),
         migrations.AlterField(
-            model_name='payoutaccount',
-            name='iban',
-            field=models.CharField(max_length=16, verbose_name='IBAN'),
+            model_name="payoutaccount",
+            name="iban",
+            field=models.CharField(max_length=16, verbose_name="IBAN"),
         ),
         migrations.AlterField(
-            model_name='payoutaccount',
-            name='name',
-            field=models.CharField(max_length=32, verbose_name='Account name'),
+            model_name="payoutaccount",
+            name="name",
+            field=models.CharField(max_length=32, verbose_name="Account name"),
         ),
     ]

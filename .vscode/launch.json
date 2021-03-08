@@ -24,8 +24,7 @@
             "args": [
                 "runserver",
             ],
-            "django": true,
-            "justMyCode": true
+            "django": true
         }
     ]
 }

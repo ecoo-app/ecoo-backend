@@ -6,18 +6,26 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('profiles', '0008_auto_20200911_0730'),
+        ("profiles", "0008_auto_20200911_0730"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='companyprofile',
-            name='state',
-            field=models.IntegerField(choices=[(0, 'Active'), (3, 'Deactivated')], default=0, verbose_name='State'),
+            model_name="companyprofile",
+            name="state",
+            field=models.IntegerField(
+                choices=[(0, "Active"), (3, "Deactivated")],
+                default=0,
+                verbose_name="State",
+            ),
         ),
         migrations.AddField(
-            model_name='userprofile',
-            name='state',
-            field=models.IntegerField(choices=[(0, 'Active'), (3, 'Deactivated')], default=0, verbose_name='State'),
+            model_name="userprofile",
+            name="state",
+            field=models.IntegerField(
+                choices=[(0, "Active"), (3, "Deactivated")],
+                default=0,
+                verbose_name="State",
+            ),
         ),
     ]

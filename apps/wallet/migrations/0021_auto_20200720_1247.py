@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('wallet', '0020_auto_20200720_1241'),
+        ("wallet", "0020_auto_20200720_1241"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='metatransaction',
-            name='signature',
+            model_name="metatransaction",
+            name="signature",
             field=models.CharField(max_length=128),
         ),
     ]

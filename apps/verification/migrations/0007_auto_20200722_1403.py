@@ -6,58 +6,58 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('verification', '0006_auto_20200722_0934'),
+        ("verification", "0006_auto_20200722_0934"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='companyverification',
-            name='created_at',
+            model_name="companyverification",
+            name="created_at",
             field=models.DateTimeField(auto_now_add=True, null=True),
         ),
         migrations.AddField(
-            model_name='companyverification',
-            name='updated_at',
+            model_name="companyverification",
+            name="updated_at",
             field=models.DateTimeField(auto_now=True, null=True),
         ),
         migrations.AddField(
-            model_name='userverification',
-            name='created_at',
+            model_name="userverification",
+            name="created_at",
             field=models.DateTimeField(auto_now_add=True, null=True),
         ),
         migrations.AddField(
-            model_name='userverification',
-            name='updated_at',
+            model_name="userverification",
+            name="updated_at",
             field=models.DateTimeField(auto_now=True, null=True),
         ),
         migrations.AddField(
-            model_name='verificationentry',
-            name='created_at',
+            model_name="verificationentry",
+            name="created_at",
             field=models.DateTimeField(auto_now_add=True, null=True),
         ),
         migrations.AddField(
-            model_name='verificationentry',
-            name='updated_at',
+            model_name="verificationentry",
+            name="updated_at",
             field=models.DateTimeField(auto_now=True, null=True),
         ),
         migrations.AddField(
-            model_name='verificationinput',
-            name='created_at',
+            model_name="verificationinput",
+            name="created_at",
             field=models.DateTimeField(auto_now_add=True, null=True),
         ),
         migrations.AddField(
-            model_name='verificationinput',
-            name='updated_at',
+            model_name="verificationinput",
+            name="updated_at",
             field=models.DateTimeField(auto_now=True, null=True),
         ),
         migrations.AddField(
-            model_name='verificationinputdata',
-            name='created_at',
+            model_name="verificationinputdata",
+            name="created_at",
             field=models.DateTimeField(auto_now_add=True, null=True),
         ),
         migrations.AddField(
-            model_name='verificationinputdata',
-            name='updated_at',
+            model_name="verificationinputdata",
+            name="updated_at",
             field=models.DateTimeField(auto_now=True, null=True),
         ),
     ]

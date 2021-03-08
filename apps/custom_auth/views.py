@@ -1,28 +1,30 @@
 from django.contrib.auth import get_user_model
+from django.utils.translation import ugettext_lazy as _
+from oauth2_provider.models import Application
 from rest_framework import generics, mixins, permissions, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import CreateAPIView
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-from oauth2_provider.models import Application
-from rest_framework.pagination import PageNumberPagination
 from social_django.utils import psa
-from django.utils.translation import ugettext_lazy as _
 
-from apps.custom_auth.serializers import SocialSerializer, UserSerializer, ApplicationSerializer
+from apps.custom_auth.serializers import (
+    ApplicationSerializer,
+    SocialSerializer,
+    UserSerializer,
+)
 
 
 class CreateUserView(CreateAPIView):
 
     model = get_user_model()
-    permission_classes = [
-        permissions.AllowAny
-    ]
+    permission_classes = [permissions.AllowAny]
     serializer_class = UserSerializer
 
 
-@api_view(http_method_names=['POST'])
+@api_view(http_method_names=["POST"])
 @permission_classes([AllowAny])
 @psa()
 def exchange_token(request, backend):
@@ -34,8 +36,7 @@ def exchange_token(request, backend):
         # steps are configured in your SOCIAL_AUTH_PIPELINE. At the end, it either
         # hands you a populated User model of whatever type you've configured in
         # your project, or None.
-        user = request.backend.do_auth(
-            serializer.validated_data['access_token'])
+        user = request.backend.do_auth(serializer.validated_data["access_token"])
 
         if user:
             # if using some other token back-end than DRF's built-in TokenAuthentication,
@@ -43,11 +44,16 @@ def exchange_token(request, backend):
             # token, _ = Token.objects.get_or_create(user=user)
             refresh = RefreshToken.for_user(user)
             # return Response({'token': token.key})
-            return Response({'refresh': str(refresh), 'access': str(refresh.access_token), })
+            return Response(
+                {
+                    "refresh": str(refresh),
+                    "access": str(refresh.access_token),
+                }
+            )
 
         else:
             return Response(
-                {'errors': {'token': _('Invalid token')}},
+                {"errors": {"token": _("Invalid token")}},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 

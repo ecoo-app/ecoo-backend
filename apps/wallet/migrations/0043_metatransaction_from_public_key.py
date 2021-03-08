@@ -6,13 +6,15 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('wallet', '0042_auto_20201013_0554'),
+        ("wallet", "0042_auto_20201013_0554"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='metatransaction',
-            name='from_public_key',
-            field=models.CharField(blank=True, editable=False, max_length=60, verbose_name='Publickey'),
+            model_name="metatransaction",
+            name="from_public_key",
+            field=models.CharField(
+                blank=True, editable=False, max_length=60, verbose_name="Publickey"
+            ),
         ),
     ]

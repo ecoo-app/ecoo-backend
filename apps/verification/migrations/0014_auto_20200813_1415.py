@@ -6,36 +6,58 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('verification', '0013_auto_20200812_2338'),
+        ("verification", "0013_auto_20200812_2338"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='companyverification',
-            options={'verbose_name': 'Company verification', 'verbose_name_plural': 'Company verifications'},
+            name="companyverification",
+            options={
+                "verbose_name": "Company verification",
+                "verbose_name_plural": "Company verifications",
+            },
         ),
         migrations.AlterModelOptions(
-            name='userverification',
-            options={'verbose_name': 'User verification', 'verbose_name_plural': 'User verifications'},
+            name="userverification",
+            options={
+                "verbose_name": "User verification",
+                "verbose_name_plural": "User verifications",
+            },
         ),
         migrations.AlterField(
-            model_name='addresspinverification',
-            name='state',
-            field=models.IntegerField(choices=[(1, 'Open'), (2, 'Pending'), (3, 'Claimed'), (5, 'Failes')], default=1, verbose_name='State'),
+            model_name="addresspinverification",
+            name="state",
+            field=models.IntegerField(
+                choices=[(1, "Open"), (2, "Pending"), (3, "Claimed"), (5, "Failes")],
+                default=1,
+                verbose_name="State",
+            ),
         ),
         migrations.AlterField(
-            model_name='companyverification',
-            name='state',
-            field=models.IntegerField(choices=[(1, 'Open'), (2, 'Pending'), (3, 'Claimed'), (5, 'Failes')], default=1, verbose_name='State'),
+            model_name="companyverification",
+            name="state",
+            field=models.IntegerField(
+                choices=[(1, "Open"), (2, "Pending"), (3, "Claimed"), (5, "Failes")],
+                default=1,
+                verbose_name="State",
+            ),
         ),
         migrations.AlterField(
-            model_name='smspinverification',
-            name='state',
-            field=models.IntegerField(choices=[(1, 'Open'), (2, 'Pending'), (3, 'Claimed'), (5, 'Failes')], default=1, verbose_name='State'),
+            model_name="smspinverification",
+            name="state",
+            field=models.IntegerField(
+                choices=[(1, "Open"), (2, "Pending"), (3, "Claimed"), (5, "Failes")],
+                default=1,
+                verbose_name="State",
+            ),
         ),
         migrations.AlterField(
-            model_name='userverification',
-            name='state',
-            field=models.IntegerField(choices=[(1, 'Open'), (2, 'Pending'), (3, 'Claimed'), (5, 'Failes')], default=1, verbose_name='State'),
+            model_name="userverification",
+            name="state",
+            field=models.IntegerField(
+                choices=[(1, "Open"), (2, "Pending"), (3, "Claimed"), (5, "Failes")],
+                default=1,
+                verbose_name="State",
+            ),
         ),
     ]

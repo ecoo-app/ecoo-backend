@@ -6,9 +6,8 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('wallet', '0026_ownerwallet'),
-        ('wallet', '0026_auto_20200724_1231'),
+        ("wallet", "0026_ownerwallet"),
+        ("wallet", "0026_auto_20200724_1231"),
     ]
 
-    operations = [
-    ]
+    operations = []

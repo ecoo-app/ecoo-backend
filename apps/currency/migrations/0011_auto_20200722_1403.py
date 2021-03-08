@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('currency', '0010_currency_max_claims'),
+        ("currency", "0010_currency_max_claims"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='currency',
-            name='created_at',
+            model_name="currency",
+            name="created_at",
             field=models.DateTimeField(auto_now_add=True, null=True),
         ),
         migrations.AddField(
-            model_name='currency',
-            name='updated_at',
+            model_name="currency",
+            name="updated_at",
             field=models.DateTimeField(auto_now=True, null=True),
         ),
     ]
