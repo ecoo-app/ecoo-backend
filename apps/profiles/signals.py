@@ -36,9 +36,9 @@ def custom_user_profile_validation(sender, instance, **kwargs):
 
         for name in names:
             first_names_lookup = first_names_lookup & (Q(
-                first_name__istartswith=name+' ') | Q(
-                first_name__iendswith=' '+name) | Q(
-                first_name__icontains=' '+name+' ') | Q(first_name__iexact=name))
+                first_name__istartswith=name + ' ') | Q(
+                first_name__iendswith=' ' + name) | Q(
+                first_name__icontains=' ' + name + ' ') | Q(first_name__iexact=name))
 
         # last_name
         last_names_lookup = Q(last_name__iexact=instance.last_name)

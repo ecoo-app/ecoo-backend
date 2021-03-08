@@ -30,8 +30,7 @@ class CompanyProfileSerializer(serializers.ModelSerializer):
         model = CompanyProfile
         fields = ['owner', 'uuid', 'name', 'uid', 'address_street',
                   'address_town', 'verification_stage', 'wallet', 'address_postal_code', 'phone_number']
-        extra_kwargs = {'address_town': {'required': True}, 'address_street': {'required': True}, 'address_postal_code': {'required': True}} 
-
+        extra_kwargs = {'address_town': {'required': True}, 'address_street': {'required': True}, 'address_postal_code': {'required': True}}
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -50,7 +49,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(_('Does not belong to user'))
         return value
 
-    def validate_place_of_origin(self,value):
+    def validate_place_of_origin(self, value):
         return value.strip()
 
     class Meta:

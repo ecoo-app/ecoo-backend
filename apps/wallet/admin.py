@@ -84,7 +84,7 @@ class PaperWalletAdmin(WalletAdmin):
         retry = True
         while retry:
             try:
-                owner_wallet = PaperWallet.objects.create(currency=currency, private_key=private_key, wallet_id=PaperWallet.generate_wallet_id(
+                PaperWallet.objects.create(currency=currency, private_key=private_key, wallet_id=PaperWallet.generate_wallet_id(
                 ), public_key=public_key, category=WALLET_CATEGORIES.CONSUMER.value)
                 retry = False
             except IntegrityError:
@@ -99,7 +99,7 @@ class PaperWalletAdmin(WalletAdmin):
 
             template = get_template('wallet/paper_wallet_pdf.html')
             html = template.render({'image': qr_code.png_as_base64_str(scale=5
-                                                                       ), 'logo': settings.STATIC_ROOT+'/wallet/ecoo_logo_bw.png', 'wetzikon_bw': settings.STATIC_ROOT+'/wallet/wetzikon_bw.png'}, request)  # .encode(encoding="UTF-8")
+                                                                       ), 'logo': settings.STATIC_ROOT + '/wallet/ecoo_logo_bw.png', 'wetzikon_bw': settings.STATIC_ROOT + '/wallet/wetzikon_bw.png'}, request)  # .encode(encoding="UTF-8")
 
             documents.append(weasyprint.HTML(
                 string=html, base_url=request.build_absolute_uri()).write_pdf(

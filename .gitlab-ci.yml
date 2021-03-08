@@ -9,12 +9,24 @@ services:
   - docker:dind
  
 stages:
+  - pre_commit
   - build
   - test
   - coverage
   - publish
   - deploy
   - provision
+
+lintingJob:
+  stage: pre_commit
+  image: python:3.9
+  script:
+    - python -V
+    - pip install pre-commit
+    - pre-commit run --all-files
+  tags:
+    - docker
+
   
 build:
   stage: build

@@ -69,10 +69,12 @@ class TransactionList(generics.ListAPIView):
     def get_queryset(self):
         return Transaction.objects.filter(Q(from_wallet__owner=self.request.user) | Q(to_wallet__owner=self.request.user)).order_by('-created_at')
 
+
 class OpenCashoutTransactions(TransactionList):
     def get_queryset(self):
         cashout_ids = [str(tx.uuid) for tx in Transaction.objects.filter(from_wallet__owner=self.request.user) if tx.is_cashout_transaction]
         return Transaction.objects.filter(uuid__in=cashout_ids, cash_out_requests__isnull=True).order_by('-created_at')
+
 
 class MetaTransactionListCreate(generics.ListCreateAPIView):
     serializer_class = MetaTransactionSerializer

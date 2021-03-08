@@ -2,6 +2,7 @@ from django.contrib.admin import AdminSite
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 
+
 class MyAdminSite(AdminSite):
     def get_app_list(self, request):
         app_list = super(MyAdminSite, self).get_app_list(request)

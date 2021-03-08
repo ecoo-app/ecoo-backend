@@ -21,7 +21,6 @@ from apps.wallet.models import WALLET_CATEGORIES, WALLET_STATES, PaperWallet
 from apps.wallet.utils import create_claim_transaction
 from project.utils import raise_api_exception
 
-from django.db.models import Q
 from django.views.generic.detail import DetailView
 
 
@@ -34,7 +33,7 @@ def resend_user_profile_pin(request, user_profile_uuid=None):
     user_profile = UserProfile.objects.get(uuid=user_profile_uuid)
     if user_profile.owner != request.user:
         raise PermissionDenied(_("The profile does not belong to you"))
-    if user_profile.sms_pin_verification != None and user_profile.sms_pin_verification.state == VERIFICATION_STATES.PENDING.value:
+    if user_profile.sms_pin_verification is not None and user_profile.sms_pin_verification.state == VERIFICATION_STATES.PENDING.value:
         send_sms(user_profile.telephone_number,
                  user_profile.sms_pin_verification.pin)
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -49,7 +48,7 @@ def verify_user_profile_pin(request, user_profile_uuid=None):
     if user_profile.owner != request.user:
         raise PermissionDenied(_("The profile does not belong to you"))
 
-    if user_profile.sms_pin_verification != None and user_profile.sms_pin_verification.state == VERIFICATION_STATES.PENDING.value and user_profile.sms_pin_verification.pin == request.data.get('pin', 'XX'):
+    if user_profile.sms_pin_verification is not None and user_profile.sms_pin_verification.state == VERIFICATION_STATES.PENDING.value and user_profile.sms_pin_verification.pin == request.data.get('pin', 'XX'):
         user_profile.sms_pin_verifications.filter(
             state=VERIFICATION_STATES.PENDING.value).update(state=VERIFICATION_STATES.CLAIMED.value)
         # does this fail if multiple profiles are created?

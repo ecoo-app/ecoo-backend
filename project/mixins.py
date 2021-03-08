@@ -6,6 +6,7 @@ from django.contrib.auth.views import redirect_to_login
 from django.urls import reverse
 from django.http import HttpResponseRedirect
 from project.admin import MyAdminSite
+from django.conf import settings
 
 import uuid
 
@@ -22,6 +23,8 @@ class UUIDModel(models.Model):
 
 REDIRECT_FIELD_NAME = 'next'
 # From https://github.com/Bouke/django-two-factor-auth/issues/219#issuecomment-494382380
+
+
 class AdminSiteOTPRequiredMixinRedirSetup(AdminSiteOTPRequiredMixin, MyAdminSite):
 
     def login(self, request, extra_context=None):
@@ -47,6 +50,6 @@ class AdminSiteOTPRequiredMixinRedirSetup(AdminSiteOTPRequiredMixin, MyAdminSite
         if not redirect_to or not is_safe_url(
             url=redirect_to, allowed_hosts=[request.get_host()]
         ):
-            redirect_to = resolve_url(settings.LOGIN_REDIRECT_URL)
+            redirect_to = reverse(settings.LOGIN_REDIRECT_URL)
 
         return redirect_to_login(redirect_to)

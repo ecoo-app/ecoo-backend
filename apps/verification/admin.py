@@ -22,42 +22,42 @@ from django.forms.models import BaseInlineFormSet
 # TODO: ths isn't used anymore, should it be fixed and used or removed?
 
 
-def approve_verification(modeladmin, request, queryset):
-    updated = 0
-    transactions_created = 0
-    for obj in queryset:
-        if obj.state == VERIFICATION_STATES.CLAIMED.value:
-            continue
-        # TODO: this field has been removed
-        if not obj.receiving_wallet:
-            continue
-        obj.state = VERIFICATION_STATES.CLAIMED.value
-        obj.receiving_wallet.state = WALLET_STATES.VERIFIED.value
+# def approve_verification(modeladmin, request, queryset):
+#     updated = 0
+#     transactions_created = 0
+#     for obj in queryset:
+#         if obj.state == VERIFICATION_STATES.CLAIMED.value:
+#             continue
+#         # TODO: this field has been removed
+#         if not obj.receiving_wallet:
+#             continue
+#         obj.state = VERIFICATION_STATES.CLAIMED.value
+#         obj.receiving_wallet.state = WALLET_STATES.VERIFIED.value
 
-        obj.receiving_wallet.save()
+#         obj.receiving_wallet.save()
 
-        if obj.receiving_wallet.category == WALLET_CATEGORIES.CONSUMER.value:
-            create_claim_transaction(wallet)
-            transactions_created += 1
+#         if obj.receiving_wallet.category == WALLET_CATEGORIES.CONSUMER.value:
+#             create_claim_transaction(wallet)
+#             transactions_created += 1
 
-        obj.save()
-        updated += 1
+#         obj.save()
+#         updated += 1
 
-    modeladmin.message_user(request, ngettext(
-        _('%d entry updated.'),
-        _('%d entries updated.'),
-        updated,
-    ) % updated, messages.SUCCESS)
+#     modeladmin.message_user(request, ngettext(
+#         _('%d entry updated.'),
+#         _('%d entries updated.'),
+#         updated,
+#     ) % updated, messages.SUCCESS)
 
-    modeladmin.message_user(request, ngettext(
-        _('%d entry updated.'),
-        _('%d entries updated.'),
-        transactions_created,
-    ) % transactions_created, messages.SUCCESS)
+#     modeladmin.message_user(request, ngettext(
+#         _('%d entry updated.'),
+#         _('%d entries updated.'),
+#         transactions_created,
+#     ) % transactions_created, messages.SUCCESS)
 
 
-approve_verification.short_description = _(
-    'Approve selected verification entries and transfer money')
+# approve_verification.short_description = _(
+#     'Approve selected verification entries and transfer money')
 
 
 class ImportMixin:
@@ -71,8 +71,8 @@ class ImportMixin:
         if request.method == 'POST':
             form = ImportForm(request.POST, request.FILES)
             if form.is_valid():
-                def is_row_valid(x): return all((row.get(x) != None and row.get(
-                    x) != '') for x in self.import_validate_fields)
+                def is_row_valid(x):
+                    return all((row.get(x) is not None and row.get(x) != '') for x in self.import_validate_fields)
                 csv_reader = csv.DictReader(
                     StringIO(form.cleaned_data['csv_file'].read().decode('UTF-8-sig')))
                 created, line_number = 0, 1
@@ -87,7 +87,7 @@ class ImportMixin:
 
                         places_of_origin = []
                         for k in ['place_of_origin1', 'place_of_origin2', 'place_of_origin3', 'place_of_origin4']:
-                            if row.get(k) != None:
+                            if row.get(k) is not None:
                                 if row.get(k) != '':
                                     places_of_origin.append(
                                         PlaceOfOrigin(place_of_origin=row.get(k)))

@@ -32,6 +32,7 @@ PROFILE_VERIFICATION_STAGES_CHOICES = (
     (PROFILE_VERIFICATION_STAGES.MAX_CLAIMS.value, _('Max Claims')),
 )
 
+
 class PROFILE_STATES(Enum):
     ACTIVE = 0
     DEACTIVATED = 3
@@ -66,7 +67,6 @@ class CompanyProfile(UUIDModel):
     state = models.IntegerField(
         _('State'), default=PROFILE_STATES.ACTIVE.value, choices=PROFILE_STATE_CHOICES)
 
-
     def verification_stage(self):
         from apps.verification.models import VERIFICATION_STATES
         if hasattr(self, 'company_verification'):
@@ -89,12 +89,12 @@ class CompanyProfile(UUIDModel):
             if self.verification_stage == PROFILE_VERIFICATION_STAGES.VERIFIED.value:
                 errors['state'] = ValidationError(
                     _('Cannot deactivate a verified profile'))
-        if hasattr(self,'wallet'):
+        if hasattr(self, 'wallet'):
             if self.wallet.category != WALLET_CATEGORIES.COMPANY.value:
                 errors['wallet'] = ValidationError(
                     _('Only company wallets can be attached to company profiles'))
-            
-            if hasattr(self,'owner'):
+
+            if hasattr(self, 'owner'):
                 if self.wallet.owner is not None and self.owner.pk != self.wallet.owner.pk:
                     errors['wallet'] = ValidationError(
                         _('You can only attach your own wallet to this profile'))
@@ -111,7 +111,7 @@ class CompanyProfile(UUIDModel):
         del data['created_at']
         del data['updated_at']
         queryset = CompanyProfile.objects.filter(**data)
-        if queryset.exists() and not self in queryset:
+        if queryset.exists() and self not in queryset:
             raise ValidationError(
                 _('Cannot generate same companyprofile twice'))
         super(CompanyProfile, self).save(*args, **kwargs)
@@ -150,7 +150,7 @@ class UserProfile(UUIDModel):
 
     state = models.IntegerField(
         _('State'), default=PROFILE_STATES.ACTIVE.value, choices=PROFILE_STATE_CHOICES)
-    
+
     @property
     def sms_pin_verification(self):
         from apps.verification.models import VERIFICATION_STATES
@@ -185,12 +185,12 @@ class UserProfile(UUIDModel):
             errors['telephone_number'] = ValidationError(
                 _('Only Swiss mobile numbers are allowed'))
 
-        if hasattr(self,'wallet'):
+        if hasattr(self, 'wallet'):
             if self.wallet.category != WALLET_CATEGORIES.CONSUMER.value:
                 errors['wallet'] = ValidationError(
                     _('Only consumer wallets can be attached to user profiles'))
 
-            if hasattr(self,'owner'):
+            if hasattr(self, 'owner'):
                 if self.wallet.owner is not None and self.owner.pk != self.wallet.owner.pk:
                     errors['wallet'] = ValidationError(
                         _('You can only attach your own wallet to this profile'))
@@ -207,7 +207,7 @@ class UserProfile(UUIDModel):
         del data['created_at']
         del data['updated_at']
         queryset = UserProfile.objects.filter(**data)
-        if queryset.exists() and not self in queryset:
+        if queryset.exists() and self not in queryset:
             raise ValidationError(_('Cannot generate same userprofile twice'))
         super(UserProfile, self).save(*args, **kwargs)
 

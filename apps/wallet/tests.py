@@ -27,7 +27,7 @@ class WalletTestCase(TestCase):
         currency = Currency.objects.create(
             token_id=0, name="test", symbol='test', claim_deadline='2120-01-01', campaign_end='2120-01-01')
         with self.assertRaises(ValidationError):
-            wallet = Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
+            Wallet.objects.create(wallet_id=Wallet.generate_wallet_id(
             ), public_key="bogus", currency=currency, state=WALLET_STATES.VERIFIED.value)
 
     def test_address_calculation(self):
@@ -362,7 +362,7 @@ class BlockchainSyncTestCase(TestCase):
     def test_complex_sync(self):
         for i in range(40):
             key = pytezos.crypto.key.Key.generate()
-            private_key = key.secret_key()
+            # _ = key.secret_key()
             public_key = key.public_key()
             user_wallet = Wallet.objects.create(
                 public_key=public_key, currency=self.currency, state=WALLET_STATES.VERIFIED.value)
