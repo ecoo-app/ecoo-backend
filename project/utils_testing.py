@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.test.client import Client
 from rest_framework.test import APITestCase
 
 from apps.currency.models import Currency
@@ -6,11 +7,16 @@ from apps.verification.models import PlaceOfOrigin, UserVerification
 from apps.wallet.models import WALLET_STATES, PaperWallet, Wallet
 
 
-class BaseEcouponApiTestCase(APITestCase):
+class EcouponTestCaseMixin:
     pubkey_1 = "edpkuvNy6TuQ2z8o9wnoaTtTXkzQk7nhegCHfxBc4ecsd4qG71KYNG"
     pubkey_2 = "edpkuvNy6TuQ2z8o9wnoaTtTXkzQk7nhegCHfxBc4ecsd4qG71KYNg"
 
     def setUp(self):
+        super().setUp()
+        self.staff_user = get_user_model().objects.create(
+            username="staff1", password="staff1", is_staff=True
+        )
+
         self.user = get_user_model().objects.create(
             username="testuser", password="abcd"
         )
@@ -81,3 +87,7 @@ class BaseEcouponApiTestCase(APITestCase):
 
         self.currency.cashout_wallet = self.wallet_2
         self.currency.save()
+
+
+class BaseEcouponApiTestCase(EcouponTestCaseMixin, APITestCase):
+    pass

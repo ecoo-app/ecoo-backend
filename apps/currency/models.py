@@ -45,7 +45,7 @@ class Currency(UUIDModel):
 
     @staticmethod
     def get_currencies_to_user(user):
-        if user.has_perm("can_view_all_currencies") or user.is_superuser:
+        if user.has_perm("currency.can_view_all_currencies") or user.is_superuser:
             return Currency.objects.all()
         return Currency.objects.filter(users__id__exact=user.pk)
 

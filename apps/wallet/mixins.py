@@ -6,7 +6,7 @@ from django.http.request import HttpRequest
 class WalletCurrencyOwnedMixin:
     def get_queryset(self, request: HttpRequest) -> QuerySet:
         qs = super().get_queryset(request)
-        if not request.user.has_perm("can_view_all_currencies"):
+        if not request.user.has_perm("currency.can_view_all_currencies"):
             qs = qs.filter(
                 Q(wallet__currency__users__id__exact=request.user.id)
                 | Q(wallet__owner=request.user)

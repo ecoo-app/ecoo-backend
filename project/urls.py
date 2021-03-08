@@ -13,6 +13,8 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+import sys
+
 from django.conf import settings
 from django.conf.urls import include
 from django.conf.urls.static import static  # new
@@ -28,7 +30,8 @@ from two_factor.urls import urlpatterns as tf_urls
 import apps.wallet.urls as wallet_url
 from project.mixins import AdminSiteOTPRequiredMixinRedirSetup
 
-if not settings.DEBUG:
+if not (settings.DEBUG or "test" in sys.argv):
+    # disable admint otp if tests or debug set
     admin.site.__class__ = AdminSiteOTPRequiredMixinRedirSetup
 
 

@@ -1,10 +1,4 @@
-import datetime
-
-import requests
-from django import forms
-from django.conf import settings
 from django.contrib import admin, messages
-from django.shortcuts import render
 from django.utils.translation import ugettext_lazy as _
 
 from apps.profiles.filters import (

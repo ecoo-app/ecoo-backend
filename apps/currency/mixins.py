@@ -18,7 +18,7 @@ class CurrencyOwnedAdminMixin:
     def get_queryset(self, request: HttpRequest) -> QuerySet:
         qs = super().get_queryset(request)
         if not (
-            request.user.has_perm("can_view_all_currencies")
+            request.user.has_perm("currency.can_view_all_currencies")
             or request.user.is_superuser
         ):
             qs = qs.filter(currency__users__id__exact=request.user.id)
