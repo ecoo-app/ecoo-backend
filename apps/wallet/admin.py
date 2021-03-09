@@ -252,8 +252,11 @@ class WalletPublicKeyTransferRequestAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request: HttpRequest) -> QuerySet:
         qs = super().get_queryset(request)
-        if not request.user.has_perm("currency.can_view_all_currencies"):
-            qs = qs.filter(wallet__currency__users__id_exact=request.user.id)
+        if not (
+            request.user.has_perm("currency.can_view_all_currencies")
+            or request.user.is_superuser
+        ):
+            qs = qs.filter(wallet__currency__users__id__exact=request.user.id)
         return qs
 
 
@@ -278,7 +281,10 @@ class CashOutRequestAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request: HttpRequest) -> QuerySet:
         qs = super().get_queryset(request)
-        if not request.user.has_perm("currency.can_view_all_currencies"):
+        if not (
+            request.user.has_perm("currency.can_view_all_currencies")
+            or request.user.is_superuser
+        ):
             qs = qs.filter(
                 transaction__from_wallet__currency__users__id__exact=request.user.id
             )

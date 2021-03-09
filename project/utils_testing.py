@@ -6,6 +6,7 @@ from rest_framework.test import APITestCase
 from apps.currency.models import Currency
 from apps.verification.models import PlaceOfOrigin, UserVerification
 from apps.wallet.models import (
+    WALLET_CATEGORIES,
     WALLET_STATES,
     MetaTransaction,
     PaperWallet,
@@ -86,6 +87,30 @@ class EcouponTestCaseMixin:
             state=WALLET_STATES.VERIFIED.value,
         )
 
+        key = pytezos.crypto.key.Key.generate()
+        private_key = key.secret_key(None, False)
+        public_key = key.public_key()
+
+        self.paper_wallet_1 = PaperWallet.objects.create(
+            currency=self.currency,
+            private_key=private_key,
+            wallet_id=PaperWallet.generate_wallet_id(),
+            public_key=public_key,
+            category=WALLET_CATEGORIES.CONSUMER.value,
+        )
+
+        key = pytezos.crypto.key.Key.generate()
+        private_key = key.secret_key(None, False)
+        public_key = key.public_key()
+
+        self.paper_wallet_2 = PaperWallet.objects.create(
+            currency=self.currency_2,
+            private_key=private_key,
+            wallet_id=PaperWallet.generate_wallet_id(),
+            public_key=public_key,
+            category=WALLET_CATEGORIES.CONSUMER.value,
+        )
+
         user_verification = UserVerification.objects.create(
             first_name="Alessandro11",
             last_name="De Carli11",
@@ -103,6 +128,8 @@ class EcouponTestCaseMixin:
 
         self.currency.cashout_wallet = self.wallet_2
         self.currency.save()
+
+        # TRANSACTIONS
         Transaction.objects.create(to_wallet=self.currency.owner_wallet, amount=2000)
         Transaction.objects.create(to_wallet=self.currency_2.owner_wallet, amount=2000)
 
@@ -110,6 +137,7 @@ class EcouponTestCaseMixin:
         Transaction.objects.create(to_wallet=self.wallet_1_2, amount=20)
         Transaction.objects.create(to_wallet=self.wallet_1_2_2, amount=20)
         Transaction.objects.create(to_wallet=self.wallet_2, amount=20)
+        Transaction.objects.create(to_wallet=self.wallet_2_2, amount=20)
 
         key = pytezos.crypto.key.Key.generate()
         self.wallet_1.public_key = key.public_key()

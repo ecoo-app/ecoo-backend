@@ -4,6 +4,7 @@ omit =
     */migrations/*
     */test/*
     */tests*
+    */utils_testing*
 [report]
 # Regexes for lines to exclude from consideration
 exclude_lines =
