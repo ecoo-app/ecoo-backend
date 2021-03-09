@@ -15,14 +15,12 @@ class CurrencyOwnedFilter(admin.SimpleListFilter):
     parameter_name = "currency"
 
     def lookups(self, request, model_admin):
-        print("Lookups")
         currencies = Currency.get_currencies_to_user(request.user)
         result = []
 
         for currency in currencies:
             result.append((str(currency.pk), str(currency)))
 
-        print(f"result {result}")
         return result
 
     def queryset(self, request, queryset):

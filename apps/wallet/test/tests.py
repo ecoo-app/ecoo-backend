@@ -524,7 +524,6 @@ class BlockchainSyncTestCase(TestCase):
     def test_complex_sync(self):
         for i in range(40):
             key = pytezos.crypto.key.Key.generate()
-            # _ = key.secret_key()
             public_key = key.public_key()
             user_wallet = Wallet.objects.create(
                 public_key=public_key,

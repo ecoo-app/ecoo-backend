@@ -3,6 +3,7 @@ from django.test import TestCase
 from django.test.client import Client
 from django.urls.base import reverse
 
+from apps.currency.models import Currency
 from project.utils_testing import BaseEcouponApiTestCase, EcouponTestCaseMixin
 
 
@@ -35,16 +36,28 @@ class CurrencyAdminTestCase(EcouponTestCaseMixin, TestCase):
             Permission.objects.get(codename="view_currency")
         )
         self.staff_user.save()
-        self.staff_user.is_superuser = True
-        # TODO: revert to staff user
-        self.staff_user.save()
         self.currency.users.add(self.staff_user)
         self.currency.save()
         self.staff_user.refresh_from_db()
 
         self.client = Client()
         self.client.force_login(self.staff_user)
-
-        resp = self.client.get(reverse("admin:currency_currency_changelist"))
+        url = reverse("admin:currency_currency_changelist")
+        resp = self.client.get(url)
 
         self.assertEqual(resp.status_code, 200)
+        self.assertEqual(
+            list(resp.context_data["cl"].queryset),
+            list(Currency.objects.filter(pk=self.currency.pk)),
+        )
+
+        self.staff_user.user_permissions.add(
+            Permission.objects.get(codename="can_view_all_currencies")
+        )
+        resp = self.client.get(url)
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(
+            sorted(list(resp.context_data["cl"].queryset), key=lambda x: x.name),
+            sorted(list(Currency.objects.all()), key=lambda x: x.name),
+        )
