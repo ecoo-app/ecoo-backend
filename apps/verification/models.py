@@ -12,9 +12,7 @@ from django.utils.translation import ugettext_lazy as _
 from oauthlib.oauth2 import BackendApplicationClient
 from requests_oauthlib import OAuth2Session
 
-from apps.currency.mixins import CurrencyOwnedMixin
 from apps.profiles.models import CompanyProfile, UserProfile
-from apps.wallet.models import Wallet
 from project.mixins import UUIDModel
 
 

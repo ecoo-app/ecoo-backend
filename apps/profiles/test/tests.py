@@ -29,6 +29,8 @@ from apps.wallet.models import (
     Wallet,
 )
 
+# TODO: add can view all test
+
 
 class ProfileApiTest(APITestCase):
     pubkey_1 = "edpkuvNy6TuQ2z8o9wnoaTtTXkzQk7nhegCHfxBc4ecsd4qG71KYNG"

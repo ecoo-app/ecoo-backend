@@ -1,16 +1,31 @@
+import pytezos
 from django.contrib.auth import get_user_model
+from django.test.client import Client
 from rest_framework.test import APITestCase
 
 from apps.currency.models import Currency
 from apps.verification.models import PlaceOfOrigin, UserVerification
-from apps.wallet.models import WALLET_STATES, PaperWallet, Wallet
+from apps.wallet.models import (
+    WALLET_CATEGORIES,
+    WALLET_STATES,
+    MetaTransaction,
+    PaperWallet,
+    Transaction,
+    Wallet,
+)
+from apps.wallet.utils import pack_meta_transaction
 
 
-class BaseEcouponApiTestCase(APITestCase):
+class EcouponTestCaseMixin:
     pubkey_1 = "edpkuvNy6TuQ2z8o9wnoaTtTXkzQk7nhegCHfxBc4ecsd4qG71KYNG"
     pubkey_2 = "edpkuvNy6TuQ2z8o9wnoaTtTXkzQk7nhegCHfxBc4ecsd4qG71KYNg"
 
     def setUp(self):
+        super().setUp()
+        self.staff_user = get_user_model().objects.create(
+            username="staff1", password="staff1", is_staff=True
+        )
+
         self.user = get_user_model().objects.create(
             username="testuser", password="abcd"
         )
@@ -64,6 +79,38 @@ class BaseEcouponApiTestCase(APITestCase):
             state=WALLET_STATES.VERIFIED.value,
         )
 
+        self.wallet_2_2 = Wallet.objects.create(
+            owner=self.user_2,
+            wallet_id=Wallet.generate_wallet_id(),
+            public_key="edpkvH2qAmRHSZLHidBcuqtbeyxhGwQQkfxhEYrRYXgpahgunjQnFM",
+            currency=self.currency_2,
+            state=WALLET_STATES.VERIFIED.value,
+        )
+
+        key = pytezos.crypto.key.Key.generate()
+        private_key = key.secret_key(None, False)
+        public_key = key.public_key()
+
+        self.paper_wallet_1 = PaperWallet.objects.create(
+            currency=self.currency,
+            private_key=private_key,
+            wallet_id=PaperWallet.generate_wallet_id(),
+            public_key=public_key,
+            category=WALLET_CATEGORIES.CONSUMER.value,
+        )
+
+        key = pytezos.crypto.key.Key.generate()
+        private_key = key.secret_key(None, False)
+        public_key = key.public_key()
+
+        self.paper_wallet_2 = PaperWallet.objects.create(
+            currency=self.currency_2,
+            private_key=private_key,
+            wallet_id=PaperWallet.generate_wallet_id(),
+            public_key=public_key,
+            category=WALLET_CATEGORIES.CONSUMER.value,
+        )
+
         user_verification = UserVerification.objects.create(
             first_name="Alessandro11",
             last_name="De Carli11",
@@ -81,3 +128,54 @@ class BaseEcouponApiTestCase(APITestCase):
 
         self.currency.cashout_wallet = self.wallet_2
         self.currency.save()
+
+        # TRANSACTIONS
+        Transaction.objects.create(to_wallet=self.currency.owner_wallet, amount=2000)
+        Transaction.objects.create(to_wallet=self.currency_2.owner_wallet, amount=2000)
+
+        Transaction.objects.create(to_wallet=self.wallet_1, amount=20)
+        Transaction.objects.create(to_wallet=self.wallet_1_2, amount=20)
+        Transaction.objects.create(to_wallet=self.wallet_1_2_2, amount=20)
+        Transaction.objects.create(to_wallet=self.wallet_2, amount=20)
+        Transaction.objects.create(to_wallet=self.wallet_2_2, amount=20)
+
+        key = pytezos.crypto.key.Key.generate()
+        self.wallet_1.public_key = key.public_key()
+        self.wallet_1.save()
+        meta_token_transaction = MetaTransaction(
+            from_wallet=self.wallet_1, to_wallet=self.wallet_2, nonce=1, amount=1
+        )
+        packed_meta_transaction = pack_meta_transaction(
+            meta_token_transaction.to_meta_transaction_dictionary()
+        )
+        signature = key.sign(packed_meta_transaction)
+        MetaTransaction.objects.create(
+            from_wallet=self.wallet_1,
+            to_wallet=self.wallet_2,
+            signature=signature,
+            nonce=1,
+            amount=1,
+        )
+
+        key_2 = pytezos.crypto.key.Key.generate()
+        self.wallet_1_2_2.public_key = key_2.public_key()
+        self.wallet_1_2_2.save()
+
+        meta_token_transaction = MetaTransaction(
+            from_wallet=self.wallet_1_2_2, to_wallet=self.wallet_2_2, nonce=1, amount=1
+        )
+        packed_meta_transaction = pack_meta_transaction(
+            meta_token_transaction.to_meta_transaction_dictionary()
+        )
+        signature = key_2.sign(packed_meta_transaction)
+        MetaTransaction.objects.create(
+            from_wallet=self.wallet_1_2_2,
+            to_wallet=self.wallet_2_2,
+            signature=signature,
+            nonce=1,
+            amount=1,
+        )
+
+
+class BaseEcouponApiTestCase(EcouponTestCaseMixin, APITestCase):
+    pass

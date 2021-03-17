@@ -11,10 +11,8 @@ from django.http import HttpResponseRedirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.utils.safestring import mark_safe
-from django.utils.translation import ngettext
 from django.utils.translation import ugettext_lazy as _
 
-from apps.verification.filters import VerificaitonFilter
 from apps.verification.forms import ImportForm
 from apps.verification.models import (
     VERIFICATION_STATES,
@@ -24,8 +22,6 @@ from apps.verification.models import (
     SMSPinVerification,
     UserVerification,
 )
-from apps.wallet.models import WALLET_CATEGORIES, WALLET_STATES, PaperWallet
-from apps.wallet.utils import create_claim_transaction
 
 # TODO: ths isn't used anymore, should it be fixed and used or removed?
 

@@ -3,7 +3,6 @@ max-line-length = 88
 max-complexity = 24
 # recommended was 18
 select = B,C,E,F,W,T4,B9
-ignore = E203, E266, E501, W503, F403, F401, E722, W293, F405
+ignore = E203, E266, E501, W503, F403, F401, E722, F405
 # F405 star import warning
 # E722 = no bare except
-# W293 = blank line containes whitespace 

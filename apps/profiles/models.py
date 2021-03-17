@@ -1,14 +1,9 @@
-import secrets
-import string
 from enum import Enum
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.core.validators import MinValueValidator, RegexValidator
+from django.core.validators import RegexValidator
 from django.db import models
-from django.db.models import Max, Q, Sum
-from django.db.models.signals import pre_save
-from django.utils.crypto import get_random_string
 from django.utils.translation import ugettext_lazy as _
 
 from apps.wallet.models import WALLET_CATEGORIES, Wallet

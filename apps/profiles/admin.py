@@ -1,10 +1,4 @@
-import datetime
-
-import requests
-from django import forms
-from django.conf import settings
 from django.contrib import admin, messages
-from django.shortcuts import render
 from django.utils.translation import ugettext_lazy as _
 
 from apps.profiles.filters import (
@@ -24,6 +18,7 @@ from apps.verification.models import (
     PlaceOfOrigin,
     UserVerification,
 )
+from apps.wallet.mixins import WalletCurrencyOwnedMixin
 from apps.wallet.models import WALLET_STATES, Wallet
 
 
@@ -145,7 +140,9 @@ class PreventDeleteWhenVerifiedMixin:
 
 
 @admin.register(UserProfile)
-class UserProfile(PreventDeleteWhenVerifiedMixin, admin.ModelAdmin):
+class UserProfile(
+    PreventDeleteWhenVerifiedMixin, WalletCurrencyOwnedMixin, admin.ModelAdmin
+):
     list_display = [
         "first_name",
         "last_name",
@@ -180,7 +177,9 @@ class UserProfile(PreventDeleteWhenVerifiedMixin, admin.ModelAdmin):
 
 
 @admin.register(CompanyProfile)
-class CompanyProfile(PreventDeleteWhenVerifiedMixin, admin.ModelAdmin):
+class CompanyProfile(
+    PreventDeleteWhenVerifiedMixin, WalletCurrencyOwnedMixin, admin.ModelAdmin
+):
     list_display = [
         "name",
         "uid",

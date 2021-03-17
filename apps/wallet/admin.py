@@ -1,11 +1,7 @@
 import datetime
-import json
 from io import BytesIO
-from typing import Optional
-from urllib.parse import urlencode
 
 import pyqrcode
-import pysodium
 import pytezos
 import requests
 import weasyprint
@@ -13,7 +9,9 @@ from django import forms
 from django.conf import settings
 from django.contrib import admin, messages
 from django.core.exceptions import PermissionDenied
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
+from django.db.models.query import QuerySet
+from django.db.models.query_utils import Q
 from django.http import FileResponse, HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.template.loader import get_template
@@ -21,6 +19,9 @@ from django.template.response import TemplateResponse
 from django.utils.translation import ugettext_lazy as _
 from weasyprint import CSS
 
+from apps.currency.filters import CurrencyOwnedFilter
+from apps.currency.mixins import CurrencyOwnedAdminMixin
+from apps.currency.models import Currency
 from apps.wallet.forms import GenerateWalletForm
 from apps.wallet.models import (
     TRANSACTION_STATES,
@@ -36,8 +37,8 @@ from apps.wallet.models import (
 
 
 @admin.register(Wallet)
-class WalletAdmin(admin.ModelAdmin):
-    readonly_fields = ["wallet_id", "created_at"]
+class WalletAdmin(CurrencyOwnedAdminMixin, admin.ModelAdmin):
+    readonly_fields = ["wallet_id", "created_at", "currency"]
     fields = [
         "currency",
         "wallet_id",
@@ -58,7 +59,7 @@ class WalletAdmin(admin.ModelAdmin):
         "currency",
         "created_at",
     ]
-    list_filter = ["currency", "category", "state", "created_at"]
+    list_filter = [CurrencyOwnedFilter, "category", "state", "created_at"]
     search_fields = ["wallet_id", "owner__username"]
 
     def has_delete_permission(self, request: HttpRequest, obj=None) -> bool:
@@ -159,13 +160,55 @@ class PaperWalletAdmin(WalletAdmin):
     get_pdf.short_description = _("Download QR-Code pdf")
 
 
+class TransactionCurrencyFilter(admin.SimpleListFilter):
+    # Human-readable title which will be displayed in the
+    # right admin sidebar just above the filter options.
+    title = _("Currency")
+
+    # Parameter for the filter that will be used in the URL query.
+    parameter_name = "currency"
+
+    def lookups(self, request, model_admin):
+        currencies = Currency.get_currencies_to_user(request.user)
+
+        result = []
+
+        for currency in currencies:
+            result.append((str(currency.pk), str(currency)))
+        return result
+
+    def queryset(self, request, queryset):
+        """
+        Returns the filtered queryset based on the value
+        provided in the query string and retrievable via
+        `self.value()`.
+        """
+
+        if self.value() is not None:
+            return queryset.filter(
+                Q(from_wallet__currency__pk=self.value())
+                | Q(to_wallet__currency__pk=self.value())
+            )
+
+        return queryset
+
+
 @admin.register(Transaction)
 class TransactionAdmin(admin.ModelAdmin):
     readonly_fields = ["submitted_to_chain_at", "operation_hash", "notes", "created_at"]
     list_display = ["from_wallet", "to_wallet", "amount", "state", "created_at"]
-    list_filter = ["from_wallet__currency", "state", "created_at"]
+    list_filter = [TransactionCurrencyFilter, "state", "created_at"]
     search_fields = ["from_wallet__wallet_id", "to_wallet__wallet_id"]
     actions = ["retry_failed", "force_done"]
+
+    def get_queryset(self, request: HttpRequest) -> QuerySet:
+        qs = super().get_queryset(request)
+        if not request.user.has_perm("currency.can_view_all_currencies"):
+            qs = qs.filter(
+                Q(from_wallet__currency__users__id__exact=request.user.id)
+                | Q(to_wallet__currency__users__id__exact=request.user.id),
+            )
+        return qs
 
     def has_delete_permission(self, request, obj=None):
         return False
@@ -187,8 +230,17 @@ class TransactionAdmin(admin.ModelAdmin):
 class MetaTransactionAdmin(admin.ModelAdmin):
     readonly_fields = ["submitted_to_chain_at", "operation_hash", "notes", "created_at"]
     list_display = ["from_wallet", "to_wallet", "amount", "state", "created_at"]
-    list_filter = ["from_wallet__currency", "state", "created_at"]
+    list_filter = [TransactionCurrencyFilter, "state", "created_at"]
     search_fields = ["from_wallet__wallet_id", "to_wallet__wallet_id"]
+
+    def get_queryset(self, request: HttpRequest) -> QuerySet:
+        qs = super().get_queryset(request)
+        if not request.user.has_perm("currency.can_view_all_currencies"):
+            qs = qs.filter(
+                Q(from_wallet__currency__users__id__exact=request.user.id)
+                | Q(to_wallet__currency__users__id__exact=request.user.id)
+            )
+        return qs
 
 
 @admin.register(WalletPublicKeyTransferRequest)
@@ -197,6 +249,15 @@ class WalletPublicKeyTransferRequestAdmin(admin.ModelAdmin):
     list_display = ["wallet", "old_public_key", "new_public_key", "state", "created_at"]
     list_filter = ["state", "created_at"]
     search_fields = ["wallet__wallet_id"]
+
+    def get_queryset(self, request: HttpRequest) -> QuerySet:
+        qs = super().get_queryset(request)
+        if not (
+            request.user.has_perm("currency.can_view_all_currencies")
+            or request.user.is_superuser
+        ):
+            qs = qs.filter(wallet__currency__users__id__exact=request.user.id)
+        return qs
 
 
 @admin.register(CashOutRequest)
@@ -217,6 +278,17 @@ class CashOutRequestAdmin(admin.ModelAdmin):
         "transaction__from_wallet__wallet_id",
         "beneficiary_name",
     ]
+
+    def get_queryset(self, request: HttpRequest) -> QuerySet:
+        qs = super().get_queryset(request)
+        if not (
+            request.user.has_perm("currency.can_view_all_currencies")
+            or request.user.is_superuser
+        ):
+            qs = qs.filter(
+                transaction__from_wallet__currency__users__id__exact=request.user.id
+            )
+        return qs
 
     def generate_payout_file(self, request, queryset):
         class PaymentDateForm(forms.Form):

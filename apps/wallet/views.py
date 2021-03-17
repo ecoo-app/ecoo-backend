@@ -52,7 +52,6 @@ class PaperWalletDetail(WalletDetail):
                 message_verified = True
             except ValueError:
                 raise serializers.ValidationError("invalid signature")
-                # branch out from dev
         if wallet.owner == self.request.user or message_verified:
             return WalletSerializer
         else:

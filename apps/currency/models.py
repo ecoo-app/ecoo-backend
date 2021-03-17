@@ -1,5 +1,4 @@
-from enum import Enum
-
+from django.conf import settings
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
@@ -36,11 +35,19 @@ class Currency(UUIDModel):
         on_delete=models.DO_NOTHING,
         related_name="cashout_currencies",
     )
+    users = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, null=True)
     is_public = models.BooleanField(verbose_name=_("Is public"), default=False)
 
     class Meta:
         verbose_name = _("Currency")
         verbose_name_plural = _("Currencies")
+        permissions = [("can_view_all_currencies", "Can view all currencies")]
+
+    @staticmethod
+    def get_currencies_to_user(user):
+        if user.has_perm("currency.can_view_all_currencies") or user.is_superuser:
+            return Currency.objects.all()
+        return Currency.objects.filter(users__id__exact=user.pk)
 
     # TODO: additional fields?
     def __str__(self):
