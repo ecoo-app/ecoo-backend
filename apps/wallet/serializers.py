@@ -155,6 +155,8 @@ class MetaTransactionSerializer(TransactionSerializer):
         ]
         read_only_fields = ["state", "created_at"]
 
+    # FIXME: add validation if its a 'activation'-transaction and check for sms verfication if needed (currency)
+
 
 class CashOutRequestSerializer(serializers.ModelSerializer):
     transaction = serializers.PrimaryKeyRelatedField(queryset=Transaction.objects.all())

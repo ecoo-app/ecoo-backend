@@ -1,10 +1,8 @@
 import pytezos
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
-from django.test import TestCase
 from rest_framework import status
-from rest_framework.test import APIClient, APIRequestFactory, APITestCase
+from rest_framework.test import APITestCase
 
 from apps.currency.models import Currency
 from apps.wallet.models import (
@@ -14,8 +12,8 @@ from apps.wallet.models import (
     Transaction,
     Wallet,
 )
-from apps.wallet.serializers import TransactionSerializer, WalletSerializer
-from apps.wallet.utils import pack_meta_transaction, read_nonce_from_chain
+from apps.wallet.serializers import TransactionSerializer
+from apps.wallet.utils import pack_meta_transaction
 
 # TODO: add can view all currencies test
 

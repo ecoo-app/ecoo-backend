@@ -7,6 +7,4 @@ class VerificationConfig(AppConfig):
     verbose_name = _("Verification")
 
     def ready(self):
-        import apps.verification.signals
-
         return super().ready()

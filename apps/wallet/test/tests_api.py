@@ -1,5 +1,6 @@
 import pytezos
 from django.conf import settings
+from django.urls.base import reverse
 from rest_framework import status
 
 from apps.wallet.models import (
@@ -130,6 +131,18 @@ class WalletApiTest(BaseEcouponApiTestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, WalletSerializer(self.wallet_1).data)
+
+    def test_wallet_detail_token(self):
+        data = {"username": "testuser", "password": "abcd"}
+        resp = self.client.post(reverse("token_obtain_pair"), data=data, format="json")
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("access", resp.data)
+        self.assertIn("refresh", resp.data)
+        resp2 = self.client.get(
+            "/api/wallet/wallet/" + self.wallet_1.wallet_id + "/",
+            **{"HTTP_AUTHORIZATION": "Bearer " + resp.data["access"]}
+        )
+        self.assertEqual(resp2.status_code, 200)
 
     def test_paper_wallet_detail_unauthorized(self):
         response = self.client.get(

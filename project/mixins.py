@@ -5,9 +5,8 @@ from django.contrib.auth.views import redirect_to_login
 from django.db import models
 from django.http import HttpResponseRedirect
 from django.urls import reverse
-from django.utils import timezone
 from django.utils.http import is_safe_url
-from two_factor.admin import AdminSiteOTPRequired, AdminSiteOTPRequiredMixin
+from two_factor.admin import AdminSiteOTPRequiredMixin
 
 from project.admin import MyAdminSite
 

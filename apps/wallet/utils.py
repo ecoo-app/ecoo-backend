@@ -466,13 +466,7 @@ def fix_sync_state(payback_address):
 
 
 def create_claim_transaction(wallet):
-    from apps.wallet.models import (
-        TRANSACTION_STATES,
-        MetaTransaction,
-        Transaction,
-        Wallet,
-        WalletPublicKeyTransferRequest,
-    )
+    from apps.wallet.models import Transaction
 
     Transaction.objects.create(
         from_wallet=wallet.currency.owner_wallet,

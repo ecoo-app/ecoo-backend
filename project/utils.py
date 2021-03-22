@@ -1,8 +1,7 @@
-from django.core.exceptions import ValidationError
+from django.core.exceptions import SuspiciousOperation, ValidationError
 from rest_framework import status
 from rest_framework.exceptions import APIException
 from rest_framework.pagination import CursorPagination
-from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 
 
@@ -27,6 +26,8 @@ def custom_exception_handler(exc, context):
         return Response(
             {"detail": exc.messages}, status=status.HTTP_422_UNPROCESSABLE_ENTITY
         )
+    elif isinstance(exc, SuspiciousOperation):
+        return Response(status=status.HTTP_400_BAD_REQUEST)
     else:
         return Response(
             {"detail": str(exc)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR

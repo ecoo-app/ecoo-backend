@@ -1,7 +1,7 @@
 from enum import Enum
 
 from django.conf import settings
-from django.core.exceptions import ValidationError
+from django.core.exceptions import SuspiciousOperation, ValidationError
 from django.core.validators import RegexValidator
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
@@ -40,6 +40,7 @@ PROFILE_STATE_CHOICES = (
 
 
 class CompanyProfile(UUIDModel):
+    # FIXME: add google business account linking etc
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         verbose_name=_("Owner"),
@@ -48,34 +49,33 @@ class CompanyProfile(UUIDModel):
     )
 
     name = models.CharField(
-        max_length=128,
-        verbose_name=_("Name"),
+        max_length=128, verbose_name=_("Name"), blank=True, null=True
     )
-    uid = models.CharField(
-        max_length=15,
-        blank=True,
-        verbose_name=_("uid"),
-    )
+    uid = models.CharField(max_length=15, blank=True, null=True, verbose_name=_("uid"))
 
     address_street = models.CharField(
         max_length=128,
-        blank=False,
+        blank=True,
+        null=True,
         verbose_name=_("Street"),
     )
     address_town = models.CharField(
         max_length=128,
-        blank=False,
+        blank=True,
+        null=True,
         verbose_name=_("Town"),
     )
     address_postal_code = models.CharField(
         max_length=128,
-        blank=False,
+        blank=True,
+        null=True,
         verbose_name=_("Postal code"),
     )
 
-    phone_number = models.CharField(
+    telephone_number = models.CharField(
         max_length=128,
         blank=True,
+        null=True,
         validators=[
             RegexValidator(
                 r"(\b(0041|0)|\B\+41)(\s?\(0\))?(\s)?[1-9]{2}(\s)?[0-9]{3}(\s)?[0-9]{2}(\s)?[0-9]{2}\b",
@@ -83,6 +83,8 @@ class CompanyProfile(UUIDModel):
             )
         ],
     )
+
+    google_business_account = models.CharField(max_length=128, blank=True, null=True)
 
     wallet = models.ForeignKey(
         Wallet,
@@ -113,7 +115,20 @@ class CompanyProfile(UUIDModel):
 
     def clean(self, *args, **kwargs):
         # TODO: do we need to clean the data? (eg. strip() on strings)
+        super().clean(*args, **kwargs)
+
         errors = {}
+
+        if self.wallet.currency.needs_sms_verification and not self.telephone_number:
+            raise ValidationError(
+                {
+                    "phone_number": ValidationError(
+                        _(
+                            "The currency needs sms verfication therefore a phone number is required"
+                        )
+                    )
+                }
+            )
 
         if self.state == PROFILE_STATES.DEACTIVATED.value:
             if self.verification_stage == PROFILE_VERIFICATION_STAGES.VERIFIED.value:
@@ -138,7 +153,27 @@ class CompanyProfile(UUIDModel):
         if len(errors) > 0:
             raise ValidationError(errors)
 
-        super(CompanyProfile, self).clean(*args, **kwargs)
+        fields = [
+            self.name,
+            self.address_street,
+            self.address_postal_code,
+            self.address_town,
+        ]
+        if any(fields) and not all(fields):
+            raise SuspiciousOperation(
+                _("Either all the address data or none should be provided")
+            )
+
+    @property
+    def sms_pin_verification(self):
+        from apps.verification.models import VERIFICATION_STATES
+
+        if self.sms_pin_verifications.filter(
+            state=VERIFICATION_STATES.PENDING.value
+        ).exists():
+            return self.sms_pin_verifications.filter(
+                state=VERIFICATION_STATES.PENDING.value
+            ).last()
 
     def save(self, *args, **kwargs):
         data = dict(self.__dict__)
@@ -170,15 +205,21 @@ class UserProfile(UUIDModel):
         related_name="user_profiles",
     )
 
-    first_name = models.CharField(verbose_name=_("Firstname"), max_length=128)
-    last_name = models.CharField(verbose_name=_("Lastname"), max_length=128)
+    first_name = models.CharField(
+        verbose_name=_("Firstname"), max_length=128, blank=True, null=True
+    )
+    last_name = models.CharField(
+        verbose_name=_("Lastname"), max_length=128, blank=True, null=True
+    )
 
     address_street = models.CharField(
-        verbose_name=_("Street"), max_length=128, blank=True
+        verbose_name=_("Street"), max_length=128, blank=True, null=True
     )
-    address_town = models.CharField(verbose_name=_("City"), max_length=128, blank=True)
+    address_town = models.CharField(
+        verbose_name=_("City"), max_length=128, blank=True, null=True
+    )
     address_postal_code = models.CharField(
-        verbose_name=_("Postcode"), max_length=128, blank=True
+        verbose_name=_("Postcode"), max_length=128, blank=True, null=True
     )
 
     telephone_number = models.CharField(
@@ -186,13 +227,13 @@ class UserProfile(UUIDModel):
         help_text=_("Format: +41 7X XXX XX XX"),
         max_length=16,
     )
-    date_of_birth = models.DateField(verbose_name=_("Birthdate"))
+    date_of_birth = models.DateField(verbose_name=_("Birthdate"), blank=True, null=True)
 
     wallet = models.ForeignKey(
         Wallet, on_delete=models.CASCADE, related_name="user_profiles"
     )
     place_of_origin = models.CharField(
-        max_length=128, verbose_name=_("Place of origin")
+        max_length=128, verbose_name=_("Place of origin"), blank=True, null=True
     )
 
     state = models.IntegerField(
@@ -230,6 +271,8 @@ class UserProfile(UUIDModel):
 
     def clean(self, *args, **kwargs):
         # TODO: additional cleanup (eg. phonenumbers without spaces/always with spaces formatted, Street without trailing/leading spaces etc.)
+        super().clean(*args, **kwargs)
+
         errors = {}
         if self.state == PROFILE_STATES.DEACTIVATED.value:
             if self.verification_stage == PROFILE_VERIFICATION_STAGES.VERIFIED.value:
@@ -260,7 +303,18 @@ class UserProfile(UUIDModel):
         if len(errors) > 0:
             raise ValidationError(errors)
 
-        super(UserProfile, self).clean(*args, **kwargs)
+        fields = [
+            self.first_name,
+            self.last_name,
+            self.address_street,
+            self.address_town,
+            self.address_postal_code,
+        ]
+        if any(fields) and not all(fields):
+            # if not (all(fields) or not any(fields)):
+            raise SuspiciousOperation(
+                _("Either all the address data or none should be provided")
+            )
 
     def save(self, *args, **kwargs):
         data = dict(self.__dict__)

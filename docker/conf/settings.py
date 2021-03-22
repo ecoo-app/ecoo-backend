@@ -1,8 +1,6 @@
 import os
 import sys
 
-import raven
-
 from project.base_settings import *
 
 # ADMINS = [('??', '??@??'),]
