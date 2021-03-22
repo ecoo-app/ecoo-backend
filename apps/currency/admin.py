@@ -4,8 +4,6 @@ from django.http.request import HttpRequest
 
 from apps.currency.models import Currency, PayoutAccount
 
-# TODO: adjust to only see the own currency
-
 
 class PayoutAccountInline(admin.StackedInline):
     model = PayoutAccount
@@ -20,6 +18,7 @@ class PayoutAccountInline(admin.StackedInline):
 @admin.register(Currency)
 class CurrencyAdmin(admin.ModelAdmin):
     inlines = [PayoutAccountInline]
+    filter_horizontal = ("users",)
 
     list_display = [
         "name",
