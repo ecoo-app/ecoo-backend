@@ -1,6 +1,5 @@
 import pytezos
 from django.contrib.auth import get_user_model
-from django.test.client import Client
 from rest_framework.test import APITestCase
 
 from apps.currency.models import Currency
@@ -25,19 +24,31 @@ class EcouponTestCaseMixin:
         self.staff_user = get_user_model().objects.create(
             username="staff1", password="staff1", is_staff=True
         )
+        self.staff_user.refresh_from_db()
+        self.staff_user.set_password("staff1")
+        self.staff_user.save()
 
         self.user = get_user_model().objects.create(
             username="testuser", password="abcd"
         )
+        self.user.refresh_from_db()
+        self.user.set_password("abcd")
+        self.user.save()
+
         self.user_2 = get_user_model().objects.create(
             username="testuser_2", password="abcd"
         )
+        self.user_2.refresh_from_db()
+        self.user_2.set_password("abcd")
+        self.user_2.save()
+
         self.currency = Currency.objects.create(
             token_id=0,
             name="TEZ",
             symbol="tez",
             claim_deadline="2120-01-01",
             campaign_end="2120-01-01",
+            needs_sms_verification=False,
         )
 
         self.currency_2 = Currency.objects.create(
@@ -47,6 +58,7 @@ class EcouponTestCaseMixin:
             claim_deadline="2120-01-01",
             campaign_end="2120-01-01",
             is_public=True,
+            needs_sms_verification=False,
         )
         self.wallet_1 = Wallet.objects.create(
             owner=self.user,
@@ -61,6 +73,7 @@ class EcouponTestCaseMixin:
             public_key="edpkvToUKgksWQimEUNSpf7trGnTGkcmq1EtEh77QUhCVxHiHBjwcN",
             currency=self.currency,
             state=WALLET_STATES.VERIFIED.value,
+            category=WALLET_CATEGORIES.COMPANY.value,
         )
 
         self.wallet_1_2_2 = Wallet.objects.create(

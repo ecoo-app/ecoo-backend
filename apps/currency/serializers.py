@@ -37,4 +37,5 @@ class CurrencySerializer(serializers.ModelSerializer):
             "cashout_wallet",
             "starting_capital",
             "is_public",
+            "needs_sms_verification",
         ]

@@ -1,9 +1,7 @@
 # copied over from https://github.com/fish-ball/django-fullclean/blob/master/django_fullclean/__init__.py
 
-import inspect
 
 from django.conf import settings
-from django.core.exceptions import ImproperlyConfigured
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 

@@ -1,4 +1,7 @@
 import datetime
+import random
+import string
+import traceback
 from enum import Enum
 
 import requests
@@ -13,6 +16,7 @@ from oauthlib.oauth2 import BackendApplicationClient
 from requests_oauthlib import OAuth2Session
 
 from apps.profiles.models import CompanyProfile, UserProfile
+from apps.verification.utils import send_sms
 from project.mixins import UUIDModel
 
 
@@ -158,42 +162,71 @@ class AddressPinVerification(AbstractVerification):
 
 class SMSPinVerification(AbstractVerification):
     user_profile = models.ForeignKey(
-        UserProfile, on_delete=models.CASCADE, related_name="sms_pin_verifications"
+        UserProfile,
+        on_delete=models.CASCADE,
+        related_name="sms_pin_verifications",
+        blank=True,
+        null=True,
+    )
+    company_profile = models.ForeignKey(
+        CompanyProfile,
+        on_delete=models.CASCADE,
+        related_name="sms_pin_verifications",
+        blank=True,
+        null=True,
     )
     pin = models.CharField(verbose_name=_("Pin"), max_length=8, blank=True)
 
     def clean(self, *args, **kwargs):
         errors = {}
-        if (
-            hasattr(self, "user_profile")
-            and self.user_profile.sms_pin_verifications.filter(
+
+        if not self.pin:
+            system_random = random.SystemRandom()
+
+            self.pin = "".join(system_random.choice(string.digits) for x in range(6))
+            try:
+                success, payload = send_sms(
+                    to_number=self.user_profile.telephone_number,
+                    message="{} {}".format(self.pin, settings.SMS_TEXT),
+                )
+                if success:
+                    self.external_id = payload
+                else:
+                    self.notes = payload
+            except Exception as error:
+                self.notes = "Exception during sync: {}\nTraceback: {}".format(
+                    repr(error), traceback.format_exc()
+                )
+
+        if hasattr(self, "user_profile") or hasattr(self, "company_profile"):
+            profile = self.user_profile if self.user_profile else self.company_profile
+            if profile.sms_pin_verifications.filter(
                 state=VERIFICATION_STATES.FAILED.value
-            ).exists()
-        ):
-            last_timestamp = (
-                self.user_profile.sms_pin_verifications.filter(
-                    state=VERIFICATION_STATES.FAILED.value
+            ).exists():
+                last_timestamp = (
+                    profile.sms_pin_verifications.filter(
+                        state=VERIFICATION_STATES.FAILED.value
+                    )
+                    .last()
+                    .updated_at
                 )
-                .last()
-                .updated_at
-            )
-            exponential_threshold_delta = datetime.timedelta(
-                seconds=settings.SMS_PIN_WAIT_TIME_THRESHOLD_SECONDS
-                ** self.user_profile.sms_pin_verifications.filter(
-                    state=VERIFICATION_STATES.FAILED.value
-                ).count()
-            )
-            if timezone.now() < last_timestamp + exponential_threshold_delta:
-                seconds_left = (
-                    last_timestamp + exponential_threshold_delta - timezone.now()
+                exponential_threshold_delta = datetime.timedelta(
+                    seconds=settings.SMS_PIN_WAIT_TIME_THRESHOLD_SECONDS
+                    ** profile.sms_pin_verifications.filter(
+                        state=VERIFICATION_STATES.FAILED.value
+                    ).count()
                 )
-                errors["pin"] = ValidationError(
-                    _(
-                        "You are retrying too fast, please wait for {} seconds".format(
-                            seconds_left.seconds
+                if timezone.now() < last_timestamp + exponential_threshold_delta:
+                    seconds_left = (
+                        last_timestamp + exponential_threshold_delta - timezone.now()
+                    )
+                    errors["pin"] = ValidationError(
+                        _(
+                            "You are retrying too fast, please wait for {} seconds".format(
+                                seconds_left.seconds
+                            )
                         )
                     )
-                )
 
         if len(errors) > 0:
             raise ValidationError(errors)
@@ -202,6 +235,54 @@ class SMSPinVerification(AbstractVerification):
     class Meta:
         verbose_name = _("SMS pin verification")
         verbose_name_plural = _("SMS pin verifications")
+
+
+# class CompanySMSPinVerification(AbstractVerification):
+#     company_profile = models.ForeignKey(
+#         CompanyProfile, on_delete=models.CASCADE, related_name="sms_pin_verifications"
+#     )
+#     pin = models.CharField(verbose_name=_("Pin"), max_length=8, blank=True)
+
+#     def clean(self, *args, **kwargs):
+#         errors = {}
+#         if (
+#             hasattr(self, "company_profile")
+#             and self.company_profile.sms_pin_verifications.filter(
+#                 state=VERIFICATION_STATES.FAILED.value
+#             ).exists()
+#         ):
+#             last_timestamp = (
+#                 self.company_profile.sms_pin_verifications.filter(
+#                     state=VERIFICATION_STATES.FAILED.value
+#                 )
+#                 .last()
+#                 .updated_at
+#             )
+#             exponential_threshold_delta = datetime.timedelta(
+#                 seconds=settings.SMS_PIN_WAIT_TIME_THRESHOLD_SECONDS
+#                 ** self.company_profile.sms_pin_verifications.filter(
+#                     state=VERIFICATION_STATES.FAILED.value
+#                 ).count()
+#             )
+#             if timezone.now() < last_timestamp + exponential_threshold_delta:
+#                 seconds_left = (
+#                     last_timestamp + exponential_threshold_delta - timezone.now()
+#                 )
+#                 errors["pin"] = ValidationError(
+#                     _(
+#                         "You are retrying too fast, please wait for {} seconds".format(
+#                             seconds_left.seconds
+#                         )
+#                     )
+#                 )
+
+#         if len(errors) > 0:
+#             raise ValidationError(errors)
+#         super(SMSPinVerification, self).clean(*args, **kwargs)
+
+#     class Meta:
+#         verbose_name = _("Company SMS pin verification")
+#         verbose_name_plural = _("Company SMS pin verifications")
 
 
 class PlaceOfOrigin(UUIDModel):

@@ -109,25 +109,6 @@ class PaperWalletAdmin(WalletAdmin):
             },
         )
 
-    def generate_wallet(self, currency):
-        key = pytezos.crypto.key.Key.generate()
-        private_key = key.secret_key(None, False)
-        public_key = key.public_key()
-
-        retry = True
-        while retry:
-            try:
-                PaperWallet.objects.create(
-                    currency=currency,
-                    private_key=private_key,
-                    wallet_id=PaperWallet.generate_wallet_id(),
-                    public_key=public_key,
-                    category=WALLET_CATEGORIES.CONSUMER.value,
-                )
-                retry = False
-            except IntegrityError:
-                retry = True
-
     def get_pdf(modeladmin, request, queryset):
         documents = []
         response = HttpResponse(content_type="application/pdf")

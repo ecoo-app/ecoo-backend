@@ -1,6 +1,7 @@
 from django.contrib.admin.views.decorators import staff_member_required
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
+from django.http.response import HttpResponse
 from django.shortcuts import redirect
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.detail import DetailView
@@ -53,6 +54,30 @@ def resend_user_profile_pin(request, user_profile_uuid=None):
         )
 
 
+# FIXME: add test
+@api_view(["POST"])
+def resend_company_profile_pin(request, profile_uuid=None):
+    company_profile = CompanyProfile.objects.get(uuid=profile_uuid)
+    if company_profile.owner != request.user:
+        raise PermissionDenied(_("The profile does not belong to you"))
+    if (
+        company_profile.sms_pin_verification is not None
+        and company_profile.sms_pin_verification.state
+        == VERIFICATION_STATES.PENDING.value
+    ):
+        send_sms(
+            company_profile.telephone_number, company_profile.sms_pin_verification.pin
+        )
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    else:
+        raise_api_exception(
+            422,
+            _(
+                "There is no pin verification open for the given user profile at this time"
+            ),
+        )
+
+
 @api_view(["POST"])
 def verify_user_profile_pin(request, user_profile_uuid=None):
     user_profile = UserProfile.objects.get(uuid=user_profile_uuid)
@@ -82,6 +107,34 @@ def verify_user_profile_pin(request, user_profile_uuid=None):
             user_profile=user_profile, state=VERIFICATION_STATES.PENDING.value
         )
         raise_api_exception(422, _("PIN did not match, we resent a new one"))
+
+
+# FIXME: add test
+@api_view(["GET"])
+def create_sms_pin_verification(request, profile_uuid=None):
+    if CompanyProfile.objects.filter(pk=profile_uuid).exists():
+        profile = CompanyProfile.objects.filter(pk=profile_uuid).first()
+        if profile.owner != request.user:
+            raise PermissionDenied(_("The profile does not belong to you"))
+
+        if not (SMSPinVerification.objects.filter(company_profile=profile).exists()):
+            SMSPinVerification.objects.create(
+                company_profile=profile, state=VERIFICATION_STATES.PENDING.value
+            )
+            send_sms(profile.telephone_number, profile.sms_pin_verification.pin)
+            return HttpResponse(status=status.HTTP_201_CREATED)
+    else:
+        profile = UserProfile.objects.filter(pk=profile_uuid).first()
+        if profile.owner != request.user:
+            raise PermissionDenied(_("The profile does not belong to you"))
+
+        if not (SMSPinVerification.objects.filter(user_profile=profile).exists()):
+            SMSPinVerification.objects.create(
+                user_profile=profile, state=VERIFICATION_STATES.PENDING.value
+            )
+            send_sms(profile.telephone_number, profile.sms_pin_verification.pin)
+            return HttpResponse(status=status.HTTP_201_CREATED)
+    return HttpResponse(status=status.HTTP_304_NOT_MODIFIED)
 
 
 @api_view(["POST"])

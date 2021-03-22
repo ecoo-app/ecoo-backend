@@ -42,7 +42,8 @@ class CompanyProfileSerializer(serializers.ModelSerializer):
             "verification_stage",
             "wallet",
             "address_postal_code",
-            "phone_number",
+            "telephone_number",
+            "google_business_account",
         ]
         extra_kwargs = {
             "address_town": {"required": True},

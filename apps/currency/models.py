@@ -37,6 +37,9 @@ class Currency(UUIDModel):
     )
     users = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, null=True)
     is_public = models.BooleanField(verbose_name=_("Is public"), default=False)
+    needs_sms_verification = models.BooleanField(
+        verbose_name=_("Mandatory SMS verification"), default=True
+    )
 
     class Meta:
         verbose_name = _("Currency")

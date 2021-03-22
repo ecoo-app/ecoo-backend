@@ -218,10 +218,7 @@ class PaperWallet(Wallet):
                         password=get_user_model().objects.make_random_password(),
                     )
 
-                    from apps.verification.models import (
-                        VERIFICATION_STATES,
-                        UserVerification,
-                    )
+                    from apps.verification.models import VERIFICATION_STATES
 
                     # if we do not change the state here and save before we save the new user profile, then we trigger an SMS verification
                     user_verification.state = VERIFICATION_STATES.CLAIMED.value
@@ -352,6 +349,33 @@ class Transaction(UUIDModel):
         return self.from_wallet is None
 
     @property
+    def is_verification_transaction(self):
+        # TODO: is this correct?
+
+        from_wallet = self.from_wallet
+
+        if from_wallet is None:
+            return False
+
+        if PaperWallet.objects.filter(wallet_id=from_wallet.wallet_id).count() == 0:
+            return False
+
+        if (
+            from_wallet.from_transactions.count() == 0
+            and from_wallet.balance == self.amount
+            and not self.pk
+        ):
+            return True
+
+        if (
+            from_wallet.from_transactions.count() == 1
+            and from_wallet.balance == 0
+            and self.pk
+        ):
+            return True
+        return False
+
+    @property
     def tag(self):
         if (
             self.from_wallet
@@ -378,7 +402,7 @@ class Transaction(UUIDModel):
             if self.to_wallet.transfer_requests.exclude(
                 state=TRANSACTION_STATES.DONE.value
             ).exists():
-                errors["wallet"] = ValidationError(
+                errors["to_wallet"] = ValidationError(
                     _(
                         "Wallet transfer ongoing for destination wallet, cannot send funds to this wallet at the moment."
                     )
@@ -388,8 +412,8 @@ class Transaction(UUIDModel):
                     _("Currency must allow minting if you want to mint")
                 )
 
-        if self.amount is not None and self.amount <= 0:
-            errors["amount"] = ValidationError(_("Amount must be > 0"))
+        if self.amount is not None and self.amount < 0:
+            errors["amount"] = ValidationError(_("Amount must be >= 0"))
 
         if not self.is_mint_transaction:
             if hasattr(self, "from_wallet"):
@@ -405,6 +429,10 @@ class Transaction(UUIDModel):
                     errors["from_wallet"] = ValidationError(
                         _('"From wallet" and "to wallet" need to use same currency')
                     )
+                    errors["to_wallet"] = ValidationError(
+                        _('"From wallet" and "to wallet" need to use same currency')
+                    )
+
                 if self.from_wallet.transfer_requests.exclude(
                     state=TRANSACTION_STATES.DONE.value
                 ).exists():
@@ -417,6 +445,48 @@ class Transaction(UUIDModel):
                     errors["from_wallet"] = ValidationError(
                         _("Only verified addresses can send money")
                     )
+
+                if self.is_verification_transaction and not self.pk:
+                    # check max_claim count if transaction would be created
+                    claim_count = sum(
+                        [
+                            1
+                            for tx in Transaction.objects.filter(
+                                to_wallet=self.to_wallet
+                            )
+                            if tx.is_verification_transaction
+                        ]
+                    )
+                    if claim_count > self.to_wallet.currency.max_claims:
+                        raise ValidationError(_("Claim maximum reached"))
+
+                if self.to_wallet.state != WALLET_STATES.VERIFIED.value:
+                    # wallet is not verified
+                    from apps.verification.models import VERIFICATION_STATES
+
+                    if self.is_verification_transaction:
+
+                        profile = (
+                            self.to_wallet.user_profiles.first()
+                            if self.to_wallet.category
+                            == WALLET_CATEGORIES.CONSUMER.value
+                            else self.to_wallet.company_profiles.first()
+                        )
+                        if (
+                            profile
+                            and profile.sms_pin_verifications
+                            and profile.sms_pin_verifications.count() > 0
+                            and profile.sms_pin_verifications.first().state
+                            == VERIFICATION_STATES.CLAIMED.value
+                        ) or not self.to_wallet.currency.needs_sms_verification:
+                            self.to_wallet.state = WALLET_STATES.VERIFIED.value
+                            self.to_wallet.save()
+
+                        else:
+                            errors["to_wallet"] = ValidationError(
+                                "To wallet needs sms verification before a 'verification transaction' can be created"
+                            )
+
         if len(errors) > 0:
             raise ValidationError(errors)
         super(Transaction, self).clean(*args, **kwargs)
@@ -459,6 +529,7 @@ class MetaTransaction(Transaction):
         }
 
     def clean(self, *args, **kwargs):
+        super().clean(*args, **kwargs)
         errors = {}
 
         if self.is_mint_transaction:
@@ -476,18 +547,7 @@ class MetaTransaction(Transaction):
                         "Nonce must be 1 higher than from_wallet's last meta transaction nonce"
                     )
                 )
-            if hasattr(self, "to_wallet"):
-                if (
-                    self.to_wallet
-                    and self.from_wallet
-                    and self.from_wallet.currency != self.to_wallet.currency
-                ):
-                    errors["from_wallet"] = ValidationError(
-                        _('"From wallet" and "to wallet" need to use same currency')
-                    )
-                    errors["to_wallet"] = ValidationError(
-                        _('"From wallet" and "to wallet" need to use same currency')
-                    )
+
         try:
             message = create_message(
                 self.from_wallet,

@@ -1,25 +1,10 @@
-import binascii
-
-import pytezos
-from django.conf import settings
-from django.core.exceptions import PermissionDenied
-from django.db import IntegrityError
-from django.db.models import Q
-from django.shortcuts import render
 from django.utils.translation import ugettext_lazy as _
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, generics, mixins, status
-from rest_framework.decorators import api_view
-from rest_framework.exceptions import ValidationError
+from rest_framework import generics
 from rest_framework.pagination import CursorPagination
-from rest_framework.permissions import BasePermission
-from rest_framework.response import Response
 
-from apps.profiles.models import PROFILE_STATES, CompanyProfile, UserProfile
+from apps.profiles.models import PROFILE_STATES
 from apps.profiles.serializers import CompanyProfileSerializer, UserProfileSerializer
-from apps.verification.models import VERIFICATION_STATES
 from apps.wallet.models import Wallet
-from project.utils import raise_api_exception
 
 
 class ProfileCursorPagination(CursorPagination):

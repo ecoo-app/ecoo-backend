@@ -19,15 +19,12 @@ from django.conf import settings
 from django.conf.urls import include
 from django.conf.urls.static import static  # new
 from django.contrib import admin
-from django.contrib.auth import views
 from django.urls import path
-from django.views.generic import RedirectView, TemplateView
 from fcm_django.api.rest_framework import FCMDeviceAuthorizedViewSet
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from two_factor.urls import urlpatterns as tf_urls
 
-import apps.wallet.urls as wallet_url
 from project.mixins import AdminSiteOTPRequiredMixinRedirSetup
 
 if not (settings.DEBUG or "test" in sys.argv):
