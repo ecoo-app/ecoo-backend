@@ -4,6 +4,7 @@ from django.test.client import Client
 from django.urls.base import reverse
 
 from apps.currency.models import Currency
+from apps.wallet.models import PaperWallet
 from project.utils_testing import BaseEcouponApiTestCase, EcouponTestCaseMixin
 
 
@@ -61,3 +62,47 @@ class CurrencyAdminTestCase(EcouponTestCaseMixin, TestCase):
             sorted(list(resp.context_data["cl"].queryset), key=lambda x: x.name),
             sorted(list(Currency.objects.all()), key=lambda x: x.name),
         )
+
+    def test_create_paper_wallet_consumer(self):
+        self.client.force_login(self.staff_user)
+        self.staff_user.is_superuser = True
+        self.staff_user.save()
+        self.staff_user.refresh_from_db()
+
+        url = reverse("admin:currency_currency_changelist")
+        data = {
+            "action": "generate_paper_wallet_consumer",
+            "_selected_action": [str(self.currency.pk)],
+        }
+
+        paper_wallet_count = PaperWallet.objects.count()
+
+        response = self.client.post(url, data, follow=True)
+
+        self.assertTrue(paper_wallet_count + 1, PaperWallet.objects.count())
+        self.assertTrue(response.status_code, 200)
+
+        paper_wallet = PaperWallet.objects.get(pk=response.context_data["object_id"])
+        self.assertEqual(paper_wallet.balance, self.currency.starting_capital)
+
+    def test_create_paper_wallet_company(self):
+        self.client.force_login(self.staff_user)
+        self.staff_user.is_superuser = True
+        self.staff_user.save()
+        self.staff_user.refresh_from_db()
+        paper_wallet_count = PaperWallet.objects.count()
+        url = reverse("admin:currency_currency_changelist")
+        data = {
+            "action": "generate_paper_wallet_company",
+            "_selected_action": [str(self.currency.pk)],
+        }
+
+        paper_wallet_count = PaperWallet.objects.count()
+
+        response = self.client.post(url, data, follow=True)
+
+        self.assertTrue(paper_wallet_count + 1, PaperWallet.objects.count())
+        self.assertTrue(response.status_code, 200)
+
+        paper_wallet = PaperWallet.objects.get(pk=response.context_data["object_id"])
+        self.assertEqual(paper_wallet.balance, 0)
