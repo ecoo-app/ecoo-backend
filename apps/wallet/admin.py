@@ -1,7 +1,12 @@
 import datetime
+import json
+import os
+import uuid
+import zipfile
 from io import BytesIO
 
 import pyqrcode
+import pysodium
 import pytezos
 import requests
 import weasyprint
@@ -9,7 +14,7 @@ from django import forms
 from django.conf import settings
 from django.contrib import admin, messages
 from django.core.exceptions import PermissionDenied
-from django.db import IntegrityError, transaction
+from django.db import IntegrityError
 from django.db.models.query import QuerySet
 from django.db.models.query_utils import Q
 from django.http import FileResponse, HttpRequest, HttpResponse, HttpResponseRedirect
@@ -17,6 +22,7 @@ from django.shortcuts import render
 from django.template.loader import get_template
 from django.template.response import TemplateResponse
 from django.utils.translation import ugettext_lazy as _
+from PIL import Image
 from weasyprint import CSS
 
 from apps.currency.filters import CurrencyOwnedFilter
@@ -73,7 +79,7 @@ class OwnerWalletAdmin(WalletAdmin):
 
 @admin.register(PaperWallet)
 class PaperWalletAdmin(WalletAdmin):
-    actions = ["get_pdf"]
+    actions = ["get_pdf", "download_zip", "download_links_pdf"]
 
     def generate_wallets(self, request):
         if not request.user.is_superuser:
@@ -124,7 +130,7 @@ class PaperWalletAdmin(WalletAdmin):
                     "wetzikon_bw": settings.STATIC_ROOT + "/wallet/wetzikon_bw.png",
                 },
                 request,
-            )  # .encode(encoding="UTF-8")
+            )
 
             documents.append(
                 weasyprint.HTML(
@@ -139,6 +145,50 @@ class PaperWalletAdmin(WalletAdmin):
         return response
 
     get_pdf.short_description = _("Download QR-Code pdf")
+
+    def download_zip(modeladmin, request, queryset):
+        zip_filename = os.path.join(
+            settings.MEDIA_ROOT, "zip", "qr_codes_{}.zip".format(uuid.uuid4())
+        )
+        with zipfile.ZipFile(zip_filename, "w") as zf:
+            for wallet in queryset.all():
+
+                qr_code = pyqrcode.create(wallet.generate_deeplink(), error="M")
+                filename = os.path.join(
+                    settings.MEDIA_ROOT, "qr", wallet.wallet_id + ".png"
+                )
+                qr_code.png(filename, scale=5)
+
+                img = Image.open(filename)
+
+                img = img.resize((530, 530), Image.ANTIALIAS)
+                img.save(filename)
+
+                zf.write(filename)
+
+        zip_file = open(zip_filename, "rb").read()
+        return HttpResponse(zip_file, content_type="application/zip")
+
+    download_zip.short_description = _("Download QR-Code Zip")
+
+    def download_links_pdf(self, request, queryset):
+        response = HttpResponse(content_type="application/pdf")
+        template = get_template("wallet/wallet_deeplinks.html")
+        html = template.render(
+            {
+                "deeplinks": [wallet.generate_deeplink() for wallet in queryset.all()],
+            },
+            request,
+        )
+
+        weasyprint.HTML(string=html, base_url=request.build_absolute_uri()).write_pdf(
+            target=response,
+            presentational_hints=True,
+            stylesheets=[CSS(settings.STATIC_ROOT + "/wallet/print_2.css")],
+        )
+        return response
+
+    download_links_pdf.short_description = _("Download deeplink(s)")
 
 
 class TransactionCurrencyFilter(admin.SimpleListFilter):
