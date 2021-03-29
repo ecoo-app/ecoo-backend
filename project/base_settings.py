@@ -169,9 +169,10 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework.authentication.BasicAuthentication",
         "rest_framework.authentication.TokenAuthentication",
+        "project.authentication.ImprovedOAuth2Authentication",
+        # "oauth2_provider.contrib.rest_framework.OAuth2Authentication",
+        # "rest_framework_social_oauth2.authentication.SocialAuthentication",
         "rest_framework_simplejwt.authentication.JWTAuthentication",
-        "oauth2_provider.contrib.rest_framework.OAuth2Authentication",
-        "rest_framework_social_oauth2.authentication.SocialAuthentication",
     ),
     "DEFAULT_PAGINATION_CLASS": "project.utils.CustomCursorPagination",
     "EXCEPTION_HANDLER": "project.utils.custom_exception_handler",
@@ -188,7 +189,11 @@ SIMPLE_JWT = {
     "VERIFYING_KEY": None,
     "AUDIENCE": None,
     "ISSUER": None,
-    "AUTH_HEADER_TYPES": ("Bearer",),
+    "AUTH_HEADER_TYPES": (
+        "Bearer",
+        "bearer",
+    ),
+    # "AUTH_HEADER_TYPES": ("bearer",),
     "USER_ID_FIELD": "id",
     "USER_ID_CLAIM": "user_id",
     "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
@@ -215,9 +220,9 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = "./media/"
 
 AUTHENTICATION_BACKENDS = (
-    "rest_framework_social_oauth2.backends.DjangoOAuth2",
     "social_core.backends.google.GoogleOAuth2",
     "social_core.backends.apple.AppleIdAuth",
+    "rest_framework_social_oauth2.backends.DjangoOAuth2",
     "django.contrib.auth.backends.ModelBackend",
 )
 
