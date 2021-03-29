@@ -26,9 +26,10 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from two_factor.urls import urlpatterns as tf_urls
 
 from project.mixins import AdminSiteOTPRequiredMixinRedirSetup
+from project.views import version
 
 if not (settings.DEBUG or "test" in sys.argv):
-    # disable admint otp if tests or debug set
+    # disable admin otp if tests or debug set
     admin.site.__class__ = AdminSiteOTPRequiredMixinRedirSetup
 
 
@@ -41,6 +42,7 @@ router.register("", FCMDeviceAuthorizedViewSet)
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("api/version/", version),
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("api/wallet/", include("apps.wallet.urls")),
