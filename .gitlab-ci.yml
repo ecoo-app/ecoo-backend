@@ -163,7 +163,6 @@ k8s-deploy-production:
   stage: deploy
   only:
     - master
-    - develop
   when: manual
   image: google/cloud-sdk
   before_script:
