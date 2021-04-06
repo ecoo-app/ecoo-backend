@@ -101,7 +101,7 @@ class EcouponTestCaseMixin:
         )
 
         key = pytezos.crypto.key.Key.generate()
-        private_key = key.secret_key(None, False)
+        private_key = key.secret_key()
         public_key = key.public_key()
 
         self.paper_wallet_1 = PaperWallet.objects.create(
@@ -113,7 +113,7 @@ class EcouponTestCaseMixin:
         )
 
         key = pytezos.crypto.key.Key.generate()
-        private_key = key.secret_key(None, False)
+        private_key = key.secret_key()
         public_key = key.public_key()
 
         self.paper_wallet_2 = PaperWallet.objects.create(
