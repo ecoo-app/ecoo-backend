@@ -180,7 +180,7 @@ def sync_to_blockchain(is_dry_run=True, _async=False):
             )
         elif MetaTransaction.objects.filter(pk=transaction.pk).exists():
             meta_transactions.append(MetaTransaction.objects.get(pk=transaction))
-        else:
+        elif transaction.to_wallet.from_transactions.count() > 0:
             same_from_txs = funding_transactions.get(
                 transaction.from_wallet.address, []
             )
@@ -233,6 +233,7 @@ def sync_to_blockchain(is_dry_run=True, _async=False):
             wallet_public_key_transfer_request.wallet.balance > 0
             and wallet_public_key_transfer_request.wallet.public_key
             != wallet_public_key_transfer_request.new_public_key
+            and wallet_public_key_transfer_request.wallet.from_transactions.count() > 0
         ):
             new_address = Wallet(
                 public_key=wallet_public_key_transfer_request.new_public_key
