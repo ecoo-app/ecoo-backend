@@ -8,7 +8,6 @@ from django.urls.base import reverse
 from django.utils.translation import ugettext_lazy as _
 
 from apps.currency.models import Currency, PayoutAccount
-from apps.wallet.models import WALLET_CATEGORIES, PaperWallet
 from apps.wallet.utils import create_claim_transaction
 
 
@@ -55,6 +54,8 @@ class CurrencyAdmin(admin.ModelAdmin):
         return qs
 
     def generate_paper_wallet_consumer(modeladmin, request, currencies):
+        from apps.wallet.models import WALLET_CATEGORIES
+
         currency = currencies.first()
 
         paper_wallet = modeladmin.__generate_paper_wallet(
@@ -70,6 +71,8 @@ class CurrencyAdmin(admin.ModelAdmin):
     )
 
     def generate_paper_wallet_company(modeladmin, request, currencies):
+        from apps.wallet.models import WALLET_CATEGORIES
+
         currency = currencies.first()
 
         paper_wallet = modeladmin.__generate_paper_wallet(
@@ -85,6 +88,8 @@ class CurrencyAdmin(admin.ModelAdmin):
     )
 
     def __generate_paper_wallet(self, currency, category):
+        from apps.wallet.models import PaperWallet
+
         key = pytezos.crypto.key.Key.generate()
         private_key = key.secret_key(None, False)
         public_key = key.public_key()
@@ -103,3 +108,16 @@ class CurrencyAdmin(admin.ModelAdmin):
             except IntegrityError:
                 retry = True
         return paper_wallet
+
+    def render_change_form(self, request, context, *args, **kwargs):
+        from apps.wallet.models import OwnerWallet
+
+        if kwargs.get("obj", None):
+            context["adminform"].form.fields[
+                "cashout_wallet"
+            ].queryset = OwnerWallet.objects.filter(currency=kwargs["obj"])
+        else:
+            context["adminform"].form.fields[
+                "cashout_wallet"
+            ].queryset = OwnerWallet.objects.none()
+        return super().render_change_form(request, context, *args, **kwargs)
