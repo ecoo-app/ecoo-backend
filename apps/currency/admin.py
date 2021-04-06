@@ -94,6 +94,7 @@ class CurrencyAdmin(admin.ModelAdmin):
     )
 
     def generate_multiple_company_paper_wallets(self, request, currencies):
+        from apps.wallet.models import WALLET_CATEGORIES
         currency = currencies.first()
         if "apply" in request.POST:  # if user pressed 'apply' on intermediate page
             n = int(request.POST.get("number_of_wallets", "0"))
@@ -133,6 +134,7 @@ class CurrencyAdmin(admin.ModelAdmin):
     )
 
     def generate_multiple_consumer_paper_wallets(self, request, currencies):
+        from apps.wallet.models import WALLET_CATEGORIES
         currency = currencies.first()
         if "apply" in request.POST:  # if user pressed 'apply' on intermediate page
             n = int(request.POST.get("number_of_wallets", "0"))
