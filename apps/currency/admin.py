@@ -110,14 +110,14 @@ class CurrencyAdmin(admin.ModelAdmin):
         return paper_wallet
 
     def render_change_form(self, request, context, *args, **kwargs):
-        from apps.wallet.models import Wallet
+        from apps.wallet.models import OwnerWallet
 
         if kwargs.get("obj", None):
             context["adminform"].form.fields[
                 "cashout_wallet"
-            ].queryset = Wallet.objects.filter(currency=kwargs["obj"])
+            ].queryset = OwnerWallet.objects.filter(currency=kwargs["obj"])
         else:
             context["adminform"].form.fields[
                 "cashout_wallet"
-            ].queryset = Wallet.objects.none()
+            ].queryset = OwnerWallet.objects.none()
         return super().render_change_form(request, context, *args, **kwargs)
