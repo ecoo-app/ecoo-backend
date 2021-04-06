@@ -44,7 +44,7 @@ from apps.wallet.models import (
 
 @admin.register(Wallet)
 class WalletAdmin(CurrencyOwnedAdminMixin, admin.ModelAdmin):
-    readonly_fields = ["wallet_id", "created_at", "currency"]
+    readonly_fields = ["wallet_id", "created_at"]
     fields = [
         "currency",
         "wallet_id",
