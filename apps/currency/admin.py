@@ -91,7 +91,7 @@ class CurrencyAdmin(admin.ModelAdmin):
         from apps.wallet.models import PaperWallet
 
         key = pytezos.crypto.key.Key.generate()
-        private_key = key.secret_key(None, False)
+        private_key = key.secret_key()
         public_key = key.public_key()
 
         retry = True
