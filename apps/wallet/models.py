@@ -271,7 +271,17 @@ class PaperWallet(Wallet):
             "pk": base64.b64encode(pk),
         }
 
-        return "{}wallet/?{}".format(settings.DEEPLINK_BASE_URL, urlencode(payload))
+        return (
+            "https://ecoo.page.link/?"
+            + urlencode(
+                {
+                    "link": "{}wallet/?{}".format(
+                        settings.DEEPLINK_BASE_URL, urlencode(payload)
+                    )
+                }
+            )
+            + "&apn=ch.ecoupon.mobile.android&ibi=ch.ecoupon.mobile"
+        )
 
     def save(self, *args, **kwargs):
         self.state = WALLET_STATES.VERIFIED.value

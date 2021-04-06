@@ -1,6 +1,6 @@
 import time
 from unittest import skip
-from urllib.parse import urlparse
+from urllib.parse import urlencode, urlparse
 
 import pytezos
 from django.conf import settings
@@ -234,7 +234,9 @@ class PaperWalletTestCase(TestCase):
 
         deeplink = urlparse(paper_wallet.generate_deeplink())
 
-        self.assertIn(settings.DEEPLINK_BASE_URL, deeplink.geturl())
+        self.assertIn(
+            urlencode({"link": settings.DEEPLINK_BASE_URL}), deeplink.geturl()
+        )
         self.assertIn(paper_wallet.wallet_id, deeplink.query)
 
 
