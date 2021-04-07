@@ -78,7 +78,9 @@ class Command(BaseCommand):
         for i in range(n):
             try:
                 paper_wallet = generate_paper_wallet(currency, type)
-                create_claim_transaction(paper_wallet)
+
+                if type == WALLET_CATEGORIES.CONSUMER.value:
+                    create_claim_transaction(paper_wallet)
                 wallet_ids.append(paper_wallet.wallet_id)
                 paper_wallets.append(paper_wallet)
 
