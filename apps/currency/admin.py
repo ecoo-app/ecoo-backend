@@ -97,16 +97,19 @@ class CurrencyAdmin(admin.ModelAdmin):
         from apps.wallet.models import WALLET_CATEGORIES
 
         currency = currencies.first()
-        if "apply" in request.POST:  # if user pressed 'apply' on intermediate page
+        if "apply1" in request.POST:  # if user pressed 'apply' on intermediate page
             n = int(request.POST.get("number_of_wallets", "0"))
 
             for i in range(n):
                 try:
-                    paper_wallet = self.__generate_paper_wallet(
+                    self.__generate_paper_wallet(
                         currency=currency,
-                        category=int(request.POST.get("_type_of_wallet", "0")),
+                        category=int(
+                            request.POST.get(
+                                "_type_of_wallet", WALLET_CATEGORIES.COMPANY.value
+                            )
+                        ),
                     )
-                    create_claim_transaction(paper_wallet)
                 except ValidationError as e:
                     self.message_user(
                         request,
@@ -127,7 +130,11 @@ class CurrencyAdmin(admin.ModelAdmin):
         return render(
             request,
             "admin/currency/create_paper_wallets.html",
-            {"form": form, "currency": currency},
+            {
+                "form": form,
+                "currency": currency,
+                "type": WALLET_CATEGORIES.COMPANY.value,
+            },
         )
 
     generate_multiple_company_paper_wallets.short_description = _(
@@ -138,7 +145,12 @@ class CurrencyAdmin(admin.ModelAdmin):
         from apps.wallet.models import WALLET_CATEGORIES
 
         currency = currencies.first()
-        if "apply" in request.POST:  # if user pressed 'apply' on intermediate page
+
+        # handling both post requests in same
+
+        if (
+            "apply0" in request.POST
+        ):  # if user pressed 'apply' on intermediate page for consumer
             n = int(request.POST.get("number_of_wallets", "0"))
 
             if n * currency.starting_capital > currency.owner_wallet.balance:
@@ -154,9 +166,38 @@ class CurrencyAdmin(admin.ModelAdmin):
                 try:
                     paper_wallet = self.__generate_paper_wallet(
                         currency=currency,
-                        category=int(request.POST.get("_type_of_wallet", "0")),
+                        category=int(
+                            request.POST.get(
+                                "_type_of_wallet", WALLET_CATEGORIES.CONSUMER.value
+                            )
+                        ),
                     )
                     create_claim_transaction(paper_wallet)
+                except ValidationError as e:
+                    self.message_user(
+                        request,
+                        "Error: %s" % str(e.message),
+                        level="error",
+                    )
+
+            self.message_user(request, "Created %s paper wallets" % str(n))
+            return HttpResponseRedirect(request.get_full_path())
+
+        if (
+            "apply1" in request.POST
+        ):  # if user pressed 'apply' on intermediate page for company
+            n = int(request.POST.get("number_of_wallets", "1"))
+
+            for i in range(n):
+                try:
+                    self.__generate_paper_wallet(
+                        currency=currency,
+                        category=int(
+                            request.POST.get(
+                                "_type_of_wallet", WALLET_CATEGORIES.COMPANY.value
+                            )
+                        ),
+                    )
                 except ValidationError as e:
                     self.message_user(
                         request,
@@ -177,7 +218,11 @@ class CurrencyAdmin(admin.ModelAdmin):
         return render(
             request,
             "admin/currency/create_paper_wallets.html",
-            {"form": form, "currency": currency},
+            {
+                "form": form,
+                "currency": currency,
+                "type": WALLET_CATEGORIES.CONSUMER.value,
+            },
         )
 
     generate_multiple_consumer_paper_wallets.short_description = _(
