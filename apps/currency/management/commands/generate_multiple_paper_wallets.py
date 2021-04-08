@@ -13,34 +13,31 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument(
             "--type",
-            # nargs=1,
             default="consumer",
             help="type either 'consumer' or 'company'",
         )
 
         parser.add_argument(
             "--n",
-            # nargs=1,
             default=10,
             help="number of wallets to create",
         )
 
         parser.add_argument(
             "--currency",
-            # nargs=1,
             default="test_currency",
             help="name of the currency to use",
         )
 
         parser.add_argument(
             "--create_zip",
-            default=False,
+            default="False",
             help="should a zip file be created containing all the qr's",
         )
 
         parser.add_argument(
             "--debug",
-            default=False,
+            default="False",
             help="print detailed debug logs",
         )
 
@@ -50,6 +47,21 @@ class Command(BaseCommand):
             return
         currency = Currency.objects.get(name=options["currency"])
         n = int(options["n"])
+
+        if options["debug"] not in ["True", "False", "false", "true"]:
+            self.stdout.write(
+                f"Debug should be one of True true, False, false but was '{options['debug']}'"
+            )
+            return
+
+        if options["create_zip"] not in ["True", "False", "false", "true"]:
+            self.stdout.write(
+                f"create_zip should be one of True true, False, false but was '{options['create_zip']}'"
+            )
+            return
+
+        debug = options["debug"] in ["True", "true"]
+        create_zip = options["create_zip"] in ["True", "true"]
 
         type = None
         if options["type"] == "consumer":
@@ -84,17 +96,18 @@ class Command(BaseCommand):
                 wallet_ids.append(paper_wallet.wallet_id)
                 paper_wallets.append(paper_wallet)
 
-                if options["debug"] is True:
+                if debug is True:
                     self.stdout.write(paper_wallet.wallet_id)
 
             except ValidationError as e:
                 self.stdout.write(f"Error: {str(e.message)}")
 
-        self.stdout.write("Added the following wallet_ids:")
-        self.stdout.write(", ".join(wallet_ids))
+        if debug is True:
+            self.stdout.write("Added the following wallet_ids:")
+            self.stdout.write(", ".join(wallet_ids))
 
-        if options["create_zip"]:
-            if options["debug"]:
+        if create_zip:
+            if debug:
                 self.stdout.write("Create zip file")
             zip_file = generate_qr_code_zip(paper_wallets, add_wallet_id_csv=True)
             self.stdout.write(f"Created zip file: {zip_file}")
