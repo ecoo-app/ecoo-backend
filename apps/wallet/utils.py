@@ -166,7 +166,8 @@ def sync_to_blockchain(is_dry_run=True, _async=False):
         .exclude(state=TRANSACTION_STATES.DONE.value)
         .order_by("created_at")
     ):
-        state_update_items.append(transaction)
+        if transaction.to_wallet.from_transactions.count() > 0:   
+            state_update_items.append(transaction)
         if not transaction.from_wallet:
             operation_groups.append(
                 token_contract.mint(
