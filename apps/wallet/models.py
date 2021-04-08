@@ -89,15 +89,14 @@ class Wallet(CurrencyOwnedMixin):
 
     @property
     def nonce(self):
-        if (
-            self.from_metatransactions.filter(from_public_key=self.public_key).count()
-            == 0
-        ):
+        # filter out amount==0
+        transactions = self.from_metatransactions.filter(
+            from_public_key=self.public_key, amount__gt=0
+        )
+        if transactions.count() == 0:
             return 0
         else:
-            return self.from_metatransactions.filter(
-                from_public_key=self.public_key
-            ).aggregate(Max("nonce"))["nonce__max"]
+            return transactions.aggregate(Max("nonce"))["nonce__max"]
 
     @property
     def is_in_public_key_transfer(self):
@@ -424,6 +423,9 @@ class Transaction(UUIDModel):
 
         if self.amount is not None and self.amount < 0:
             errors["amount"] = ValidationError(_("Amount must be >= 0"))
+
+        if self.amount == 0:
+            self.state = TRANSACTION_STATES.DONE.value
 
         if not self.is_mint_transaction:
             if hasattr(self, "from_wallet"):
