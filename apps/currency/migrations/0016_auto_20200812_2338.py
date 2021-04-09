@@ -6,57 +6,59 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('currency', '0015_auto_20200806_1136'),
+        ("currency", "0015_auto_20200806_1136"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='currency',
-            options={'verbose_name': 'Währung', 'verbose_name_plural': 'Währungen'},
+            name="currency",
+            options={"verbose_name": "Währung", "verbose_name_plural": "Währungen"},
         ),
         migrations.AlterField(
-            model_name='currency',
-            name='allow_minting',
-            field=models.BooleanField(default=True, verbose_name='Minting zulassen'),
+            model_name="currency",
+            name="allow_minting",
+            field=models.BooleanField(default=True, verbose_name="Minting zulassen"),
         ),
         migrations.AlterField(
-            model_name='currency',
-            name='campaign_end',
-            field=models.DateField(null=True, verbose_name='Kampagne start'),
+            model_name="currency",
+            name="campaign_end",
+            field=models.DateField(null=True, verbose_name="Kampagne start"),
         ),
         migrations.AlterField(
-            model_name='currency',
-            name='claim_deadline',
-            field=models.DateField(null=True, verbose_name='Spätestes Einlösungsdatum'),
+            model_name="currency",
+            name="claim_deadline",
+            field=models.DateField(null=True, verbose_name="Spätestes Einlösungsdatum"),
         ),
         migrations.AlterField(
-            model_name='currency',
-            name='decimals',
-            field=models.IntegerField(default=0, verbose_name='Dezimalstellen'),
+            model_name="currency",
+            name="decimals",
+            field=models.IntegerField(default=0, verbose_name="Dezimalstellen"),
         ),
         migrations.AlterField(
-            model_name='currency',
-            name='max_claims',
-            field=models.IntegerField(default=5, verbose_name='Maximale Anzahl Einlösungen'),
+            model_name="currency",
+            name="max_claims",
+            field=models.IntegerField(
+                default=5, verbose_name="Maximale Anzahl Einlösungen"
+            ),
         ),
         migrations.AlterField(
-            model_name='currency',
-            name='name',
-            field=models.CharField(max_length=32, verbose_name='Name'),
+            model_name="currency",
+            name="name",
+            field=models.CharField(max_length=32, verbose_name="Name"),
         ),
         migrations.AlterField(
-            model_name='currency',
-            name='starting_capital',
-            field=models.IntegerField(default=10, verbose_name='Startbetrag'),
+            model_name="currency",
+            name="starting_capital",
+            field=models.IntegerField(default=10, verbose_name="Startbetrag"),
         ),
         migrations.AlterField(
-            model_name='currency',
-            name='symbol',
-            field=models.CharField(default='', max_length=5, verbose_name='Symbol'),
+            model_name="currency",
+            name="symbol",
+            field=models.CharField(default="", max_length=5, verbose_name="Symbol"),
         ),
         migrations.AlterField(
-            model_name='currency',
-            name='token_id',
-            field=models.IntegerField(verbose_name='Token ID'),
+            model_name="currency",
+            name="token_id",
+            field=models.IntegerField(verbose_name="Token ID"),
         ),
     ]

@@ -6,23 +6,29 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('verification', '0014_auto_20200813_1415'),
+        ("verification", "0014_auto_20200813_1415"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='companyverification',
-            name='address_postal_code',
-            field=models.CharField(blank=True, max_length=128, null=True, verbose_name='Postal code'),
+            model_name="companyverification",
+            name="address_postal_code",
+            field=models.CharField(
+                blank=True, max_length=128, null=True, verbose_name="Postal code"
+            ),
         ),
         migrations.AddField(
-            model_name='companyverification',
-            name='address_street',
-            field=models.CharField(blank=True, max_length=128, null=True, verbose_name='Street'),
+            model_name="companyverification",
+            name="address_street",
+            field=models.CharField(
+                blank=True, max_length=128, null=True, verbose_name="Street"
+            ),
         ),
         migrations.AddField(
-            model_name='companyverification',
-            name='address_town',
-            field=models.CharField(blank=True, max_length=128, null=True, verbose_name='Town'),
+            model_name="companyverification",
+            name="address_town",
+            field=models.CharField(
+                blank=True, max_length=128, null=True, verbose_name="Town"
+            ),
         ),
     ]

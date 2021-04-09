@@ -6,12 +6,16 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('wallet', '0038_auto_20200826_1340'),
+        ("wallet", "0038_auto_20200826_1340"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='transaction',
-            options={'ordering': ['-created_at'], 'verbose_name': 'Transaction', 'verbose_name_plural': 'Transactions'},
+            name="transaction",
+            options={
+                "ordering": ["-created_at"],
+                "verbose_name": "Transaction",
+                "verbose_name_plural": "Transactions",
+            },
         ),
     ]

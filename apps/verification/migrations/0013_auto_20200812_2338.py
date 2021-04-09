@@ -6,94 +6,142 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('verification', '0012_auto_20200812_1247'),
+        ("verification", "0012_auto_20200812_1247"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='addresspinverification',
-            options={'verbose_name': 'Adress pin verification', 'verbose_name_plural': 'Adress pin verifications'},
+            name="addresspinverification",
+            options={
+                "verbose_name": "Adress pin verification",
+                "verbose_name_plural": "Adress pin verifications",
+            },
         ),
         migrations.AlterModelOptions(
-            name='companyverification',
-            options={'verbose_name': 'Firmenverifikation', 'verbose_name_plural': 'Firmenverifikationen'},
+            name="companyverification",
+            options={
+                "verbose_name": "Firmenverifikation",
+                "verbose_name_plural": "Firmenverifikationen",
+            },
         ),
         migrations.AlterModelOptions(
-            name='smspinverification',
-            options={'verbose_name': 'SMS pin verification', 'verbose_name_plural': 'SMS pin verifications'},
+            name="smspinverification",
+            options={
+                "verbose_name": "SMS pin verification",
+                "verbose_name_plural": "SMS pin verifications",
+            },
         ),
         migrations.AlterModelOptions(
-            name='userverification',
-            options={'verbose_name': 'Benutzerverifikation', 'verbose_name_plural': 'Benutzerverifikationen'},
+            name="userverification",
+            options={
+                "verbose_name": "Benutzerverifikation",
+                "verbose_name_plural": "Benutzerverifikationen",
+            },
         ),
         migrations.AlterField(
-            model_name='addresspinverification',
-            name='pin',
-            field=models.CharField(blank=True, max_length=8, verbose_name='Pin'),
+            model_name="addresspinverification",
+            name="pin",
+            field=models.CharField(blank=True, max_length=8, verbose_name="Pin"),
         ),
         migrations.AlterField(
-            model_name='addresspinverification',
-            name='state',
-            field=models.IntegerField(choices=[(1, 'Offen'), (2, 'Ausstehend'), (3, 'Eingelöst'), (5, 'Failes')], default=1, verbose_name='Status'),
+            model_name="addresspinverification",
+            name="state",
+            field=models.IntegerField(
+                choices=[
+                    (1, "Offen"),
+                    (2, "Ausstehend"),
+                    (3, "Eingelöst"),
+                    (5, "Failes"),
+                ],
+                default=1,
+                verbose_name="Status",
+            ),
         ),
         migrations.AlterField(
-            model_name='companyverification',
-            name='name',
-            field=models.CharField(max_length=128, verbose_name='Name'),
+            model_name="companyverification",
+            name="name",
+            field=models.CharField(max_length=128, verbose_name="Name"),
         ),
         migrations.AlterField(
-            model_name='companyverification',
-            name='state',
-            field=models.IntegerField(choices=[(1, 'Offen'), (2, 'Ausstehend'), (3, 'Eingelöst'), (5, 'Failes')], default=1, verbose_name='Status'),
+            model_name="companyverification",
+            name="state",
+            field=models.IntegerField(
+                choices=[
+                    (1, "Offen"),
+                    (2, "Ausstehend"),
+                    (3, "Eingelöst"),
+                    (5, "Failes"),
+                ],
+                default=1,
+                verbose_name="Status",
+            ),
         ),
         migrations.AlterField(
-            model_name='companyverification',
-            name='uid',
-            field=models.CharField(max_length=15, verbose_name='Uid'),
+            model_name="companyverification",
+            name="uid",
+            field=models.CharField(max_length=15, verbose_name="Uid"),
         ),
         migrations.AlterField(
-            model_name='smspinverification',
-            name='pin',
-            field=models.CharField(blank=True, max_length=8, verbose_name='Pin'),
+            model_name="smspinverification",
+            name="pin",
+            field=models.CharField(blank=True, max_length=8, verbose_name="Pin"),
         ),
         migrations.AlterField(
-            model_name='smspinverification',
-            name='state',
-            field=models.IntegerField(choices=[(1, 'Offen'), (2, 'Ausstehend'), (3, 'Eingelöst'), (5, 'Failes')], default=1, verbose_name='Status'),
+            model_name="smspinverification",
+            name="state",
+            field=models.IntegerField(
+                choices=[
+                    (1, "Offen"),
+                    (2, "Ausstehend"),
+                    (3, "Eingelöst"),
+                    (5, "Failes"),
+                ],
+                default=1,
+                verbose_name="Status",
+            ),
         ),
         migrations.AlterField(
-            model_name='userverification',
-            name='address_postal_code',
-            field=models.CharField(max_length=128, verbose_name='Postal code'),
+            model_name="userverification",
+            name="address_postal_code",
+            field=models.CharField(max_length=128, verbose_name="Postal code"),
         ),
         migrations.AlterField(
-            model_name='userverification',
-            name='address_street',
-            field=models.CharField(max_length=128, verbose_name='Street'),
+            model_name="userverification",
+            name="address_street",
+            field=models.CharField(max_length=128, verbose_name="Street"),
         ),
         migrations.AlterField(
-            model_name='userverification',
-            name='address_town',
-            field=models.CharField(max_length=128, verbose_name='Town'),
+            model_name="userverification",
+            name="address_town",
+            field=models.CharField(max_length=128, verbose_name="Town"),
         ),
         migrations.AlterField(
-            model_name='userverification',
-            name='date_of_birth',
-            field=models.DateField(verbose_name='Date of birth'),
+            model_name="userverification",
+            name="date_of_birth",
+            field=models.DateField(verbose_name="Date of birth"),
         ),
         migrations.AlterField(
-            model_name='userverification',
-            name='first_name',
-            field=models.CharField(max_length=128, verbose_name='Firstname'),
+            model_name="userverification",
+            name="first_name",
+            field=models.CharField(max_length=128, verbose_name="Firstname"),
         ),
         migrations.AlterField(
-            model_name='userverification',
-            name='last_name',
-            field=models.CharField(max_length=128, verbose_name='Lastname'),
+            model_name="userverification",
+            name="last_name",
+            field=models.CharField(max_length=128, verbose_name="Lastname"),
         ),
         migrations.AlterField(
-            model_name='userverification',
-            name='state',
-            field=models.IntegerField(choices=[(1, 'Offen'), (2, 'Ausstehend'), (3, 'Eingelöst'), (5, 'Failes')], default=1, verbose_name='Status'),
+            model_name="userverification",
+            name="state",
+            field=models.IntegerField(
+                choices=[
+                    (1, "Offen"),
+                    (2, "Ausstehend"),
+                    (3, "Eingelöst"),
+                    (5, "Failes"),
+                ],
+                default=1,
+                verbose_name="Status",
+            ),
         ),
     ]

@@ -6,18 +6,21 @@ from apps.verification.models import CompanyVerification
 
 
 def update_company_verifications(apps, schema_editor):
-    CompanyVerification.objects.filter(
-        address_street__isnull=True).update(address_street='no_street')
-    CompanyVerification.objects.filter(
-        address_town__isnull=True).update(address_town='no_town')
+    CompanyVerification.objects.filter(address_street__isnull=True).update(
+        address_street="no_street"
+    )
+    CompanyVerification.objects.filter(address_town__isnull=True).update(
+        address_town="no_town"
+    )
     CompanyVerification.objects.filter(address_postal_code__isnull=True).update(
-        address_postal_code='no_postal_code')
+        address_postal_code="no_postal_code"
+    )
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('verification', '0025_auto_20200915_1450'),
+        ("verification", "0025_auto_20200915_1450"),
     ]
 
     operations = [

@@ -6,22 +6,33 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('wallet', '0040_auto_20200915_1245'),
+        ("wallet", "0040_auto_20200915_1245"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='paperwallet',
-            options={'verbose_name': 'Paper wallet', 'verbose_name_plural': 'Paper wallets'},
+            name="paperwallet",
+            options={
+                "verbose_name": "Paper wallet",
+                "verbose_name_plural": "Paper wallets",
+            },
         ),
         migrations.AlterField(
-            model_name='ownerwallet',
-            name='private_key',
-            field=models.CharField(blank=True, editable=False, max_length=128, unique=True, verbose_name='Privatekey'),
+            model_name="ownerwallet",
+            name="private_key",
+            field=models.CharField(
+                blank=True,
+                editable=False,
+                max_length=128,
+                unique=True,
+                verbose_name="Privatekey",
+            ),
         ),
         migrations.AlterField(
-            model_name='wallet',
-            name='public_key',
-            field=models.CharField(blank=True, max_length=60, unique=True, verbose_name='Publickey'),
+            model_name="wallet",
+            name="public_key",
+            field=models.CharField(
+                blank=True, max_length=60, unique=True, verbose_name="Publickey"
+            ),
         ),
     ]

@@ -1,6 +1,6 @@
-from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from oauth2_provider.models import Application
+from rest_framework import serializers
 
 UserModel = get_user_model()
 
@@ -11,30 +11,32 @@ class UserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
 
-        user = UserModel.objects.create(
-            username=validated_data['username']
-        )
-        user.set_password(validated_data['password'])
+        user = UserModel.objects.create(username=validated_data["username"])
+        user.set_password(validated_data["password"])
         user.save()
 
         return user
 
     class Meta:
         model = UserModel
-        fields = ["username", "password", ]
-
+        fields = [
+            "username",
+            "password",
+        ]
 
 
 class SocialSerializer(serializers.Serializer):
     """
     Serializer which accepts an OAuth2 access token.
     """
+
     access_token = serializers.CharField(
         allow_blank=False,
         trim_whitespace=True,
     )
 
+
 class ApplicationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Application
-        fields = ['name', 'client_id']
+        fields = ["name", "client_id"]

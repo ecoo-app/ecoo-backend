@@ -6,12 +6,12 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('currency', '0002_verificationinput'),
+        ("currency", "0002_verificationinput"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='currency',
-            options={'verbose_name_plural': 'Currencies'},
+            name="currency",
+            options={"verbose_name_plural": "Currencies"},
         ),
     ]

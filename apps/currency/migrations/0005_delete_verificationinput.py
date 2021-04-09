@@ -6,11 +6,11 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('currency', '0004_currency_token_id'),
+        ("currency", "0004_currency_token_id"),
     ]
 
     operations = [
         migrations.DeleteModel(
-            name='VerificationInput',
+            name="VerificationInput",
         ),
     ]

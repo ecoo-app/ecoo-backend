@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('wallet', '0019_auto_20200720_1150'),
+        ("wallet", "0019_auto_20200720_1150"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='metatransaction',
-            name='nonce',
+            model_name="metatransaction",
+            name="nonce",
             field=models.IntegerField(),
         ),
         migrations.AlterField(
-            model_name='transaction',
-            name='amount',
+            model_name="transaction",
+            name="amount",
             field=models.IntegerField(),
         ),
     ]

@@ -6,17 +6,17 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('wallet', '0027_merge_20200805_0741'),
+        ("wallet", "0027_merge_20200805_0741"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='company',
-            options={'ordering': ['created_at'], 'verbose_name_plural': 'Companies'},
+            name="company",
+            options={"ordering": ["created_at"], "verbose_name_plural": "Companies"},
         ),
         migrations.AlterField(
-            model_name='walletpublickeytransferrequest',
-            name='old_public_key',
+            model_name="walletpublickeytransferrequest",
+            name="old_public_key",
             field=models.CharField(blank=True, max_length=60),
         ),
     ]

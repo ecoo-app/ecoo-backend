@@ -1,0 +1,23 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Deeplinks</title>
+
+</head>
+
+<body>
+    <main>
+        <ul>
+            {% for deeplink in deeplinks %}
+            <li>
+                {{deeplink}}
+            </li>
+            {% endfor %}
+        </ul>
+    </main>
+</body>
+
+</html>

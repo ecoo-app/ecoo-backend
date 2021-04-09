@@ -5,10 +5,10 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from apps.currency.models import Currency
-from apps.wallet.models import OwnerWallet, WALLET_CATEGORIES
+from apps.wallet.models import WALLET_CATEGORIES, OwnerWallet
 
 
-@receiver(post_save, sender=Currency, dispatch_uid='currency_create_owner_wallet')
+@receiver(post_save, sender=Currency, dispatch_uid="currency_create_owner_wallet")
 def create_owner_wallet(sender, instance, created, **kwargs):
 
     if created:
@@ -19,8 +19,13 @@ def create_owner_wallet(sender, instance, created, **kwargs):
         retry = True
         while retry:
             try:
-                owner_wallet = OwnerWallet.objects.create(currency=instance, private_key=private_key, wallet_id=OwnerWallet.generate_wallet_id(
-                ), public_key=public_key, category=WALLET_CATEGORIES.OWNER.value)
+                owner_wallet = OwnerWallet.objects.create(
+                    currency=instance,
+                    private_key=private_key,
+                    wallet_id=OwnerWallet.generate_wallet_id(),
+                    public_key=public_key,
+                    category=WALLET_CATEGORIES.OWNER.value,
+                )
                 instance.owner_wallet = owner_wallet
                 instance.cashout_wallet = owner_wallet
                 instance.save()

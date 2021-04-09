@@ -9,11 +9,24 @@ services:
   - docker:dind
  
 stages:
+  - pre_commit
   - build
   - test
+  - coverage
   - publish
   - deploy
   - provision
+
+lintingJob:
+  stage: pre_commit
+  image: python:3.9
+  script:
+    - python -V
+    - pip install pre-commit
+    - pre-commit run --all-files
+  tags:
+    - docker
+
   
 build:
   stage: build
@@ -24,12 +37,47 @@ build:
 
 test:
   stage: test
+  variables:
+    POSTGRES_DB: "postgres"
+    POSTGRES_USER: "postgres"
+    POSTGRES_PASSWORD: "postgres"
+    PGDATA: "/var/lib/postgresql/data"
+    POSTGRES_INITDB_ARGS: "--encoding=UTF8 --data-checksums"
+
+  services:
+    - postgres:9.6
+
   script:
-    
-    - docker run $GOOGLE_TAG python manage.py test
+    - docker stop $CI_PROJECT_NAME-$CI_COMMIT_SHA-test || true
+    - docker rm  $CI_PROJECT_NAME-$CI_COMMIT_SHA-test || true
+    - docker run --user root -e DJANGO_DB_HOST=$POSTGRES_PORT_5432_TCP_ADDR --name $CI_PROJECT_NAME-$CI_COMMIT_SHA-test $GOOGLE_TAG bash -c "pip install coverage && coverage run --branch manage.py test"
   tags:
     - docker
-    
+
+
+coverage:
+  stage: coverage
+  script:
+    - docker start $CI_PROJECT_NAME-$CI_COMMIT_SHA-test
+    - docker exec $CI_PROJECT_NAME-$CI_COMMIT_SHA-test bash -c "coverage --version"
+    - docker exec $CI_PROJECT_NAME-$CI_COMMIT_SHA-test bash -c "coverage report -m"
+    - docker exec $CI_PROJECT_NAME-$CI_COMMIT_SHA-test bash -c "coverage xml" || true
+    - docker exec $CI_PROJECT_NAME-$CI_COMMIT_SHA-test bash -c "coverage html" || true
+    - docker cp $CI_PROJECT_NAME-$CI_COMMIT_SHA-test:/code/coverage_html_report ./coverage_html_report || true
+    - docker cp $CI_PROJECT_NAME-$CI_COMMIT_SHA-test:/code/coverage.xml ./coverage.xml || true
+    - docker stop $CI_PROJECT_NAME-$CI_COMMIT_SHA-test
+    - docker rm $CI_PROJECT_NAME-$CI_COMMIT_SHA-test || true
+  artifacts:
+    reports:
+      cobertura: coverage.xml
+    paths:
+      - ./coverage_html_report/
+    expire_in: 1 week
+  tags:
+    - docker
+
+
+
 publish:
   stage: publish
   image: google/cloud-sdk
@@ -115,7 +163,6 @@ k8s-deploy-production:
   stage: deploy
   only:
     - master
-    - develop
   when: manual
   image: google/cloud-sdk
   before_script:

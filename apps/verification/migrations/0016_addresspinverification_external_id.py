@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('verification', '0015_auto_20200827_0900'),
+        ("verification", "0015_auto_20200827_0900"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='addresspinverification',
-            name='external_id',
+            model_name="addresspinverification",
+            name="external_id",
             field=models.CharField(blank=True, editable=False, max_length=36),
         ),
     ]

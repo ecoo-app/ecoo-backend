@@ -1,4 +1,4 @@
-FROM python:3.8
+FROM python:3.9
 ENV PYTHONUNBUFFERED 1
 
 RUN apt-get -y update \
@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y -t stretch-backports libsodium-dev
 
 RUN pip install --upgrade pip
 
-RUN mkdir -p /code/static /code/media /code/smedia
+RUN mkdir -p /code/static /code/media /code/smedia /code/media/zip/ /code/media/qr/
 
 WORKDIR /code
 

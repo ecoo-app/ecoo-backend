@@ -1,26 +1,26 @@
-asgiref==3.2.10
-astroid==2.4.2
-autopep8==1.5.3
-Babel==2.8.0
-base58==1.0.3
-bson==0.5.10
-cached-property==1.5.2
-cairocffi==1.2.0
-CairoSVG==2.5.0
-certifi==2020.6.20
-cffi==1.14.1
-chardet==3.0.4
-click==7.1.2
-cryptography==3.0
-cssselect2==0.4.1
-cytoolz==0.11.0
-defusedxml==0.7.0rc1
-deprecation==2.1.0
+# asgiref==3.2.10
+# astroid==2.4.2
+# autopep8==1.5.3
+# Babel==2.8.0
+# base58==1.0.3
+# bson==0.5.10
+# cached-property==1.5.2
+# cairocffi==1.2.0
+# CairoSVG==2.5.0
+# certifi==2020.6.20
+# cffi==1.14.1
+# chardet==3.0.4
+# click==7.1.2
+# cryptography==3.0
+# cssselect2==0.4.1
+# cytoolz==0.11.0
+# defusedxml==0.7.0rc1
+# deprecation==2.1.0
 Django==3.1
-django-braces==1.14.0
+# django-braces==1.14.0
 django-filter==2.3.0
-django-formtools==2.2
-django-jet==1.0.8
+# django-formtools==2.2
+# django-jet==1.0.8
 django-oauth-toolkit==1.3.2
 django-otp==0.9.4
 django-phonenumber-field==3.0.1
@@ -29,88 +29,88 @@ django-rest-framework-social-oauth2==1.1.0
 django-simple-task==0.1.2
 django-two-factor-auth==1.12.1
 djangorestframework==3.11.1
-djangorestframework-simplejwt==4.4.0
-docopt==0.6.2
-eth-hash==0.3.1
-eth-typing==2.2.2
-eth-utils==1.10.0
-fastecdsa==1.7.5
+djangorestframework-simplejwt==4.6.0
+# docopt==0.6.2
+# eth-hash==0.3.1
+# eth-typing==2.2.2
+# eth-utils==1.10.0
+# fastecdsa==1.7.5
 fcm-django==0.3.4
-fire==0.3.1
-h11==0.9.0
-html5lib==1.1
-httptools==0.1.1
-idna==2.10
-image==1.5.32
-iso3166==1.0.1
-isort==4.3.21
-lazy-object-proxy==1.4.3
-loguru==0.5.1
-mccabe==0.6.1
-mnemonic==0.19
-mypy-extensions==0.4.3
-netstruct==1.1.2
-oauthlib==3.1.0
-packaging==20.9
-pendulum==2.1.1
+# fire==0.3.1
+# h11==0.9.0
+# html5lib==1.1
+# httptools==0.1.1
+# idna==2.10
+# image==1.5.32
+# iso3166==1.0.1
+# isort==4.3.21
+# lazy-object-proxy==1.4.3
+# loguru==0.5.1
+# mccabe==0.6.1
+# mnemonic==0.19
+# mypy-extensions==0.4.3
+# netstruct==1.1.2
+# oauthlib==3.1.0
+# packaging==20.9
+# pendulum==2.1.1
 phonenumberslite==8.12.7
-Pillow==7.2.0
-ply==3.11
-prompt-toolkit==3.0.16
+Pillow==8.1.2
+# ply==3.11
+# prompt-toolkit==3.0.16
 psycopg2-binary==2.8.4
-py-ecc==5.1.0
-pyblake2==1.1.2
-pycodestyle==2.6.0
-pycountry==20.7.3
-pycparser==2.20
-pyfcm==1.4.7
-pyflakes==2.2.0
-Pygments==2.8.0
-PyJWT==1.7.1
-pylint==2.5.3
-pylint-django==2.3.0
-pylint-plugin-utils==0.6
-pymaging @ git+git://github.com/ojii/pymaging.git@596a08fce5664e58d6e8c96847393fbe987783f2
-pymaging-png @ git+git://github.com/ojii/pymaging-png.git@83d85c44e4b2342818e6c068065e031a9f81bb9f
-pyparsing==2.4.7
-Pyphen==0.10.0
+# py-ecc==5.1.0
+# pyblake2==1.1.2
+# pycodestyle==2.6.0
+# pycountry==20.7.3
+# pycparser==2.20
+# pyfcm==1.4.7
+# pyflakes==2.2.0
+# Pygments==2.8.0
+# PyJWT==1.7.1
+# pylint==2.5.3
+# pylint-django==2.3.0
+# pylint-plugin-utils==0.6
+# pymaging @ git+git://github.com/ojii/pymaging.git@596a08fce5664e58d6e8c96847393fbe987783f2
+# pymaging-png @ git+git://github.com/ojii/pymaging-png.git@83d85c44e4b2342818e6c068065e031a9f81bb9f
+# pyparsing==2.4.7
+# Pyphen==0.10.0
 pypng==0.0.20
 PyQRCode==1.2.1
-pysha3==1.0.2
-pysodium==0.7.7
+# pysha3==1.0.2
+# pysodium==0.7.7
 pytezos==3.0.1
-python-dateutil==2.8.1
-python3-openid==3.2.0
-pytz==2020.1
-pytzdata==2020.1
-pyvim==3.0.2
-PyYAML==5.3.1
-qrcode==6.1
+# python-dateutil==2.8.1
+# python3-openid==3.2.0
+# pytz==2020.1
+# pytzdata==2020.1
+# pyvim==3.0.2
+# PyYAML==5.3.1
+# qrcode==6.1
 raven==6.10.0
-requests==2.24.0
-requests-oauthlib==1.3.0
-rope==0.17.0
+# requests==2.24.0
+# requests-oauthlib==1.3.0
+# rope==0.17.0
 schwifty==2020.5.3
-secp256k1==0.13.2
-simplejson==3.17.2
-six==1.15.0
+# secp256k1==0.13.2
+# simplejson==3.17.2
+# six==1.15.0
 social-auth-app-django==4.0.0
 social-auth-core==3.3.3
-sqlparse==0.3.1
-strict-rfc3339==0.7
-supervisor==4.2.0
-termcolor==1.1.0
-tinycss2==1.1.0
-toml==0.10.1
-toolz==0.11.1
-tqdm==4.48.2
-typed-ast==1.4.1
-urllib3==1.25.10
+# sqlparse==0.3.1
+# strict-rfc3339==0.7
+# supervisor==4.2.0
+# termcolor==1.1.0
+# tinycss2==1.1.0
+# toml==0.10.1
+# toolz==0.11.1
+# tqdm==4.48.2
+# typed-ast==1.4.1
+# urllib3==1.25.10
 uvicorn==0.11.8
-uvloop==0.14.0
-wcwidth==0.2.5
+# uvloop==0.14.0
+# wcwidth==0.2.5
 WeasyPrint==51
-webencodings==0.5.1
-websockets==8.1
+# webencodings==0.5.1
+# websockets==8.1
 whitenoise==5.2.0
-wrapt==1.12.1
+# wrapt==1.12.1
