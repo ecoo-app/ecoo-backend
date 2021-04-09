@@ -166,8 +166,6 @@ def sync_to_blockchain(is_dry_run=True, _async=False):
         .exclude(state=TRANSACTION_STATES.DONE.value)
         .order_by("created_at")
     ):
-        if transaction.to_wallet.from_transactions.count() > 0:
-            state_update_items.append(transaction)
         if not transaction.from_wallet:
             operation_groups.append(
                 token_contract.mint(
@@ -179,8 +177,10 @@ def sync_to_blockchain(is_dry_run=True, _async=False):
                     amount=transaction.amount,
                 ).operation_group.sign()
             )
+            state_update_items.append(transaction)
         elif MetaTransaction.objects.filter(pk=transaction.pk).exists():
             meta_transactions.append(MetaTransaction.objects.get(pk=transaction))
+            state_update_items.append(transaction)
         elif transaction.to_wallet.from_transactions.count() > 0:
             same_from_txs = funding_transactions.get(
                 transaction.from_wallet.address, []
@@ -193,6 +193,7 @@ def sync_to_blockchain(is_dry_run=True, _async=False):
                 }
             )
             funding_transactions[transaction.from_wallet.address] = same_from_txs
+            state_update_items.append(transaction)
 
     # preparing funding
     if len(funding_transactions.items()) > 0:
