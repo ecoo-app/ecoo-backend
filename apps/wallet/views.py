@@ -108,8 +108,14 @@ class MetaTransactionListCreate(generics.ListCreateAPIView):
 
 class WalletPublicKeyTransferRequestListCreate(generics.ListCreateAPIView):
     serializer_class = WalletPublicKeyTransferRequestSerializer
+    filterset_fields = [
+        "wallet__wallet_id",
+    ]
+    filter_backends = [filters.SearchFilter, DjangoFilterBackend]
 
     def get_queryset(self):
+        if self.request.user.is_superuser:
+            return WalletPublicKeyTransferRequest.objects.all()
         return WalletPublicKeyTransferRequest.objects.filter(
             wallet__owner=self.request.user
         )
