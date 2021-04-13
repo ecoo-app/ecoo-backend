@@ -269,6 +269,7 @@ def sync_to_blockchain(is_dry_run=True, _async=False):
                 "Has no balance or was recovering to same pubkey, transferred offchain"
             )
             wallet_public_key_transfer_request.save()
+            wallet_public_key_transfer_request.wallet.notify_owner_transfer_request_done()
 
     if len(wallet_public_key_transfer_payloads) > 0:
         operation_groups.append(
@@ -347,6 +348,8 @@ def sync_to_blockchain(is_dry_run=True, _async=False):
                             TRANSACTION_STATES.DONE.value
                         )
                         wallet_public_key_transfer_request.save()
+                        wallet_public_key_transfer_request.wallet.notify_owner_transfer_request_done()
+
                     if is_confirmed_in_chain:
                         update_sync_state(
                             state_update_items,
