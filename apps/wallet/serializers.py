@@ -8,6 +8,7 @@ from apps.wallet.models import (
     WALLET_CATEGORIES,
     CashOutRequest,
     MetaTransaction,
+    PaperWallet,
     Transaction,
     Wallet,
     WalletPublicKeyTransferRequest,
@@ -34,6 +35,12 @@ class PublicWalletSerializer(serializers.ModelSerializer):
         read_only_fields = [
             "state",
         ]
+
+
+class PublicPaperWalletSerializer(PublicWalletSerializer):
+    class Meta(PublicWalletSerializer.Meta):
+        model = PaperWallet
+        fields = PublicWalletSerializer.Meta.fields + ["can_be_used_for_verification"]
 
 
 class WalletSerializer(PublicWalletSerializer):
@@ -66,6 +73,14 @@ class WalletSerializer(PublicWalletSerializer):
             "state",
         ]
         read_only_fields = ["state", "created_at"]
+
+
+class PaperWalletSerializer(
+    WalletSerializer,
+):
+    class Meta(WalletSerializer.Meta):
+        model = PaperWallet
+        fields = WalletSerializer.Meta.fields + ["can_be_used_for_verification"]
 
 
 class WalletPublicKeyTransferRequestSerializer(serializers.ModelSerializer):

@@ -174,6 +174,21 @@ class PaperWallet(Wallet):
     )
     private_key = models.CharField(unique=True, max_length=128)
 
+    @property
+    def can_be_used_for_verification(self):
+        if self.category == WALLET_CATEGORIES.COMPANY.value:
+            return (
+                self.from_transactions.count() == 0
+                and self.to_transactions.count() == 0
+                and self.balance == 0
+            )
+
+        return (
+            self.from_transactions.count() == 0
+            and self.to_transactions.count() == 1
+            and self.balance == self.currency.starting_capital
+        )
+
     @staticmethod
     def generate_new_wallet(
         currency,
