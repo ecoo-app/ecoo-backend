@@ -1,20 +1,16 @@
 import datetime
-import json
 import os
 import uuid
 import zipfile
 from io import BytesIO
 
 import pyqrcode
-import pysodium
-import pytezos
 import requests
 import weasyprint
 from django import forms
 from django.conf import settings
 from django.contrib import admin, messages
 from django.core.exceptions import PermissionDenied
-from django.db import IntegrityError
 from django.db.models.query import QuerySet
 from django.db.models.query_utils import Q
 from django.http import FileResponse, HttpRequest, HttpResponse, HttpResponseRedirect
@@ -28,10 +24,9 @@ from weasyprint import CSS
 from apps.currency.filters import CurrencyOwnedFilter
 from apps.currency.mixins import CurrencyOwnedAdminMixin
 from apps.currency.models import Currency
-from apps.wallet.forms import GenerateWalletForm
+from apps.wallet.forms import GenerateWalletForm, TransactionAdminForm
 from apps.wallet.models import (
     TRANSACTION_STATES,
-    WALLET_CATEGORIES,
     CashOutRequest,
     MetaTransaction,
     OwnerWallet,
@@ -203,7 +198,6 @@ class TransactionCurrencyFilter(admin.SimpleListFilter):
         currencies = Currency.get_currencies_to_user(request.user)
 
         result = []
-
         for currency in currencies:
             result.append((str(currency.pk), str(currency)))
         return result
@@ -231,6 +225,7 @@ class TransactionAdmin(admin.ModelAdmin):
     list_filter = [TransactionCurrencyFilter, "state", "created_at"]
     search_fields = ["from_wallet__wallet_id", "to_wallet__wallet_id"]
     actions = ["retry_failed", "force_done"]
+    form = TransactionAdminForm
 
     def get_queryset(self, request: HttpRequest) -> QuerySet:
         qs = super().get_queryset(request)
