@@ -125,9 +125,16 @@ class Wallet(CurrencyOwnedMixin):
     def notify_owner_verified(self):
         self.__notify_owner_devices(f"Wallet {self.wallet_id} wurde verifiziert")
 
-    def __notify_owner_devices(self, message):
+    def notify_owner_transfer_request_done(self):
+        self.__notify_owner_devices(
+            f"PublicKeyRequest vollzogen für {self.wallet_id}", data=self.wallet_id
+        )
+
+    def __notify_owner_devices(self, message, data=None):
         devices = FCMDevice.objects.filter(user=self.owner)
-        devices.send_message(title=settings.PUSH_NOTIFICATION_TITLE, body=message)
+        devices.send_message(
+            title=settings.PUSH_NOTIFICATION_TITLE, body=message, data=data
+        )
 
     def clean(self, *args, **kwargs):
         super(Wallet, self).clean(*args, **kwargs)
