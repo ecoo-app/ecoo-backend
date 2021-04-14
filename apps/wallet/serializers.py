@@ -145,6 +145,7 @@ class TransactionSerializer(serializers.ModelSerializer):
             "created_at",
             "submitted_to_chain_at",
             "operation_hash",
+            "notes",
         ]
         read_only_fields = [
             "state",
@@ -167,6 +168,7 @@ class MetaTransactionSerializer(TransactionSerializer):
             "created_at",
             "signature",
             "nonce",
+            "notes",
         ]
         read_only_fields = ["state", "created_at"]
 
