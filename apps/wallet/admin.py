@@ -258,6 +258,7 @@ class MetaTransactionAdmin(admin.ModelAdmin):
     list_display = ["from_wallet", "to_wallet", "amount", "state", "created_at"]
     list_filter = [TransactionCurrencyFilter, "state", "created_at"]
     search_fields = ["from_wallet__wallet_id", "to_wallet__wallet_id"]
+    form = TransactionAdminForm
 
     def get_queryset(self, request: HttpRequest) -> QuerySet:
         qs = super().get_queryset(request)

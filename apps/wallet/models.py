@@ -361,7 +361,7 @@ class Transaction(UUIDModel):
         verbose_name=_("Operation hash"), max_length=128, blank=True, editable=False
     )
 
-    notes = models.TextField(verbose_name=_("Notes"), blank=True, editable=False)
+    notes = models.TextField(verbose_name=_("Notes"), blank=True)
 
     def __str__(self):
         if self.from_wallet:

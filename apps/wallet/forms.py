@@ -15,12 +15,10 @@ class GenerateWalletForm(forms.Form):
 class TransactionAdminForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["from_wallet"].choices = [
-            (wallet.pk, str(wallet)) for wallet in Wallet.objects.all()
-        ]
-        self.fields["to_wallet"].choices = [
-            (wallet.pk, str(wallet)) for wallet in Wallet.objects.all()
-        ]
+        self.fields["from_wallet"].choices = [(None, "No Wallet")] + list(
+            Wallet.objects.values_list("pk", "wallet_id")
+        )
+        self.fields["to_wallet"].choices = Wallet.objects.values_list("pk", "wallet_id")
 
     class Meta:
         model = Transaction
