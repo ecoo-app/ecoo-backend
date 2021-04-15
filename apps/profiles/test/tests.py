@@ -36,6 +36,7 @@ from project.utils_testing import EcouponTestCaseMixin
 
 
 class ProfileApiTest(EcouponTestCaseMixin, APITestCase):
+    @skip("consumers are always verified")
     def test_new_verification_flow_without_sms_consumer(self):
         currency = Currency.objects.create(
             token_id=0,
@@ -136,6 +137,7 @@ class ProfileApiTest(EcouponTestCaseMixin, APITestCase):
         tx.save()
         self.assertEqual(wallet.state, WALLET_STATES.VERIFIED.value)
 
+    @skip("consumers are always verified")
     def test_new_verification_flow_without_sms_consumer_not_valid(self):
         currency = Currency.objects.create(
             token_id=0,
@@ -214,6 +216,7 @@ class ProfileApiTest(EcouponTestCaseMixin, APITestCase):
         tx.save()
         self.assertNotEqual(wallet.state, WALLET_STATES.VERIFIED.value)
 
+    @skip("consumers are always verified")
     def test_new_verification_flow_with_sms_consumer(self):
         currency = Currency.objects.create(
             token_id=0,
