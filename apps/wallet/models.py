@@ -150,6 +150,11 @@ class Wallet(CurrencyOwnedMixin):
         if len(errors) > 0:
             raise ValidationError(errors)
 
+    def save(self, *args, **kwargs):
+        if self.category == WALLET_CATEGORIES.CONSUMER.value:
+            self.state = WALLET_STATES.VERIFIED.value
+        super().save(*args, **kwargs)
+
     class Meta:
         ordering = ["created_at"]
 

@@ -1,3 +1,5 @@
+from unittest.case import skip
+
 import pytezos
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -121,6 +123,7 @@ class TransactionApiTest(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
+    @skip("now consumer wallets are always verified")
     def test_transaction_create_not_verified(self):
         self.client.force_authenticate(user=self.user)
 
