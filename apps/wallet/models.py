@@ -151,7 +151,7 @@ class Wallet(CurrencyOwnedMixin):
             raise ValidationError(errors)
 
     def save(self, *args, **kwargs):
-        if self.category == WALLET_CATEGORIES.CONSUMER.value:
+        if self.category == WALLET_CATEGORIES.CONSUMER.value and self._state.adding:
             self.state = WALLET_STATES.VERIFIED.value
         super().save(*args, **kwargs)
 
@@ -367,6 +367,8 @@ class Transaction(UUIDModel):
     )
 
     notes = models.TextField(verbose_name=_("Notes"), blank=True)
+
+    user_notes = models.TextField(verbose_name=_("User notes"), blank=True)
 
     def __str__(self):
         if self.from_wallet:

@@ -30,7 +30,7 @@ class WalletDetail(generics.RetrieveAPIView):
     serializer_class = WalletSerializer
 
     def get_queryset(self):
-        return Wallet.objects.all()
+        return Wallet.objects.exclude(state=WALLET_STATES.DEACTIVATED.value)
 
     def get_serializer_class(self):
         wallet = self.get_object()

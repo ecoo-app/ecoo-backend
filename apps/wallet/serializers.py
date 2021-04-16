@@ -127,6 +127,7 @@ class TransactionSerializer(serializers.ModelSerializer):
         slug_field="wallet_id",
         queryset=Wallet.objects.all(),
     )
+    notes = serializers.CharField(source="user_notes", allow_blank=True, required=False)
 
     # def validate_from_wallet(self, value):
     #     if value.owner != self.context['request'].user:
@@ -156,6 +157,8 @@ class TransactionSerializer(serializers.ModelSerializer):
 
 
 class MetaTransactionSerializer(TransactionSerializer):
+    notes = serializers.CharField(source="user_notes", allow_blank=True, required=False)
+
     class Meta:
         model = MetaTransaction
         fields = [
