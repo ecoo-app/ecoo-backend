@@ -220,7 +220,13 @@ class TransactionCurrencyFilter(admin.SimpleListFilter):
 
 @admin.register(Transaction)
 class TransactionAdmin(admin.ModelAdmin):
-    readonly_fields = ["submitted_to_chain_at", "operation_hash", "notes", "created_at"]
+    readonly_fields = [
+        "submitted_to_chain_at",
+        "operation_hash",
+        "user_notes",
+        "notes",
+        "created_at",
+    ]
     list_display = ["from_wallet", "to_wallet", "amount", "state", "created_at"]
     list_filter = [TransactionCurrencyFilter, "state", "created_at"]
     search_fields = ["from_wallet__wallet_id", "to_wallet__wallet_id"]
@@ -254,7 +260,13 @@ class TransactionAdmin(admin.ModelAdmin):
 
 @admin.register(MetaTransaction)
 class MetaTransactionAdmin(admin.ModelAdmin):
-    readonly_fields = ["submitted_to_chain_at", "operation_hash", "notes", "created_at"]
+    readonly_fields = [
+        "submitted_to_chain_at",
+        "operation_hash",
+        "user_notes",
+        "notes",
+        "created_at",
+    ]
     list_display = ["from_wallet", "to_wallet", "amount", "state", "created_at"]
     list_filter = [TransactionCurrencyFilter, "state", "created_at"]
     search_fields = ["from_wallet__wallet_id", "to_wallet__wallet_id"]
