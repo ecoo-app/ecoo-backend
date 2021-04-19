@@ -295,6 +295,7 @@ class PaperWallet(Wallet):
             "nonce": base64.b64encode(nonce),
             "id": self.wallet_id,
             "pk": base64.b64encode(pk),
+            "isi": settings.DEEPLINK_ISI_PARAM,
         }
 
         return (
