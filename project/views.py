@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from urllib.parse import urlencode
 
 
+
 @api_view()
 @permission_classes([AllowAny])
 def version(request):
