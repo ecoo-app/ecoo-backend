@@ -26,7 +26,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from two_factor.urls import urlpatterns as tf_urls
 
 from project.mixins import AdminSiteOTPRequiredMixinRedirSetup
-from project.views import version, deeplink
+from project.views import deeplink, version
 
 if not (settings.DEBUG or "test" in sys.argv):
     # disable admin otp if tests or debug set
