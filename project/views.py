@@ -14,14 +14,11 @@ def version(request):
 @api_view()
 @permission_classes([AllowAny])
 def deeplink(request):
-    hotfix_link = "https://ecoo.page.link/?"
-            + urlencode(
+    hotfix_link = "https://ecoo.page.link/?" + urlencode(
                 {
                     "link": "{}wallet/?{}".format(
                         settings.DEEPLINK_BASE_URL, request.GET.urlencode()
                     )
                 }
-            )
-            + "&apn=ch.ecoupon.mobile.android&ibi=ch.ecoupon.mobile&isi="
-            + settings.DEEPLINK_ISI_PARAM
+            ) + "&apn=ch.ecoupon.mobile.android&ibi=ch.ecoupon.mobile&isi=" + settings.DEEPLINK_ISI_PARAM
     return redirect(hotfix_link)
