@@ -14,11 +14,19 @@ spec:
   - hosts:
     - __NAMESPACE_NAME__-backend.prod.gke.papers.tech
     secretName: __NAMESPACE_NAME__-prod-backend-tls
+  - hosts:
+    - app.ecoo.ch
+    secretName: app-ecoo-tls
   rules:
   - host: __NAMESPACE_NAME__-backend.prod.gke.papers.tech
     http:
       paths:
         - backend:
             serviceName: __NAMESPACE_NAME__-backend-service
-            servicePort: 8000            
-
+            servicePort: 8000
+  - host: app.ecoo.ch
+    http:
+      paths:
+        - backend:
+            serviceName: __NAMESPACE_NAME__-backend-service
+            servicePort: 8000   

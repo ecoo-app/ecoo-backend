@@ -306,7 +306,8 @@ class PaperWallet(Wallet):
                     )
                 }
             )
-            + "&apn=ch.ecoupon.mobile.android&ibi=ch.ecoupon.mobile"
+            + "&apn=ch.ecoupon.mobile.android&ibi=ch.ecoupon.mobile&isi="
+            + settings.DEEPLINK_ISI_PARAM
         )
 
     def save(self, *args, **kwargs):
