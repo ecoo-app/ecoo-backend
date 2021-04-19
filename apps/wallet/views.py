@@ -7,6 +7,7 @@ from apps.wallet.models import (
     WALLET_STATES,
     CashOutRequest,
     MetaTransaction,
+    PaperWallet,
     Transaction,
     Wallet,
     WalletPublicKeyTransferRequest,
@@ -14,6 +15,8 @@ from apps.wallet.models import (
 from apps.wallet.serializers import (
     CashOutRequestSerializer,
     MetaTransactionSerializer,
+    PaperWalletSerializer,
+    PublicPaperWalletSerializer,
     PublicWalletSerializer,
     TransactionSerializer,
     WalletPublicKeyTransferRequestSerializer,
@@ -27,7 +30,7 @@ class WalletDetail(generics.RetrieveAPIView):
     serializer_class = WalletSerializer
 
     def get_queryset(self):
-        return Wallet.objects.all()
+        return Wallet.objects.exclude(state=WALLET_STATES.DEACTIVATED.value)
 
     def get_serializer_class(self):
         wallet = self.get_object()
@@ -39,6 +42,9 @@ class WalletDetail(generics.RetrieveAPIView):
 
 
 class PaperWalletDetail(WalletDetail):
+    def get_queryset(self):
+        return PaperWallet.objects.all()
+
     def get_serializer_class(self):
         wallet = self.get_object()
         message_verified = False
@@ -53,9 +59,9 @@ class PaperWalletDetail(WalletDetail):
             except ValueError:
                 raise serializers.ValidationError("invalid signature")
         if wallet.owner == self.request.user or message_verified:
-            return WalletSerializer
+            return PaperWalletSerializer
         else:
-            return PublicWalletSerializer
+            return PublicPaperWalletSerializer
 
 
 class WalletListCreate(generics.ListCreateAPIView):
@@ -108,8 +114,14 @@ class MetaTransactionListCreate(generics.ListCreateAPIView):
 
 class WalletPublicKeyTransferRequestListCreate(generics.ListCreateAPIView):
     serializer_class = WalletPublicKeyTransferRequestSerializer
+    filterset_fields = [
+        "wallet__wallet_id",
+    ]
+    filter_backends = [filters.SearchFilter, DjangoFilterBackend]
 
     def get_queryset(self):
+        if self.request.user.is_superuser:
+            return WalletPublicKeyTransferRequest.objects.all()
         return WalletPublicKeyTransferRequest.objects.filter(
             wallet__owner=self.request.user
         )

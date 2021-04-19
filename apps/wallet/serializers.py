@@ -8,6 +8,7 @@ from apps.wallet.models import (
     WALLET_CATEGORIES,
     CashOutRequest,
     MetaTransaction,
+    PaperWallet,
     Transaction,
     Wallet,
     WalletPublicKeyTransferRequest,
@@ -34,6 +35,12 @@ class PublicWalletSerializer(serializers.ModelSerializer):
         read_only_fields = [
             "state",
         ]
+
+
+class PublicPaperWalletSerializer(PublicWalletSerializer):
+    class Meta(PublicWalletSerializer.Meta):
+        model = PaperWallet
+        fields = PublicWalletSerializer.Meta.fields + ["can_be_used_for_verification"]
 
 
 class WalletSerializer(PublicWalletSerializer):
@@ -66,6 +73,14 @@ class WalletSerializer(PublicWalletSerializer):
             "state",
         ]
         read_only_fields = ["state", "created_at"]
+
+
+class PaperWalletSerializer(
+    WalletSerializer,
+):
+    class Meta(WalletSerializer.Meta):
+        model = PaperWallet
+        fields = WalletSerializer.Meta.fields + ["can_be_used_for_verification"]
 
 
 class WalletPublicKeyTransferRequestSerializer(serializers.ModelSerializer):
@@ -112,6 +127,7 @@ class TransactionSerializer(serializers.ModelSerializer):
         slug_field="wallet_id",
         queryset=Wallet.objects.all(),
     )
+    notes = serializers.CharField(source="user_notes", allow_blank=True, required=False)
 
     # def validate_from_wallet(self, value):
     #     if value.owner != self.context['request'].user:
@@ -130,6 +146,7 @@ class TransactionSerializer(serializers.ModelSerializer):
             "created_at",
             "submitted_to_chain_at",
             "operation_hash",
+            "notes",
         ]
         read_only_fields = [
             "state",
@@ -140,6 +157,8 @@ class TransactionSerializer(serializers.ModelSerializer):
 
 
 class MetaTransactionSerializer(TransactionSerializer):
+    notes = serializers.CharField(source="user_notes", allow_blank=True, required=False)
+
     class Meta:
         model = MetaTransaction
         fields = [
@@ -152,6 +171,7 @@ class MetaTransactionSerializer(TransactionSerializer):
             "created_at",
             "signature",
             "nonce",
+            "notes",
         ]
         read_only_fields = ["state", "created_at"]
 

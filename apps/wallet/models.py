@@ -125,9 +125,16 @@ class Wallet(CurrencyOwnedMixin):
     def notify_owner_verified(self):
         self.__notify_owner_devices(f"Wallet {self.wallet_id} wurde verifiziert")
 
-    def __notify_owner_devices(self, message):
+    def notify_owner_transfer_request_done(self):
+        self.__notify_owner_devices(
+            f"PublicKeyRequest vollzogen für {self.wallet_id}", data=self.wallet_id
+        )
+
+    def __notify_owner_devices(self, message, data=None):
         devices = FCMDevice.objects.filter(user=self.owner)
-        devices.send_message(title=settings.PUSH_NOTIFICATION_TITLE, body=message)
+        devices.send_message(
+            title=settings.PUSH_NOTIFICATION_TITLE, body=message, data=data
+        )
 
     def clean(self, *args, **kwargs):
         super(Wallet, self).clean(*args, **kwargs)
@@ -142,6 +149,11 @@ class Wallet(CurrencyOwnedMixin):
 
         if len(errors) > 0:
             raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        if self.category == WALLET_CATEGORIES.CONSUMER.value and self._state.adding:
+            self.state = WALLET_STATES.VERIFIED.value
+        super().save(*args, **kwargs)
 
     class Meta:
         ordering = ["created_at"]
@@ -173,6 +185,21 @@ class PaperWallet(Wallet):
         blank=True,
     )
     private_key = models.CharField(unique=True, max_length=128)
+
+    @property
+    def can_be_used_for_verification(self):
+        if self.category == WALLET_CATEGORIES.COMPANY.value:
+            return (
+                self.from_transactions.count() == 0
+                and self.to_transactions.count() == 0
+                and self.balance == 0
+            )
+
+        return (
+            self.from_transactions.count() == 0
+            and self.to_transactions.count() == 1
+            and self.balance == self.currency.starting_capital
+        )
 
     @staticmethod
     def generate_new_wallet(
@@ -339,7 +366,9 @@ class Transaction(UUIDModel):
         verbose_name=_("Operation hash"), max_length=128, blank=True, editable=False
     )
 
-    notes = models.TextField(verbose_name=_("Notes"), blank=True, editable=False)
+    notes = models.TextField(verbose_name=_("Notes"), blank=True)
+
+    user_notes = models.TextField(verbose_name=_("User notes"), blank=True)
 
     def __str__(self):
         if self.from_wallet:

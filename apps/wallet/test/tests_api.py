@@ -14,6 +14,8 @@ from apps.wallet.models import (
 )
 from apps.wallet.serializers import (
     CashOutRequestSerializer,
+    PaperWalletSerializer,
+    PublicPaperWalletSerializer,
     PublicWalletSerializer,
     WalletPublicKeyTransferRequestSerializer,
     WalletSerializer,
@@ -158,7 +160,9 @@ class WalletApiTest(BaseEcouponApiTestCase):
             "/api/wallet/paper_wallet/" + self.paper_wallet.wallet_id + "/"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, PublicWalletSerializer(self.paper_wallet).data)
+        self.assertEqual(
+            response.data, PublicPaperWalletSerializer(self.paper_wallet).data
+        )
 
         # invalid signature gives bad request
         signature = "abcd"
@@ -186,7 +190,7 @@ class WalletApiTest(BaseEcouponApiTestCase):
             + "/"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, WalletSerializer(self.paper_wallet).data)
+        self.assertEqual(response.data, PaperWalletSerializer(self.paper_wallet).data)
 
     def test_list_wallets(self):
         response = self.client.get("/api/wallet/wallet/")
