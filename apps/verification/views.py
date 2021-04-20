@@ -216,7 +216,7 @@ def create_paper_wallet_from_userverification(request, uuid):
 
     paper_wallet = PaperWallet.generate_new_wallet(
         place_of_origin=place_of_origin,
-        currency=Currency.objects.all().first(),
+        currency=Currency.objects.filter(token_id=0).first(),
         user_verification=user_verification,
     )
     create_claim_transaction(paper_wallet)
