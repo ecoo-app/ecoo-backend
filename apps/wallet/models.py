@@ -127,7 +127,8 @@ class Wallet(CurrencyOwnedMixin):
 
     def notify_owner_transfer_request_done(self):
         self.__notify_owner_devices(
-            f"PublicKeyRequest vollzogen für {self.wallet_id}", data=self.wallet_id
+            f"PublicKeyRequest vollzogen für {self.wallet_id}",
+            data={"wallet_id": self.wallet_id},
         )
 
     def __notify_owner_devices(self, message, data=None):
