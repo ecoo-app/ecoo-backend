@@ -2,7 +2,9 @@ variables:
     GIT_SUBMODULE_STRATEGY: recursive
     GOOGLE_TAG: eu.gcr.io/papers-kubernetes/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_COMMIT_SHA
     GOOGLE_TAG_LATEST: eu.gcr.io/papers-kubernetes/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:latest
-  
+    GOOGLE_TAG_DEV: eu.gcr.io/papers-dev-kubernetes/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_COMMIT_SHA
+    GOOGLE_TAG_LATEST_DEV: eu.gcr.io/papers-dev-kubernetes/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:latest
+
 image: tmaier/docker-compose:latest
   
 services:
@@ -78,7 +80,7 @@ coverage:
 
 
 
-publish:
+publish-prod:
   stage: publish
   image: google/cloud-sdk
   before_script:
@@ -97,7 +99,29 @@ publish:
     - develop
   tags:
     - docker
- 
+
+publish-dev:
+  stage: publish
+  only:
+    - master
+    - develop
+  
+  image: google/cloud-sdk
+  before_script:
+    - echo $GCLOUD_GOOGLE_KEY_DEV > key.json
+    - gcloud auth activate-service-account $GCLOUD_ACCOUNT_DEV --key-file key.json
+    - gcloud config set account $GCLOUD_ACCOUNT_DEV
+    - gcloud config set project $GCLOUD_PROJECT_DEV
+    - gcloud config set compute/zone $GCLOUD_ZONE
+    - gcloud auth configure-docker
+  script:
+    - docker tag $GOOGLE_TAG $GOOGLE_TAG_DEV
+    - docker tag $GOOGLE_TAG $GOOGLE_TAG_LATEST_DEV
+    - docker push $GOOGLE_TAG_DEV
+    - docker push $GOOGLE_TAG_LATEST_DEV
+  tags:
+    - docker
+
 k8s-deploy-development:
   stage: deploy
   only:
@@ -106,12 +130,13 @@ k8s-deploy-development:
   when: manual
   image: google/cloud-sdk
   before_script:
-    - echo $GCLOUD_GOOGLE_KEY > key.json
-    - gcloud auth activate-service-account $GCLOUD_ACCOUNT --key-file key.json
-    - gcloud config set account $GCLOUD_ACCOUNT
-    - gcloud config set project $GCLOUD_PROJECT
-    - gcloud config set compute/zone $GCLOUD_ZONE_DEVELOPMENT
+    - echo $GCLOUD_GOOGLE_KEY_DEV > key.json
+    - gcloud auth activate-service-account $GCLOUD_ACCOUNT_DEV --key-file key.json
+    - gcloud config set account $GCLOUD_ACCOUNT_DEV
+    - gcloud config set project $GCLOUD_PROJECT_DEV
+    - gcloud config set compute/zone $GCLOUD_ZONE
     - gcloud container clusters get-credentials papers-cluster-development
+ 
   script:
     - find k8s -type f -name \*.yaml -exec sed -i "s|__TO_BE_REPLACED_BY_IMAGE_TAG__|"$GOOGLE_TAG"|g" {} +
     - find k8s -type f -name \*.yaml -exec sed -i "s|__NAMESPACE_NAME__|"$NAMESPACE"|g" {} +
@@ -227,17 +252,18 @@ provision-db-development:
   when: manual
   image: google/cloud-sdk
   before_script:
-    - echo $GCLOUD_GOOGLE_KEY > key.json
-    - gcloud auth activate-service-account $GCLOUD_ACCOUNT --key-file key.json
-    - gcloud config set account $GCLOUD_ACCOUNT
-    - gcloud config set project $GCLOUD_PROJECT
-    - gcloud config set compute/zone $GCLOUD_ZONE_DEVELOPMENT
+    - echo $GCLOUD_GOOGLE_KEY_DEV > key.json
+    - gcloud auth activate-service-account $GCLOUD_ACCOUNT_DEV --key-file key.json
+    - gcloud config set account $GCLOUD_ACCOUNT_DEV
+    - gcloud config set project $GCLOUD_PROJECT_DEV
+    - gcloud config set compute/zone $GCLOUD_ZONE
     - gcloud container clusters get-credentials papers-cluster-development
-    - export STOLON_PROXY=$(kubectl get pods --all-namespaces | grep stolon-proxy | awk 'NR==1{print $2}')
+    - export STOLON_PROXY=$(kubectl get pods --namespace postgres | grep postgres | awk 'NR==1{print $1}')
+  
   script:
-    - kubectl exec -n development-postgresql $STOLON_PROXY -- bash -c "export PGPASSWORD=$PG_DEV_MASTER_PASSWORD && psql --host=localhost --username=$PG_DEV_MASTER_USERNAME postgres -c \"CREATE DATABASE $DJANGO_DB_NAME_DEVELOPMENT\""  || true
-    - kubectl exec -n development-postgresql $STOLON_PROXY -- bash -c "export PGPASSWORD=$PG_DEV_MASTER_PASSWORD && psql --host=localhost --username=$PG_DEV_MASTER_USERNAME postgres -c \"CREATE USER $DJANGO_DB_USER_DEVELOPMENT WITH ENCRYPTED PASSWORD '$DJANGO_DB_PASSWORD_DEVELOPMENT'\"" || true
-    - kubectl exec -n development-postgresql $STOLON_PROXY -- bash -c "export PGPASSWORD=$PG_DEV_MASTER_PASSWORD && psql --host=localhost --username=$PG_DEV_MASTER_USERNAME postgres -c \"GRANT ALL PRIVILEGES ON DATABASE $DJANGO_DB_NAME_DEVELOPMENT to $DJANGO_DB_USER_DEVELOPMENT\""
+    - kubectl exec -n postgres $STOLON_PROXY -- bash -c "export PGPASSWORD=$PG_DEV_MASTER_PASSWORD && psql --host=localhost --username=$PG_DEV_MASTER_USERNAME postgres -c \"CREATE DATABASE $DJANGO_DB_NAME_DEVELOPMENT\""  || true
+    - kubectl exec -n postgres $STOLON_PROXY -- bash -c "export PGPASSWORD=$PG_DEV_MASTER_PASSWORD && psql --host=localhost --username=$PG_DEV_MASTER_USERNAME postgres -c \"CREATE USER $DJANGO_DB_USER_DEVELOPMENT WITH ENCRYPTED PASSWORD '$DJANGO_DB_PASSWORD_DEVELOPMENT'\"" || true
+    - kubectl exec -n postgres $STOLON_PROXY -- bash -c "export PGPASSWORD=$PG_DEV_MASTER_PASSWORD && psql --host=localhost --username=$PG_DEV_MASTER_USERNAME postgres -c \"GRANT ALL PRIVILEGES ON DATABASE $DJANGO_DB_NAME_DEVELOPMENT to $DJANGO_DB_USER_DEVELOPMENT\""
   tags:
     - docker   
     
