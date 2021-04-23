@@ -182,9 +182,8 @@ def sync_to_blockchain(is_dry_run=True, _async=False):
             meta_transactions.append(MetaTransaction.objects.get(pk=transaction))
             state_update_items.append(transaction)
         elif (
-            transaction.to_wallet.from_transactions.count()
-            > 0 | transaction.to_wallet.transfer_requests.count()
-            > 0
+            transaction.to_wallet.from_transactions.count() > 0
+            or transaction.to_wallet.transfer_requests.count() > 0
         ):
             same_from_txs = funding_transactions.get(
                 transaction.from_wallet.address, []
